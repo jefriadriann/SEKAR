@@ -58,7 +58,6 @@ export function AdminView() {
   return (
     <div>
       <PageHeader
-        eyebrow="Persona admin demo"
         title="Admin Dataset"
         description="Kelola dataset simulasi: import JSON dengan validasi, export, dan reset ke seed awal. Semua proses berjalan di browser; tidak ada upload ke server."
       />

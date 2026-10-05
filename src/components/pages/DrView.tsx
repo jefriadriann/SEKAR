@@ -1,250 +1,448 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ArrowRight, CalendarDays, CheckCircle2, ClipboardList, FileText, FolderOpen, Loader, Scale, ShieldAlert, Users, XCircle } from "lucide-react";
+import { AlertCircle, BookOpen, CalendarDays, CheckCircle2, Clock, Download, FileSearch, FileText, FolderOpen, ListChecks, Save } from "lucide-react";
 import { FindingDrawer } from "@/components/domain/FindingDrawer";
 import { RequestDrawer } from "@/components/domain/RequestDrawer";
 import { useReadySekar } from "@/components/providers/SekarProvider";
 import { DataTable, type Column } from "@/components/ui/DataTable";
-import { Badge, Button, Card, cx, EmptyState, KpiCard, PageHeader, SectionHeader } from "@/components/ui/primitives";
-import { ComplianceStatusBadge, FindingStatusBadge, RequestStatusBadge, RequestTimelinessBadge, ScheduleStatusBadge, TimelinessBadge } from "@/components/ui/StatusBadges";
-import { ALL, uniqueSorted } from "@/lib/analytics/common";
-import { findingsByKorwil, findingTimeliness, summarizeFindings } from "@/lib/analytics/findings";
-import { requestTimeliness, summarizeRequests } from "@/lib/analytics/permindok";
+import { Drawer } from "@/components/ui/Overlay";
+import { Badge, Button, Card, DescriptionList, KpiCard, PageHeader, SearchField, SectionHeader, SelectField } from "@/components/ui/primitives";
+import { ComplianceStatusBadge, FindingStatusBadge, RequestStatusBadge } from "@/components/ui/StatusBadges";
+import { ALL, matchesSearch, uniqueSorted } from "@/lib/analytics/common";
+import { findingTimeliness, summarizeFindings } from "@/lib/analytics/findings";
+import { requestTimeliness } from "@/lib/analytics/permindok";
 import { scheduleStatus } from "@/lib/analytics/schedules";
 import { formatDate } from "@/lib/dates";
-import { COMPLIANCE_STATUS_LABEL, formatNumber, formatPercent } from "@/lib/format";
-import { kpwModuleData, onlyDr } from "@/lib/scope";
-import { COMPLIANCE_STATUSES, DR_UNIT_ID, EXAMINERS, type ComplianceItem, type ComplianceStatus, type DocumentRequest, type Examiner, type Finding } from "@/lib/types";
+import { downloadText } from "@/lib/download";
+import { clean, COMPLIANCE_STATUS_LABEL, FINDING_STATUS_LABEL, formatPercent, percent } from "@/lib/format";
+import { onlyDr } from "@/lib/scope";
+import { COMPLIANCE_STATUSES, DR_UNIT_ID, EXAMINERS, type AuditSchedule, type ComplianceItem, type ComplianceStatus, type DocumentRequest, type Examiner, type Finding } from "@/lib/types";
+import { ExaminerBadge } from "./HasilPemeriksaanView";
+import { scheduleShortLabel } from "./PermindokView";
+
+interface ImportantDoc {
+  id: string;
+  name: string;
+  date: string;
+  available: boolean;
+  /** dokumen dataset (scope dr) atau ringkasan yang dibangkitkan dari jadwal DR */
+  docId?: string;
+  schedule?: AuditSchedule;
+}
+
+interface GroupRef {
+  id: string;
+  name: string;
+  group: string;
+  documentId: string;
+}
 
 export function DrView() {
-  const { data, asOf, openDocument, updateCompliance } = useReadySekar();
+  const { data, asOf, openDocument, downloadDocument, notify } = useReadySekar();
+  const drFindingsAll = useMemo(() => onlyDr(data.findings), [data.findings]);
+  const years = uniqueSorted(drFindingsAll.map((f) => f.year));
+  const [period, setPeriod] = useState<string>(years.includes(Number(asOf.slice(0, 4))) ? asOf.slice(0, 4) : ALL);
   const [examiner, setExaminer] = useState<Examiner | typeof ALL>(ALL);
+  const [qFinding, setQFinding] = useState("");
+  const [qCompliance, setQCompliance] = useState("");
+  const [qRequest, setQRequest] = useState("");
+  const [qDoc, setQDoc] = useState("");
+  const [qRef, setQRef] = useState("");
   const [openFinding, setOpenFinding] = useState<string | null>(null);
   const [openRequest, setOpenRequest] = useState<string | null>(null);
+  const [openCompliance, setOpenCompliance] = useState<string | null>(null);
 
-  const drFindings = useMemo(() => onlyDr(data.findings), [data.findings]);
-  const drRequests = useMemo(() => onlyDr(data.document_requests), [data.document_requests]);
-  const drSchedules = useMemo(() => onlyDr(data.audit_schedules).sort((a, b) => a.start_date.localeCompare(b.start_date)), [data.audit_schedules]);
-  const drCompliance = useMemo(() => onlyDr(data.compliance), [data.compliance]);
-  const drDocs = data.documents.filter((d) => d.scope === DR_UNIT_ID);
+  const inPeriod = (d: string) => period === ALL || d.startsWith(period);
+  const drFindings = drFindingsAll.filter((f) => period === ALL || f.year === Number(period));
   const summary = summarizeFindings(drFindings, asOf);
-  const reqSummary = summarizeRequests(drRequests, asOf);
-  const shownFindings = drFindings.filter((f) => examiner === ALL || f.examiner === examiner);
+  const shownFindings = drFindings.filter((f) => (examiner === ALL || f.examiner === examiner) && matchesSearch(qFinding, f.id, f.title, f.recommendation, f.area, f.pic));
+  const compliance = onlyDr(data.compliance).filter((c) => inPeriod(c.due_date) && matchesSearch(qCompliance, c.id, c.aspect, c.pic));
+  const schedIdx = new Map(data.audit_schedules.map((s) => [s.id, s]));
+  const requests = onlyDr(data.document_requests).filter((r) => inPeriod(r.requested_at) && matchesSearch(qRequest, r.id, r.title, r.category, r.dr_note));
+  const drSchedules = onlyDr(data.audit_schedules).filter((s) => period === ALL || s.year === Number(period));
 
-  const kpw = useMemo(() => kpwModuleData(data), [data]);
-  const kpwSummary = summarizeFindings(kpw.findings, asOf);
-  const korwil = findingsByKorwil(kpw.findings, kpw.units, uniqueSorted(kpw.units.map((u) => u.korwil ?? "")).filter(Boolean));
+  const importantDocs: ImportantDoc[] = [
+    ...data.documents.filter((d) => d.scope === DR_UNIT_ID).map((d) => ({ id: d.id, name: d.title, date: asOf, available: true, docId: d.id })),
+    ...drSchedules.map((s) => ({
+      id: `LHP-${s.id}`,
+      name: `Ringkasan Pemeriksaan ${s.examiner} ${s.exam_type} ${s.year}`,
+      date: s.end_date,
+      available: scheduleStatus(s, asOf) === "selesai",
+      schedule: s,
+    })),
+  ].filter((d) => matchesSearch(qDoc, d.name, d.id));
 
-  const groups = uniqueSorted(drFindings.map((f) => f.pic));
+  const groupRefs: GroupRef[] = uniqueSorted(drFindingsAll.map((f) => f.pic)).flatMap((g) => {
+    const areas = uniqueSorted(drFindingsAll.filter((f) => f.pic === g).map((f) => f.area));
+    return data.references
+      .filter((r) => r.kind === "ketentuan" && areas.includes(r.area))
+      .map((r) => ({ id: `${g}-${r.id}`, name: r.title, group: g, documentId: r.document_id }));
+  }).filter((r) => matchesSearch(qRef, r.name, r.group));
+
+  const downloadSummary = (doc: ImportantDoc) => {
+    if (doc.docId) return downloadDocument(doc.docId);
+    const s = doc.schedule!;
+    const rel = drFindingsAll.filter((f) => f.examiner === s.examiner && f.year === s.year);
+    downloadText(
+      `${doc.id}-SIMULASI.txt`,
+      [
+        "RINGKASAN PEMERIKSAAN — DOKUMEN SIMULASI",
+        "Dibangkitkan otomatis dari data jadwal dan temuan DR (data dummy).",
+        "",
+        `Jadwal      : ${s.id} · ${s.examiner} ${s.exam_type} ${s.year}`,
+        `Periode     : ${formatDate(s.start_date)} – ${formatDate(s.end_date)}`,
+        `Temuan      : ${rel.length} (selesai ${rel.filter((f) => f.status === "selesai").length})`,
+        "",
+        ...rel.map((f) => `- ${f.id} ${f.title} [${FINDING_STATUS_LABEL[f.status]}]`),
+      ].join("\n"),
+    );
+    notify(`Berkas ${doc.id}-SIMULASI.txt diunduh.`);
+  };
 
   const fCols: Column<Finding>[] = [
-    { key: "id", header: "ID", render: (f) => <span className="whitespace-nowrap font-mono text-xs">{f.id}</span>, sortValue: (f) => f.id },
-    { key: "exam", header: "Pemeriksa", render: (f) => f.examiner, sortValue: (f) => f.examiner },
-    { key: "area", header: "Area", render: (f) => f.area, sortValue: (f) => f.area },
-    { key: "title", header: "Temuan & rekomendasi", className: "min-w-[240px]", render: (f) => (
+    { key: "exam", header: "Pemeriksaan", render: (f) => (<span className="flex flex-col items-start gap-0.5"><ExaminerBadge examiner={f.examiner} /><span className="text-[11px] text-muted">{f.year}</span></span>), sortValue: (f) => f.examiner },
+    {
+      key: "title",
+      header: "Temuan Utama",
+      className: "min-w-[130px]",
+      render: (f) => (
         <span>
-          <span className="font-semibold">{f.title}</span>
-          <span className="block text-xs text-muted">{f.recommendation}</span>
+          <span className="block">{clean(f.title)}</span>
+          <span className="text-[12px] text-muted">{f.area}</span>
         </span>
-      ), sortValue: (f) => f.title },
-    { key: "pic", header: "Kelompok", render: (f) => <span className="whitespace-nowrap">{f.pic}</span>, sortValue: (f) => f.pic },
-    { key: "status", header: "Status", render: (f) => <FindingStatusBadge status={f.status} />, sortValue: (f) => f.status },
-    { key: "due", header: "Tenggat", render: (f) => (
-        <span className="whitespace-nowrap">
-          {formatDate(f.due_date)}
-          <span className="mt-1 block"><TimelinessBadge value={findingTimeliness(f, asOf)} /></span>
+      ),
+      sortValue: (f) => f.title,
+    },
+    { key: "rec", header: "Rekomendasi", className: "min-w-[120px] text-muted", render: (f) => <span className="line-clamp-2">{clean(f.recommendation)}</span> },
+    { key: "pic", header: "PIC Kelompok", render: (f) => f.pic.replace("Kelompok Simulasi", "Kel. Sim."), sortValue: (f) => f.pic },
+    { key: "due", header: "Target", render: (f) => <span className="whitespace-nowrap">{formatDate(f.due_date)}</span>, sortValue: (f) => f.due_date },
+    {
+      key: "status",
+      header: "Status",
+      render: (f) => (
+        <span className="flex flex-col items-start gap-1">
+          <FindingStatusBadge status={f.status} />
+          {findingTimeliness(f, asOf) === "lewat_tenggat" && <Badge tone="rose">Lewat tenggat</Badge>}
         </span>
-      ), sortValue: (f) => f.due_date },
+      ),
+      sortValue: (f) => f.status,
+    },
+    {
+      key: "bukti",
+      header: "Bukti",
+      render: (f) =>
+        f.evidence_document_id ? (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              openDocument(f.evidence_document_id!);
+            }}
+            className="inline-flex items-center gap-1 font-semibold text-brand hover:underline"
+          >
+            <FileText className="h-3.5 w-3.5" aria-hidden />
+            Bukti
+          </button>
+        ) : (
+          <span className="text-muted">-</span>
+        ),
+    },
   ];
 
   const cCols: Column<ComplianceItem>[] = [
-    { key: "id", header: "ID", render: (c) => <span className="whitespace-nowrap font-mono text-xs">{c.id}</span>, sortValue: (c) => c.id },
-    { key: "aspect", header: "Aspek kepatuhan", className: "min-w-[200px]", render: (c) => c.aspect, sortValue: (c) => c.aspect },
-    { key: "pic", header: "PIC", render: (c) => c.pic, sortValue: (c) => c.pic },
-    { key: "due", header: "Tenggat", render: (c) => (
+    {
+      key: "aspect",
+      header: "Aspek Kepatuhan / PIC Kelompok",
+      className: "min-w-[150px]",
+      render: (c) => (
+        <span>
+          <span className="block">{clean(c.aspect)}</span>
+          <span className="text-[11.5px] text-muted">{c.pic}</span>
+        </span>
+      ),
+      sortValue: (c) => c.aspect,
+    },
+    {
+      key: "due",
+      header: "Target Waktu",
+      render: (c) => (
         <span className="whitespace-nowrap">
           {formatDate(c.due_date)}
-          {c.status !== "selesai" && c.due_date < asOf && <span className="mt-1 block"><Badge tone="rose">Lewat tenggat</Badge></span>}
+          {c.status !== "selesai" && c.due_date < asOf && <span className="block text-[11px] font-semibold text-[#c62f35]">Lewat tenggat</span>}
         </span>
-      ), sortValue: (c) => c.due_date },
+      ),
+      sortValue: (c) => c.due_date,
+    },
     { key: "status", header: "Status", render: (c) => <ComplianceStatusBadge status={c.status} />, sortValue: (c) => c.status },
-    { key: "edit", header: "Ubah status", render: (c) => (
-        <label className="flex items-center gap-1">
-          <span className="sr-only">Ubah status {c.id}</span>
-          <select
-            value={c.status}
-            onChange={(e) => updateCompliance(c.id, e.target.value as ComplianceStatus)}
-            onClick={(e) => e.stopPropagation()}
-            className="h-8 rounded-md border border-line bg-white px-1.5 text-sm"
-          >
-            {COMPLIANCE_STATUSES.map((s) => <option key={s} value={s}>{COMPLIANCE_STATUS_LABEL[s]}</option>)}
-          </select>
-        </label>
-      ) },
   ];
 
   const rCols: Column<DocumentRequest>[] = [
-    { key: "id", header: "ID", render: (r) => <span className="whitespace-nowrap font-mono text-xs">{r.id}</span>, sortValue: (r) => r.id },
-    { key: "cat", header: "Kategori", render: (r) => r.category, sortValue: (r) => r.category },
-    { key: "req", header: "Permintaan", render: (r) => formatDate(r.requested_at), sortValue: (r) => r.requested_at },
-    { key: "due", header: "Tenggat", render: (r) => formatDate(r.due_date), sortValue: (r) => r.due_date },
-    { key: "sub", header: "Penyampaian", render: (r) => formatDate(r.submitted_at, "Belum"), sortValue: (r) => r.submitted_at },
-    { key: "status", header: "Kelengkapan", render: (r) => <RequestStatusBadge status={r.status} />, sortValue: (r) => r.status },
-    { key: "time", header: "Ketepatan waktu", render: (r) => <RequestTimelinessBadge value={requestTimeliness(r, asOf)} /> },
+    { key: "sched", header: "Pemeriksaan", render: (r) => scheduleShortLabel(schedIdx.get(r.schedule_id)), sortValue: (r) => r.schedule_id },
+    {
+      key: "title",
+      header: "Uraian Permintaan Dokumen",
+      className: "min-w-[100px]",
+      render: (r) => (
+        <span>
+          <span className="block">{clean(r.title)}</span>
+          <span className="text-[11.5px] text-muted">Kategori {r.category}</span>
+        </span>
+      ),
+      sortValue: (r) => r.title,
+    },
+    { key: "due", header: "Target Waktu", render: (r) => <span className="whitespace-nowrap">{formatDate(r.due_date)}</span>, sortValue: (r) => r.due_date },
+    {
+      key: "status",
+      header: "Status",
+      render: (r) => {
+        const t = requestTimeliness(r, asOf);
+        return (
+          <span className="flex flex-col items-start gap-1">
+            <RequestStatusBadge status={r.status} />
+            {(t === "terlambat" || t === "lewat_tenggat") && (
+              <Badge tone="rose">
+                <AlertCircle className="h-3.5 w-3.5" aria-hidden />
+                Terlambat
+              </Badge>
+            )}
+          </span>
+        );
+      },
+      sortValue: (r) => r.status,
+    },
+  ];
+
+  const dCols: Column<ImportantDoc>[] = [
+    {
+      key: "name",
+      header: "Nama Dokumen",
+      className: "min-w-[180px]",
+      render: (d) => (
+        <span className="flex items-center gap-2">
+          <span className="grid h-7 w-6 shrink-0 place-items-center rounded-sm bg-[#e5484d] text-[8px] font-bold text-white" aria-hidden>
+            TXT
+          </span>
+          <span>{d.name}</span>
+        </span>
+      ),
+      sortValue: (d) => d.name,
+    },
+    { key: "date", header: "Tanggal", render: (d) => <span className="whitespace-nowrap">{d.available ? formatDate(d.date) : "Belum tersedia"}</span>, sortValue: (d) => d.date },
+    {
+      key: "dl",
+      header: "Unduh",
+      render: (d) => (
+        <button
+          type="button"
+          disabled={!d.available}
+          onClick={() => downloadSummary(d)}
+          className="grid h-8 w-8 place-items-center rounded-md text-brand hover:bg-sky-50 disabled:opacity-30"
+          aria-label={`Unduh ${d.name}`}
+        >
+          <Download className="h-4 w-4" aria-hidden />
+        </button>
+      ),
+    },
+  ];
+
+  const gCols: Column<GroupRef>[] = [
+    {
+      key: "name",
+      header: "Nama Dokumen",
+      className: "min-w-[170px]",
+      render: (r) => (
+        <span className="flex items-center gap-2">
+          <span className="grid h-7 w-6 shrink-0 place-items-center rounded-sm bg-[#e5484d] text-[8px] font-bold text-white" aria-hidden>
+            TXT
+          </span>
+          <span>{clean(r.name)}</span>
+        </span>
+      ),
+      sortValue: (r) => r.name,
+    },
+    { key: "group", header: "Kelompok", render: (r) => r.group.replace("Kelompok Simulasi", "Kel. Sim."), sortValue: (r) => r.group },
+    {
+      key: "dl",
+      header: "Buka",
+      render: (r) => (
+        <button type="button" onClick={() => openDocument(r.documentId)} className="grid h-8 w-8 place-items-center rounded-md text-brand hover:bg-sky-50" aria-label={`Buka ${r.name}`}>
+          <Download className="h-4 w-4" aria-hidden />
+        </button>
+      ),
+    },
   ];
 
   return (
     <div>
       <PageHeader
-        eyebrow="Khusus Departemen Regional"
         title="Dashboard Departemen Regional"
-        description="Temuan, kepatuhan dan permintaan dokumen unit DR. Data DR dipisahkan dan tidak pernah muncul pada modul KPw."
+        description="Informasi pemeriksaan, kepatuhan satker, permintaan dokumen, dan referensi untuk mendukung pengawasan, evaluasi, dan pembelajaran."
+        actions={
+          <SelectField
+            id="dr-period"
+            label="Periode Data"
+            icon={<CalendarDays />}
+            className="w-[180px]"
+            value={period}
+            onChange={setPeriod}
+            options={[{ value: ALL, label: "Semua Tahun" }, ...years.map((y) => ({ value: String(y), label: `Tahun ${y}` }))]}
+          />
+        }
       />
 
-      <div className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
-        <KpiCard label="Temuan DR" value={formatNumber(summary.total)} hint={`${formatPercent(summary.pctSelesai)} selesai`} icon={<ClipboardList className="h-5 w-5" />} />
-        <KpiCard label="Selesai" value={formatNumber(summary.byStatus.selesai)} tone="teal" icon={<CheckCircle2 className="h-5 w-5" />} />
-        <KpiCard label="Dalam proses" value={formatNumber(summary.byStatus.dalam_proses)} tone="amber" icon={<Loader className="h-5 w-5" />} />
-        <KpiCard label="Belum ditindaklanjuti" value={formatNumber(summary.byStatus.belum_ditindaklanjuti)} tone="rose" icon={<XCircle className="h-5 w-5" />} />
-        <KpiCard label="Lewat tenggat" value={formatNumber(summary.overdue)} hint={`per ${formatDate(asOf)}`} tone="violet" icon={<ShieldAlert className="h-5 w-5" />} />
-      </div>
-
-      <Card className="mb-5" aria-labelledby="dr-temuan">
-        <SectionHeader
-          id="dr-temuan"
-          title="Pemeriksaan & temuan DR"
-          description="Saring berdasarkan pemeriksa. Klik baris untuk detail dan pembaruan status."
-          actions={
-            <div className="flex rounded-lg border border-line p-0.5" role="group" aria-label="Filter pemeriksa">
-              {[ALL, ...EXAMINERS].map((e) => {
-                const count = e === ALL ? drFindings.length : drFindings.filter((f) => f.examiner === e).length;
-                return (
-                  <button
-                    key={e}
-                    type="button"
-                    aria-pressed={examiner === e}
-                    onClick={() => setExaminer(e as Examiner | typeof ALL)}
-                    className={cx("rounded-md px-3 py-1.5 text-sm font-semibold", examiner === e ? "bg-navy-800 text-white" : "text-navy-700 hover:bg-sky-50")}
-                  >
-                    {e === ALL ? "Semua" : e} ({count})
-                  </button>
-                );
-              })}
-            </div>
-          }
+      <div className="mb-4 grid grid-cols-2 gap-3 xl:grid-cols-4">
+        <KpiCard label="Total Temuan Pemeriksaan" value={summary.total} icon={<FileSearch />} tone="blue" />
+        <KpiCard tinted tone="teal" label="Selesai" value={summary.byStatus.selesai} hint={formatPercent(summary.pctSelesai)} icon={<CheckCircle2 />} />
+        <KpiCard tinted tone="amber" label="Dalam Proses" value={summary.byStatus.dalam_proses} hint={formatPercent(percent(summary.byStatus.dalam_proses, summary.total))} icon={<Clock />} />
+        <KpiCard
+          tinted
+          tone="rose"
+          label="Belum Selesai"
+          value={summary.byStatus.belum_ditindaklanjuti}
+          hint={formatPercent(percent(summary.byStatus.belum_ditindaklanjuti, summary.total))}
+          icon={<AlertCircle />}
         />
-        <DataTable rows={shownFindings} columns={fCols} rowKey={(f) => f.id} caption="Temuan unit DR" onRowOpen={(f) => setOpenFinding(f.id)} initialSort={{ key: "due", dir: "asc" }} />
-      </Card>
+      </div>
 
-      <div className="mb-5 grid gap-4 xl:grid-cols-2">
-        <Card aria-labelledby="dr-kepatuhan">
-          <SectionHeader id="dr-kepatuhan" icon={<Scale className="h-5 w-5 text-teal-700" aria-hidden />} title="Data kepatuhan DR" description={`${drCompliance.filter((c) => c.status === "selesai").length} dari ${drCompliance.length} kewajiban selesai. Status dapat diubah (demo).`} />
-          <DataTable rows={drCompliance} columns={cCols} rowKey={(c) => c.id} caption="Kewajiban kepatuhan DR" initialSort={{ key: "due", dir: "asc" }} dense />
+      <div className="mb-4 grid gap-4 xl:grid-cols-[1.55fr_1fr]">
+        <Card aria-labelledby="dr-temuan">
+          <SectionHeader
+            id="dr-temuan"
+            icon={<FileSearch />}
+            title="Hasil Pemeriksaan Departemen Regional"
+            description="Daftar temuan dan tindak lanjut hasil pemeriksaan BPK, DAI, dan KAA."
+            actions={
+              <SelectField
+                id="dr-exam"
+                label="Pemeriksa"
+                hideLabel
+                className="w-[150px]"
+                value={examiner}
+                onChange={setExaminer}
+                options={[{ value: ALL, label: `Semua (${drFindings.length})` }, ...EXAMINERS.map((e) => ({ value: e, label: `${e} (${drFindings.filter((f) => f.examiner === e).length})` }))]}
+              />
+            }
+          />
+          <DataTable
+            rows={shownFindings}
+            columns={fCols}
+            rowKey={(f) => f.id}
+            caption="Temuan unit DR"
+            onRowOpen={(f) => setOpenFinding(f.id)}
+            openColumnKey="title"
+            initialSort={{ key: "due", dir: "asc" }}
+            pageSize={5}
+            dense
+            minWidth={740}
+            toolbar={<SearchField id="dr-q-f" label="Cari temuan" hideLabel value={qFinding} onChange={setQFinding} placeholder="Cari temuan, rekomendasi, atau PIC..." />}
+          />
         </Card>
-        <Card aria-labelledby="dr-permindok">
-          <SectionHeader id="dr-permindok" icon={<FolderOpen className="h-5 w-5 text-navy-700" aria-hidden />} title="Permindok DR" description={`${reqSummary.byStatus.lengkap} lengkap · ${reqSummary.byTimeliness.lewat_tenggat} lewat tenggat dari ${reqSummary.total} permintaan.`} />
-          <DataTable rows={drRequests} columns={rCols} rowKey={(r) => r.id} caption="Permintaan dokumen DR" onRowOpen={(r) => setOpenRequest(r.id)} openLabel="Edit" initialSort={{ key: "due", dir: "asc" }} dense />
+        <Card aria-labelledby="dr-kepatuhan">
+          <SectionHeader id="dr-kepatuhan" icon={<ListChecks />} title="Data Kepatuhan Satker DR" description="Daftar aspek kepatuhan beserta target waktunya. Klik untuk ubah status (demo)." />
+          <DataTable
+            rows={compliance}
+            columns={cCols}
+            rowKey={(c) => c.id}
+            caption="Kewajiban kepatuhan DR"
+            onRowOpen={(c) => setOpenCompliance(c.id)}
+            openColumnKey="aspect"
+            initialSort={{ key: "due", dir: "asc" }}
+            pageSize={5}
+            dense
+            minWidth={420}
+            toolbar={<SearchField id="dr-q-c" label="Cari aspek kepatuhan" hideLabel value={qCompliance} onChange={setQCompliance} placeholder="Cari aspek kepatuhan..." />}
+          />
         </Card>
       </div>
 
-      <div className="mb-5 grid gap-4 lg:grid-cols-3">
-        <Card aria-labelledby="dr-jadwal">
-          <SectionHeader id="dr-jadwal" icon={<CalendarDays className="h-5 w-5 text-violet-700" aria-hidden />} title="Jadwal pemeriksaan DR" />
-          {drSchedules.length ? (
-            <ul className="space-y-2">
-              {drSchedules.map((s) => (
-                <li key={s.id} className="flex items-center justify-between gap-2 rounded-lg border border-line px-3 py-2 text-sm">
-                  <span>
-                    <span className="font-semibold">{s.id}</span> · {s.examiner} {s.exam_type}
-                    <span className="block text-xs text-muted">{formatDate(s.start_date)} – {formatDate(s.end_date)}</span>
-                  </span>
-                  <ScheduleStatusBadge status={scheduleStatus(s, asOf)} />
-                </li>
-              ))}
-            </ul>
-          ) : <EmptyState title="Tidak ada jadwal DR" />}
+      <div className="grid gap-4 xl:grid-cols-[1.15fr_1fr_1fr]">
+        <Card aria-labelledby="dr-permindok">
+          <SectionHeader id="dr-permindok" icon={<FolderOpen />} title="Tracker Permintaan Dokumen (Permindok)" description="Monitoring pemenuhan permintaan dokumen DR." />
+          <DataTable
+            rows={requests}
+            columns={rCols}
+            rowKey={(r) => r.id}
+            caption="Permintaan dokumen DR"
+            onRowOpen={(r) => setOpenRequest(r.id)}
+            openColumnKey="title"
+            initialSort={{ key: "due", dir: "asc" }}
+            pageSize={5}
+            dense
+            minWidth={360}
+            toolbar={<SearchField id="dr-q-r" label="Cari dokumen atau pemeriksaan" hideLabel value={qRequest} onChange={setQRequest} placeholder="Cari dokumen atau pemeriksaan..." />}
+          />
         </Card>
         <Card aria-labelledby="dr-dok">
-          <SectionHeader id="dr-dok" icon={<FileText className="h-5 w-5 text-sky-700" aria-hidden />} title="Dokumen penting" description="Dokumen dengan cakupan unit DR (khusus DR/admin)." />
-          {drDocs.length ? (
-            <ul className="space-y-2">
-              {drDocs.map((d) => (
-                <li key={d.id} className="flex items-center justify-between gap-2 rounded-lg border border-line px-3 py-2 text-sm">
-                  <span className="font-semibold">{d.title}</span>
-                  <Button size="sm" onClick={() => openDocument(d.id)}>Buka</Button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <EmptyState title="Belum ada dokumen DR" description="Dataset simulasi ini belum memuat dokumen dengan cakupan DR. Dokumen yang ditambahkan lewat import akan tampil di sini." />
-          )}
+          <SectionHeader id="dr-dok" icon={<FileText />} iconTone="sky" title="Dokumen Penting" description="Laporan hasil pemeriksaan (ringkasan simulasi dari data)." />
+          <DataTable
+            rows={importantDocs}
+            columns={dCols}
+            rowKey={(d) => d.id}
+            caption="Dokumen penting DR"
+            initialSort={{ key: "date", dir: "asc" }}
+            pageSize={5}
+            dense
+            minWidth={360}
+            emptyTitle="Belum ada dokumen DR"
+            toolbar={<SearchField id="dr-q-d" label="Cari dokumen" hideLabel value={qDoc} onChange={setQDoc} placeholder="Cari dokumen..." />}
+          />
         </Card>
         <Card aria-labelledby="dr-ketentuan">
-          <SectionHeader id="dr-ketentuan" icon={<Users className="h-5 w-5 text-amber-700" aria-hidden />} title="Ketentuan per kelompok" description="Materi ketentuan simulasi sesuai area temuan tiap kelompok." />
-          <div className="space-y-3">
-            {groups.map((g) => {
-              const areas = uniqueSorted(drFindings.filter((f) => f.pic === g).map((f) => f.area));
-              const refs = data.references.filter((r) => r.kind === "ketentuan" && areas.includes(r.area));
-              return (
-                <div key={g}>
-                  <p className="text-sm font-bold text-navy-900">{g}</p>
-                  <div className="mt-1 flex flex-wrap gap-1.5">
-                    {refs.map((r) => (
-                      <button key={r.id} type="button" onClick={() => openDocument(r.document_id)} className="rounded-full border border-teal-200 bg-teal-50 px-2.5 py-1 text-xs font-semibold text-teal-900 hover:bg-teal-100">
-                        {r.area}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <SectionHeader id="dr-ketentuan" icon={<BookOpen />} iconTone="violet" title="Ketentuan Kelompok" description="Materi ketentuan (simulasi) sesuai area temuan tiap kelompok." />
+          <DataTable
+            rows={groupRefs}
+            columns={gCols}
+            rowKey={(r) => r.id}
+            caption="Ketentuan per kelompok"
+            initialSort={{ key: "group", dir: "asc" }}
+            pageSize={5}
+            dense
+            minWidth={320}
+            toolbar={<SearchField id="dr-q-k" label="Cari dokumen ketentuan" hideLabel value={qRef} onChange={setQRef} placeholder="Cari dokumen..." />}
+          />
         </Card>
       </div>
 
-      <Card aria-labelledby="dr-overview">
-        <SectionHeader
-          id="dr-overview"
-          title="Overview seluruh KPw"
-          description="Ringkasan modul KPw (tanpa temuan DR). Buka modul untuk analisis lengkap."
-          actions={
-            <Link href="/hasil-pemeriksaan" className="inline-flex items-center gap-1 rounded-lg bg-navy-800 px-3 py-2 text-sm font-semibold text-white hover:bg-navy-700">
-              Buka Hasil Pemeriksaan <ArrowRight className="h-4 w-4" aria-hidden />
-            </Link>
-          }
-        />
-        <div className="grid gap-3 sm:grid-cols-3">
-          <KpiCard label="Temuan KPw" value={formatNumber(kpwSummary.total)} hint="Semua tahun" />
-          <KpiCard label="KPw terdampak" value={formatNumber(kpwSummary.uniqueUnits)} tone="navy" hint={`dari ${kpw.units.length} KPw`} />
-          <KpiCard label="Lewat tenggat" value={formatNumber(kpwSummary.overdue)} tone="rose" hint={`per ${formatDate(asOf)}`} />
-        </div>
-        <div className="relative mt-3 overflow-x-auto">
-          <table className="w-full min-w-[480px] text-sm">
-            <caption className="sr-only">Temuan KPw per korwil</caption>
-            <thead className="text-left text-muted">
-              <tr>
-                <th scope="col" className="py-1.5 pr-2">Korwil</th>
-                <th scope="col" className="py-1.5 pr-2 text-right">Temuan</th>
-                <th scope="col" className="py-1.5 text-right">KPw unik</th>
-              </tr>
-            </thead>
-            <tbody>
-              {korwil.map((k) => (
-                <tr key={k.key} className="border-t border-slate-100">
-                  <td className="py-1.5 pr-2 font-semibold">{k.key}</td>
-                  <td className="py-1.5 pr-2 text-right tabular-nums">{k.count}</td>
-                  <td className="py-1.5 text-right tabular-nums">{k.uniqueUnits}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Card>
-
+      <ComplianceDrawer id={openCompliance} onClose={() => setOpenCompliance(null)} />
       <FindingDrawer findingId={openFinding} onClose={() => setOpenFinding(null)} />
       <RequestDrawer requestId={openRequest} onClose={() => setOpenRequest(null)} />
+    </div>
+  );
+}
+
+function ComplianceDrawer({ id, onClose }: { id: string | null; onClose: () => void }) {
+  const { data, asOf, updateCompliance } = useReadySekar();
+  const item = id ? data.compliance.find((c) => c.id === id) : null;
+  return (
+    <Drawer open={!!item} onClose={onClose} title={item ? `Kewajiban ${item.id}` : "Kewajiban"} subtitle={item?.aspect}>
+      {item && <ComplianceForm key={`${item.id}-${item.status}`} item={item} asOf={asOf} onSave={(s) => updateCompliance(item.id, s)} />}
+    </Drawer>
+  );
+}
+
+function ComplianceForm({ item, asOf, onSave }: { item: ComplianceItem; asOf: string; onSave: (s: ComplianceStatus) => void }) {
+  const [status, setStatus] = useState<ComplianceStatus>(item.status);
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap gap-2">
+        <ComplianceStatusBadge status={item.status} />
+        {item.status !== "selesai" && item.due_date < asOf && <Badge tone="rose">Lewat tenggat</Badge>}
+        <Badge tone="amber">DATA DUMMY</Badge>
+      </div>
+      <DescriptionList
+        items={[
+          { term: "PIC Kelompok", value: item.pic },
+          { term: "Target waktu", value: formatDate(item.due_date) },
+        ]}
+      />
+      <div className="flex flex-wrap items-end gap-2 rounded-xl border border-line bg-[#f5f9fe] p-4">
+        <SelectField id="comp-status" label="Status" value={status} onChange={setStatus} options={COMPLIANCE_STATUSES.map((s) => ({ value: s, label: COMPLIANCE_STATUS_LABEL[s] }))} />
+        <Button variant="primary" onClick={() => onSave(status)} disabled={status === item.status}>
+          <Save className="h-4 w-4" aria-hidden />
+          Simpan status
+        </Button>
+      </div>
     </div>
   );
 }

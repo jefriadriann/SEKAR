@@ -44,7 +44,7 @@ Untuk `test:e2e` dibutuhkan browser Chromium untuk Playwright (`npx playwright i
 
 | Route | Isi |
 |---|---|
-| `/` | Beranda: hero, 4 kartu modul dengan angka live, indikator Mode Demo, persona demo |
+| `/` | Beranda "Selamat Datang di SEKAR" dengan 4 kartu menu (Hasil Pemeriksaan KPwDN, Tracker Permindok, Jadwal Pemeriksaan, SGo dan Ketentuan); tiap kartu membuka modulnya |
 | `/hasil-pemeriksaan` | Filter tahun (termasuk Semua Tahun)/pemeriksa/korwil/KPw/area/status/ketepatan waktu/pencarian; chart per area, korwil, tren tahunan, proporsi pemeriksa (klik = filter, ada reset & tampilan tabel); tabel temuan atau agregasi tema (jumlah temuan vs kantor terdampak); drawer detail + bukti + edit status; rekonsiliasi aset; materi pembelajaran; export CSV |
 | `/permindok` | Filter tahun/jadwal/kategori/KPw/status/ketepatan waktu + pencarian; KPI kelengkapan **terpisah** dari ketepatan waktu; chart status per kategori; catatan pemenuhan; tabel + edit (tersimpan lokal, validasi tanggal); panduan watermark & tanda terima simulasi (.txt) |
 | `/jadwal-pemeriksaan` | Timeline/Gantt bulan/kuartal/tahun, navigasi periode, garis Hari Ini, label **Tentatif**; KPI total/berlangsung/mulai ≤ 7 hari/mendatang/selesai (dihitung dari tanggal); pemeriksaan terdekat; tabel tindak lanjut temuan dengan bukti |
@@ -52,10 +52,13 @@ Untuk `test:e2e` dibutuhkan browser Chromium untuk Playwright (`npx playwright i
 | `/dr` | Khusus persona DR/admin: KPI 24 temuan DR (16 selesai, 6 proses, 2 belum — dihitung dari dataset), filter BPK/DAI/KAA, kepatuhan DR (status dapat diubah), permindok DR, jadwal DR, dokumen penting, ketentuan per kelompok, overview KPw |
 | `/admin` | Khusus persona admin: info & tanggal dataset, import JSON (file/tempel) dengan pratinjau + validasi struktur/FK/status/tanggal, konfirmasi penggantian, export JSON, reset ke seed |
 
-Kontrol global di bilah bawah header:
+Kontrol global di header (kanan atas):
 
-- **Persona demo** (DR / KPw / Admin) — hanya simulasi tampilan, *bukan* login dan *bukan* kontrol keamanan.
-- **Tanggal acuan** — default `metadata.as_of` (5 Oktober 2026) agar hasil konsisten; dapat diganti untuk simulasi dan dikembalikan.
+- **Ikon pengguna** — memilih **persona demo** (DR / KPw / Admin; hanya simulasi tampilan, *bukan* login dan *bukan* kontrol keamanan), mengubah **tanggal acuan** (default `metadata.as_of` = 5 Oktober 2026), dan tautan ke semua modul termasuk Dashboard DR dan Admin sesuai peran.
+- **Lonceng notifikasi** — jumlah jadwal yang mulai ≤ 7 hari, permindok dan temuan yang lewat tenggat (dihitung dari data).
+- Label **Mode Demo — Data Simulasi** selalu tampil. Di halaman Jadwal, kotak **Posisi Data** juga mengubah tanggal acuan.
+
+Tata letak mengikuti referensi visual (header identitas teks + SEKAR, judul besar, kartu putih bersudut lembut, palet biru/teal/amber/violet). Ilustrasi gedung dan kepulauan adalah dekorasi SVG buatan sendiri, bukan foto, logo resmi, atau peta data.
 
 ## 4. Aturan data yang diterapkan
 

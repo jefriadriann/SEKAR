@@ -182,3 +182,49 @@ export function aggregateByTheme(rows: Finding[]): ThemeAggregate[] {
     })
     .sort((a, b) => b.count - a.count || a.theme.localeCompare(b.theme, "id"));
 }
+
+export interface FindingGroup {
+  key: string;
+  examiner: Finding["examiner"];
+  area: string;
+  theme: string;
+  /** Judul ringkas yang paling sering muncul dalam grup. */
+  title: string;
+  recommendation: string;
+  count: number;
+  /** Jumlah KPw unik (kantor terdampak). */
+  affectedUnits: number;
+  open: number;
+  ids: string[];
+}
+
+function mostCommon(values: string[]): string {
+  const m = new Map<string, number>();
+  for (const v of values) m.set(v, (m.get(v) ?? 0) + 1);
+  return [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "id"))[0]?.[0] ?? "";
+}
+
+/** Ringkasan temuan per pemeriksa × area × tema (tabel "Temuan dan Rekomendasi Utama"). */
+export function groupFindings(rows: Finding[]): FindingGroup[] {
+  const groups = new Map<string, Finding[]>();
+  for (const f of rows) {
+    const k = `${f.examiner}|${f.area}|${f.theme}`;
+    const g = groups.get(k);
+    if (g) g.push(f);
+    else groups.set(k, [f]);
+  }
+  return [...groups.entries()]
+    .map(([key, g]) => ({
+      key,
+      examiner: g[0].examiner,
+      area: g[0].area,
+      theme: g[0].theme,
+      title: mostCommon(g.map((f) => f.title)),
+      recommendation: mostCommon(g.map((f) => f.recommendation)),
+      count: g.length,
+      affectedUnits: uniqueUnitCount(g),
+      open: g.filter((f) => f.status !== "selesai").length,
+      ids: g.map((f) => f.id),
+    }))
+    .sort((a, b) => b.affectedUnits - a.affectedUnits || b.count - a.count || a.key.localeCompare(b.key, "id"));
+}

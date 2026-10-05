@@ -147,13 +147,18 @@ describe("status berbasis tanggal", () => {
   });
 
   it("jendela timeline dan posisi bar", () => {
-    const w = timelineWindow("kuartal", AS_OF);
-    expect(w.start).toBe("2026-10-01");
+    const w = timelineWindow("bulan", AS_OF);
+    expect(w.start).toBe("2026-07-01");
     expect(w.end).toBe("2026-12-31");
-    expect(timelineWindow("bulan", AS_OF, -1).label).toBe("September 2026");
-    expect(timelineWindow("tahun", AS_OF).days).toBe(365);
-    expect(barPosition({ start_date: "2026-09-01", end_date: "2026-09-05" }, w)).toBeNull();
-    const p = barPosition({ start_date: "2026-09-28", end_date: "2026-10-03" }, w)!;
+    expect(w.columns.map((c) => c.label)).toEqual(["Jul 2026", "Agu 2026", "Sep 2026", "Okt 2026", "Nov 2026", "Des 2026"]);
+    expect(timelineWindow("bulan", AS_OF, -1).label).toBe("Januari – Juni 2026");
+    const q = timelineWindow("kuartal", AS_OF);
+    expect(q.days).toBe(365);
+    expect(q.columns).toHaveLength(4);
+    expect(q.columns[3]).toEqual({ start: "2026-10-01", end: "2026-12-31", label: "Kuartal 4" });
+    expect(timelineWindow("tahun", AS_OF).columns.map((c) => c.label)).toEqual(["2025", "2026", "2027"]);
+    expect(barPosition({ start_date: "2026-06-01", end_date: "2026-06-05" }, w)).toBeNull();
+    const p = barPosition({ start_date: "2026-06-28", end_date: "2026-07-03" }, w)!;
     expect(p.left).toBe(0);
   });
 

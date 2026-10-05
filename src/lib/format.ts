@@ -2,21 +2,21 @@ import type { ComplianceStatus, FindingStatus, ReferenceKind, RequestStatus, Rol
 
 export const FINDING_STATUS_LABEL: Record<FindingStatus, string> = {
   selesai: "Selesai",
-  dalam_proses: "Dalam proses",
-  belum_ditindaklanjuti: "Belum ditindaklanjuti",
+  dalam_proses: "Dalam Proses",
+  belum_ditindaklanjuti: "Belum Ditindaklanjuti",
 };
 
 export const REQUEST_STATUS_LABEL: Record<RequestStatus, string> = {
   lengkap: "Lengkap",
   bertahap: "Bertahap",
-  dalam_proses: "Dalam proses",
-  belum_dikirim: "Belum dikirim",
+  dalam_proses: "Dalam Proses",
+  belum_dikirim: "Belum Dikirim",
 };
 
 export const COMPLIANCE_STATUS_LABEL: Record<ComplianceStatus, string> = {
   selesai: "Selesai",
-  dalam_proses: "Dalam proses",
-  belum_dimulai: "Belum dimulai",
+  dalam_proses: "Dalam Proses",
+  belum_dimulai: "Belum Dimulai",
 };
 
 export const REFERENCE_KIND_LABEL: Record<ReferenceKind, string> = {
@@ -44,4 +44,9 @@ export function formatPercent(value: number | null, digits = 0): string {
 
 export function formatNumber(n: number): string {
   return n.toLocaleString("id-ID");
+}
+
+/** Hilangkan awalan penanda dummy untuk tampilan tabel (penanda mode demo tetap tampil global). */
+export function clean(text: string): string {
+  return text.replace(/^\[(DATA DUMMY|SIMULASI)\]\s*/, "");
 }

@@ -1,51 +1,73 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CalendarCheck2, CalendarClock, CalendarDays, ChevronLeft, ChevronRight, Eye, History, PlayCircle, Timer } from "lucide-react";
+import { Building2, CalendarClock, CalendarDays, CheckCircle2, ChevronLeft, ChevronRight, ClipboardList, ExternalLink, FileSpreadsheet, FileText, Layers, MapPin, Timer } from "lucide-react";
 import { FindingDrawer } from "@/components/domain/FindingDrawer";
 import { useReadySekar } from "@/components/providers/SekarProvider";
 import { DataTable, type Column } from "@/components/ui/DataTable";
 import { Drawer } from "@/components/ui/Overlay";
-import { Badge, Button, Card, cx, DescriptionList, EmptyState, KpiCard, PageHeader, SearchField, SectionHeader, SelectField } from "@/components/ui/primitives";
-import { FindingStatusBadge, RequestStatusBadge, ScheduleStatusBadge, TentativeBadge, TimelinessBadge } from "@/components/ui/StatusBadges";
+import { Badge, Button, Card, cx, DescriptionList, EmptyState, IconTile, KpiCard, PageHeader, SearchField, SectionHeader, SelectField, type TileTone } from "@/components/ui/primitives";
+import { FindingStatusBadge, RequestStatusBadge, TentativeBadge, TimelinessBadge } from "@/components/ui/StatusBadges";
 import { ALL, matchesSearch, uniqueSorted, unitIndex } from "@/lib/analytics/common";
 import { findingTimeliness } from "@/lib/analytics/findings";
-import {
-  barPosition,
-  positionOf,
-  SCHEDULE_STATUS_LABEL,
-  scheduleKpis,
-  scheduleStatus,
-  startsWithin,
-  timelineWindow,
-  upcomingSchedules,
-  type ScheduleStatus,
-  type TimelineView,
-} from "@/lib/analytics/schedules";
-import { diffDays, formatDate } from "@/lib/dates";
-import { FINDING_STATUS_LABEL, formatNumber } from "@/lib/format";
-import { EXAMINER_COLOR } from "@/lib/palette";
+import { barPosition, edgeOf, positionOf, scheduleKpis, scheduleStatus, startsWithin, timelineWindow, upcomingSchedules, type TimelineView } from "@/lib/analytics/schedules";
+import { toCsv } from "@/lib/csv";
+import { diffDays, formatDate, monthShort, toUTCDate } from "@/lib/dates";
+import { downloadText } from "@/lib/download";
+import { clean, FINDING_STATUS_LABEL, formatNumber } from "@/lib/format";
 import { kpwModuleData } from "@/lib/scope";
-import { EXAMINERS, type AuditSchedule, type Examiner, type Finding, type FindingStatus } from "@/lib/types";
+import { FINDING_STATUSES, type AuditSchedule, type Finding, type FindingStatus } from "@/lib/types";
+
+/** "19 - 25 Jul" atau "30 Agu - 5 Sep". */
+export function rangeLabel(start: string, end: string): string {
+  const a = toUTCDate(start);
+  const b = toUTCDate(end);
+  if (a.getUTCMonth() === b.getUTCMonth()) return `${a.getUTCDate()} - ${b.getUTCDate()} ${monthShort(b.getUTCMonth())}`;
+  return `${a.getUTCDate()} ${monthShort(a.getUTCMonth())} - ${b.getUTCDate()} ${monthShort(b.getUTCMonth())}`;
+}
+
+type Phase = "berlangsung" | "segera" | "mendatang" | "selesai";
+
+const PHASE: Record<Phase, { label: string; bar: string; dot: string; pill: string; tone: TileTone }> = {
+  berlangsung: { label: "Dalam Pemeriksaan", bar: "bg-[#2f6fe4] text-white", dot: "#2f6fe4", pill: "bg-[#e6efff] text-[#2457c5] border-[#cfe0ff]", tone: "blue" },
+  segera: { label: "Mendatang (≤7 Hari)", bar: "bg-[#f9d97f] text-[#7a5300]", dot: "#f0b429", pill: "bg-[#fff4dc] text-[#a86a06] border-[#f7e0a8]", tone: "amber" },
+  mendatang: { label: "Mendatang", bar: "bg-[#c4dbf7] text-[#1c3a8a]", dot: "#9cc3f0", pill: "bg-[#eaf3fe] text-[#2457c5] border-[#d6e7fb]", tone: "sky" },
+  selesai: { label: "Selesai", bar: "bg-[#8fdcbd] text-[#0d5f3e]", dot: "#3cc48d", pill: "bg-[#e3f7ec] text-[#13804f] border-[#c4ecd5]", tone: "teal" },
+};
+
+function phaseOf(s: AuditSchedule, asOf: string): Phase {
+  const st = scheduleStatus(s, asOf);
+  if (st === "mendatang" && startsWithin(s, asOf, 7)) return "segera";
+  return st;
+}
+
+function PhasePill({ phase }: { phase: Phase }) {
+  return <span className={cx("inline-flex whitespace-nowrap rounded-md border px-2 py-0.5 text-[12px] font-semibold", PHASE[phase].pill)}>{phase === "segera" ? "Mulai ≤7 Hari" : PHASE[phase].label}</span>;
+}
 
 export function JadwalView() {
-  const { data, asOf, openDocument } = useReadySekar();
+  const { data, asOf, setAsOf, datasetAsOf, resetAsOf, openDocument, notify } = useReadySekar();
   const kpw = useMemo(() => kpwModuleData(data), [data]);
   const idx = useMemo(() => unitIndex(kpw.units), [kpw.units]);
-  const [view, setView] = useState<TimelineView>("kuartal");
+  const [view, setView] = useState<TimelineView>("bulan");
   const [offset, setOffset] = useState(0);
-  const [examiner, setExaminer] = useState<Examiner | typeof ALL>(ALL);
+  const [year, setYear] = useState<string>(asOf.slice(0, 4));
   const [examType, setExamType] = useState<string>(ALL);
-  const [status, setStatus] = useState<ScheduleStatus | typeof ALL>(ALL);
+  const [korwil, setKorwil] = useState<string>(ALL);
+  const [unitId, setUnitId] = useState<string>(ALL);
   const [openSchedule, setOpenSchedule] = useState<string | null>(null);
+  const [showAll, setShowAll] = useState(false);
   const [openFinding, setOpenFinding] = useState<string | null>(null);
-  const [fuStatus, setFuStatus] = useState<FindingStatus | "terbuka" | typeof ALL>("terbuka");
+  const [fuStatus, setFuStatus] = useState<FindingStatus | typeof ALL>(ALL);
   const [fuSearch, setFuSearch] = useState("");
 
+  const years = uniqueSorted([...kpw.audit_schedules.map((s) => s.year), ...kpw.findings.map((f) => f.year)]);
   const types = uniqueSorted(kpw.audit_schedules.map((s) => s.exam_type));
-  const filtered = kpw.audit_schedules.filter(
-    (s) => (examiner === ALL || s.examiner === examiner) && (examType === ALL || s.exam_type === examType) && (status === ALL || scheduleStatus(s, asOf) === status),
-  );
+  const korwils = uniqueSorted(kpw.units.map((u) => u.korwil ?? "")).filter(Boolean);
+  const unitOptions = kpw.units.filter((u) => korwil === ALL || u.korwil === korwil);
+  const unitMatch = (id: string) => (korwil === ALL || idx.get(id)?.korwil === korwil) && (unitId === ALL || id === unitId);
+
+  const filtered = kpw.audit_schedules.filter((s) => (year === ALL || s.year === Number(year)) && (examType === ALL || s.exam_type === examType) && unitMatch(s.unit_id));
   const kpis = scheduleKpis(filtered, asOf);
   const win = timelineWindow(view, asOf, offset);
   const inWindow = filtered
@@ -53,28 +75,45 @@ export function JadwalView() {
     .filter((x): x is { s: AuditSchedule; pos: { left: number; width: number } } => x.pos !== null)
     .sort((a, b) => a.s.start_date.localeCompare(b.s.start_date));
   const today = positionOf(asOf, win);
-  const upcoming = upcomingSchedules(filtered, asOf, 6);
+  const upcoming = upcomingSchedules(filtered, asOf, 50);
 
   const followUps = kpw.findings.filter(
     (f) =>
-      (fuStatus === ALL || (fuStatus === "terbuka" ? f.status !== "selesai" : f.status === fuStatus)) &&
-      matchesSearch(fuSearch, f.id, f.title, f.area, f.pic, idx.get(f.unit_id)?.name),
+      (year === ALL || f.year === Number(year)) &&
+      unitMatch(f.unit_id) &&
+      (fuStatus === ALL || f.status === fuStatus) &&
+      matchesSearch(fuSearch, f.id, f.title, f.recommendation, f.area, f.pic, idx.get(f.unit_id)?.name),
   );
 
   const fuColumns: Column<Finding>[] = [
-    { key: "id", header: "ID", render: (f) => <span className="whitespace-nowrap font-mono text-xs">{f.id}</span>, sortValue: (f) => f.id },
-    { key: "unit", header: "KPw", render: (f) => <span className="font-semibold">{idx.get(f.unit_id)?.name}</span>, sortValue: (f) => idx.get(f.unit_id)?.name ?? "" },
-    { key: "area", header: "Area", render: (f) => f.area, sortValue: (f) => f.area },
-    { key: "title", header: "Temuan", className: "min-w-[220px]", render: (f) => <span className="line-clamp-2">{f.title}</span>, sortValue: (f) => f.title },
+    { key: "year", header: "Tahun", render: (f) => f.year, sortValue: (f) => f.year },
+    { key: "unit", header: "KPwDN", render: (f) => <span className="whitespace-nowrap">{idx.get(f.unit_id)?.name}</span>, sortValue: (f) => idx.get(f.unit_id)?.name ?? "" },
+    { key: "type", header: "Jenis Pemeriksaan", render: (f) => <span className="whitespace-nowrap">{f.examiner} {f.year}</span>, sortValue: (f) => `${f.examiner}${f.year}` },
+    {
+      key: "title",
+      header: "Temuan",
+      className: "min-w-[180px]",
+      render: (f) => (
+        <span>
+          <span className="block">{f.title}</span>
+          <span className="text-[12px] text-muted">{f.id}</span>
+        </span>
+      ),
+      sortValue: (f) => f.title,
+    },
+    { key: "rec", header: "Rekomendasi", className: "min-w-[160px] text-muted", render: (f) => <span className="line-clamp-2">{clean(f.recommendation)}</span> },
+    { key: "pic", header: "PIC", render: (f) => <span className="whitespace-nowrap">{f.pic}</span>, sortValue: (f) => f.pic },
     {
       key: "due",
-      header: "Tenggat",
+      header: "Target Penyelesaian",
       render: (f) => (
         <span className="whitespace-nowrap">
           {formatDate(f.due_date)}
-          <span className="mt-1 block">
-            <TimelinessBadge value={findingTimeliness(f, asOf)} />
-          </span>
+          {findingTimeliness(f, asOf) === "lewat_tenggat" && (
+            <span className="mt-1 block">
+              <TimelinessBadge value="lewat_tenggat" />
+            </span>
+          )}
         </span>
       ),
       sortValue: (f) => f.due_date,
@@ -82,7 +121,7 @@ export function JadwalView() {
     { key: "status", header: "Status", render: (f) => <FindingStatusBadge status={f.status} />, sortValue: (f) => f.status },
     {
       key: "bukti",
-      header: "Bukti",
+      header: "Bukti Penyelesaian",
       render: (f) =>
         f.evidence_document_id ? (
           <button
@@ -91,43 +130,107 @@ export function JadwalView() {
               e.stopPropagation();
               openDocument(f.evidence_document_id!);
             }}
-            className="inline-flex items-center gap-1 text-sm font-semibold text-sky-700 hover:underline"
+            className="inline-flex items-center gap-1 whitespace-nowrap font-semibold text-brand hover:underline"
           >
-            <Eye className="h-4 w-4" aria-hidden />
-            Lihat
+            <FileText className="h-3.5 w-3.5" aria-hidden />
+            Bukti
+            <ExternalLink className="h-3.5 w-3.5" aria-hidden />
           </button>
         ) : (
-          <span className="text-xs text-muted">Belum ada</span>
+          <span className="text-muted">-</span>
         ),
     },
   ];
+
+  const exportCsv = () => {
+    const csv = toCsv(followUps, [
+      { header: "id", value: (f) => f.id },
+      { header: "tahun", value: (f) => f.year },
+      { header: "kpw", value: (f) => idx.get(f.unit_id)?.name ?? f.unit_id },
+      { header: "pemeriksa", value: (f) => f.examiner },
+      { header: "temuan", value: (f) => f.title },
+      { header: "rekomendasi", value: (f) => f.recommendation },
+      { header: "pic", value: (f) => f.pic },
+      { header: "target_penyelesaian", value: (f) => f.due_date },
+      { header: "status", value: (f) => FINDING_STATUS_LABEL[f.status] },
+      { header: "bukti", value: (f) => f.evidence_document_id ?? "" },
+    ]);
+    downloadText(`sekar-tindak-lanjut-SIMULASI-${asOf}.csv`, csv, "text/csv;charset=utf-8");
+    notify(`${followUps.length} baris tindak lanjut diekspor.`);
+  };
 
   const sched = openSchedule ? kpw.audit_schedules.find((s) => s.id === openSchedule) : null;
 
   return (
     <div>
-      <PageHeader
-        eyebrow="Modul KPw"
-        title="Jadwal Pemeriksaan"
-        description={`Status jadwal dihitung dari tanggal mulai/selesai terhadap tanggal acuan ${formatDate(asOf)}. Jadwal yang belum terkonfirmasi ditandai Tentatif.`}
-      />
+      <PageHeader title="Timeline Pemeriksaan" crumb="Jadwal Pemeriksaan" uppercase description="Jadwal pemeriksaan dan agenda terdekat. Status dihitung dari tanggal terhadap posisi data." />
 
-      <div className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
-        <KpiCard label="Total jadwal" value={formatNumber(kpis.total)} hint={`${kpis.tentatif} tentatif`} icon={<CalendarDays className="h-5 w-5" />} />
-        <KpiCard label="Berlangsung" value={formatNumber(kpis.berlangsung)} tone="teal" icon={<PlayCircle className="h-5 w-5" />} />
-        <KpiCard label="Mulai dalam 7 hari" value={formatNumber(kpis.mulai7Hari)} tone="amber" icon={<Timer className="h-5 w-5" />} />
-        <KpiCard label="Mendatang" value={formatNumber(kpis.mendatang)} hint="Termasuk yang mulai ≤ 7 hari" tone="violet" icon={<CalendarClock className="h-5 w-5" />} />
-        <KpiCard label="Selesai" value={formatNumber(kpis.selesai)} tone="navy" icon={<CalendarCheck2 className="h-5 w-5" />} />
+      <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
+        <FilterBox>
+          <SelectField id="j-year" label="Tahun Pemeriksaan" icon={<CalendarDays />} value={year} onChange={setYear} options={[{ value: ALL, label: "Semua Tahun" }, ...years.map((y) => ({ value: String(y), label: String(y) }))]} />
+        </FilterBox>
+        <FilterBox>
+          <SelectField id="j-type" label="Jenis Pemeriksaan" icon={<Layers />} value={examType} onChange={setExamType} options={[{ value: ALL, label: "Semua Jenis" }, ...types.map((t) => ({ value: t, label: t }))]} />
+        </FilterBox>
+        <FilterBox>
+          <SelectField
+            id="j-korwil"
+            label="Korwil"
+            icon={<MapPin />}
+            value={korwil}
+            onChange={(v) => {
+              setKorwil(v);
+              if (v !== ALL && unitId !== ALL && idx.get(unitId)?.korwil !== v) setUnitId(ALL);
+            }}
+            options={[{ value: ALL, label: "Semua Korwil" }, ...korwils.map((k) => ({ value: k, label: k }))]}
+          />
+        </FilterBox>
+        <FilterBox>
+          <SelectField id="j-unit" label="KPwDN" icon={<Building2 />} value={unitId} onChange={setUnitId} options={[{ value: ALL, label: "Semua KPwDN" }, ...unitOptions.map((u) => ({ value: u.id, label: u.name }))]} />
+        </FilterBox>
+        <FilterBox>
+          <label htmlFor="j-asof" className="text-[12px] font-semibold text-muted">
+            Posisi Data
+          </label>
+          <div className="flex items-center gap-1">
+            <input
+              id="j-asof"
+              type="date"
+              value={asOf}
+              onChange={(e) => e.target.value && setAsOf(e.target.value)}
+              className="h-10 w-full min-w-0 rounded-lg border border-transparent bg-transparent text-[17px] font-extrabold text-navy-900 hover:border-line"
+            />
+            {datasetAsOf && asOf !== datasetAsOf && (
+              <Button size="sm" variant="ghost" onClick={resetAsOf} title="Kembali ke tanggal dataset">
+                Reset
+              </Button>
+            )}
+          </div>
+        </FilterBox>
       </div>
 
-      <div className="mb-5 grid gap-4 xl:grid-cols-[1fr_320px]">
+      <div className="mb-4 grid grid-cols-2 gap-3 xl:grid-cols-4">
+        <KpiCard tinted tone="blue" label="Total Pemeriksaan" value={formatNumber(kpis.total)} hint={`${kpis.berlangsung} berlangsung · ${kpis.tentatif} tentatif`} icon={<ClipboardList />} />
+        <KpiCard tinted tone="amber" label="Mulai ≤ 7 Hari" value={formatNumber(kpis.mulai7Hari)} icon={<Timer />} />
+        <KpiCard tinted tone="sky" label="Mendatang" value={formatNumber(kpis.mendatang)} icon={<CalendarClock />} />
+        <KpiCard tinted tone="teal" label="Selesai" value={formatNumber(kpis.selesai)} icon={<CheckCircle2 />} />
+      </div>
+
+      <div className="mb-4 grid gap-4 xl:grid-cols-[1fr_380px]">
         <Card aria-labelledby="timeline-title">
           <SectionHeader
             id="timeline-title"
-            title={`Timeline — ${win.label}`}
-            description={`${inWindow.length} jadwal dalam periode ini. Klik bar untuk detail.`}
+            icon={<CalendarDays />}
+            title="Jadwal Pemeriksaan KPwDN"
+            description={`${win.label} · ${inWindow.length} jadwal. Klik bar untuk detail.`}
             actions={
               <>
+                <Button size="sm" variant="ghost" onClick={() => setOffset((o) => o - 1)} aria-label="Periode sebelumnya">
+                  <ChevronLeft className="h-4 w-4" aria-hidden />
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => setOffset((o) => o + 1)} aria-label="Periode berikutnya">
+                  <ChevronRight className="h-4 w-4" aria-hidden />
+                </Button>
                 <div className="flex rounded-lg border border-line p-0.5" role="group" aria-label="Skala timeline">
                   {(["bulan", "kuartal", "tahun"] as const).map((v) => (
                     <button
@@ -138,108 +241,94 @@ export function JadwalView() {
                         setView(v);
                         setOffset(0);
                       }}
-                      className={cx("rounded-md px-3 py-1.5 text-sm font-semibold capitalize", view === v ? "bg-navy-800 text-white" : "text-navy-700 hover:bg-sky-50")}
+                      className={cx("rounded-md px-3 py-1 text-[13px] font-semibold capitalize", view === v ? "bg-brand text-white" : "text-navy-800 hover:bg-sky-50")}
                     >
                       {v}
                     </button>
                   ))}
                 </div>
-                <div className="flex items-center gap-1">
-                  <Button size="sm" onClick={() => setOffset((o) => o - 1)} aria-label="Periode sebelumnya">
-                    <ChevronLeft className="h-4 w-4" aria-hidden />
-                  </Button>
-                  <Button size="sm" onClick={() => setOffset(0)} disabled={offset === 0}>
-                    Hari ini
-                  </Button>
-                  <Button size="sm" onClick={() => setOffset((o) => o + 1)} aria-label="Periode berikutnya">
-                    <ChevronRight className="h-4 w-4" aria-hidden />
-                  </Button>
-                </div>
               </>
             }
           />
-          <div className="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <SelectField id="j-exam" label="Pemeriksa" value={examiner} onChange={setExaminer} options={[{ value: ALL, label: "Semua pemeriksa" }, ...EXAMINERS.map((e) => ({ value: e, label: e }))]} />
-            <SelectField id="j-type" label="Jenis pemeriksaan" value={examType} onChange={setExamType} options={[{ value: ALL, label: "Semua jenis" }, ...types.map((t) => ({ value: t, label: t }))]} />
-            <SelectField
-              id="j-status"
-              label="Status"
-              value={status}
-              onChange={setStatus}
-              options={[{ value: ALL, label: "Semua status" }, ...(Object.keys(SCHEDULE_STATUS_LABEL) as ScheduleStatus[]).map((s) => ({ value: s, label: SCHEDULE_STATUS_LABEL[s] }))]}
-            />
-          </div>
-          <div className="mb-2 flex flex-wrap items-center gap-3 text-xs text-muted" aria-label="Legenda">
-            {EXAMINERS.map((e) => (
-              <span key={e} className="inline-flex items-center gap-1.5">
-                <span className="h-2.5 w-5 rounded-sm" style={{ background: EXAMINER_COLOR[e] }} aria-hidden />
-                {e}
-              </span>
-            ))}
-            <span className="inline-flex items-center gap-1.5">
-              <span className="h-2.5 w-5 rounded-sm border-2 border-dashed border-amber-600 bg-amber-100" aria-hidden />
-              Tentatif
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <span className="h-3 w-0.5 bg-rose-600" aria-hidden />
-              Hari ini ({formatDate(asOf)})
-            </span>
-          </div>
           {inWindow.length === 0 ? (
             <EmptyState title="Tidak ada jadwal pada periode ini" description="Geser periode atau ubah filter untuk melihat jadwal lain." />
           ) : (
-            <div className="relative scrollbar-thin overflow-x-auto rounded-xl border border-line">
-              <div className="min-w-[760px]">
-                <div className="grid grid-cols-[200px_1fr] border-b border-line bg-sky-50/80 text-xs font-bold text-navy-800">
-                  <div className="px-3 py-2">Unit · pemeriksa</div>
-                  <div className="relative h-8">
-                    {win.ticks.map((t) => {
-                      const left = positionOf(t.date, win);
-                      return left === null ? null : (
-                        <span key={t.date} className="absolute top-2 -translate-x-1/2" style={{ left: `${left}%` }}>
-                          {t.label}
-                        </span>
-                      );
-                    })}
+            <div className="scrollbar-thin relative max-h-[470px] overflow-auto rounded-xl border border-line">
+              <div className="min-w-[720px]">
+                <div className="sticky top-0 z-30 grid grid-cols-[150px_1fr] border-b border-line bg-[#eef5fd] text-[12.5px] font-bold text-navy-900">
+                  <div className="px-3 py-2">KPwDN</div>
+                  <div className="relative h-9">
+                    {win.columns.map((c) => (
+                      <span
+                        key={c.start}
+                        className="absolute inset-y-0 flex items-center justify-center border-l border-[#dce7f4]"
+                        style={{ left: `${edgeOf(c.start, win)}%`, width: `${edgeOf(c.end, win) - edgeOf(c.start, win) + 100 / win.days}%` }}
+                      >
+                        {c.label}
+                      </span>
+                    ))}
+                    {today !== null && (
+                      <span className="absolute top-1 z-20 -translate-x-1/2 whitespace-nowrap rounded-md bg-brand px-1.5 py-0.5 text-[11px] font-bold text-white" style={{ left: `${today}%` }}>
+                        Hari ini
+                      </span>
+                    )}
                   </div>
                 </div>
                 <ul aria-label={`Jadwal pemeriksaan ${win.label}`}>
                   {inWindow.map(({ s, pos }) => {
-                    const st = scheduleStatus(s, asOf);
-                    const color = EXAMINER_COLOR[s.examiner];
+                    const ph = phaseOf(s, asOf);
                     return (
-                      <li key={s.id} className="grid grid-cols-[200px_1fr] border-b border-slate-100 last:border-0">
-                        <div className="min-w-0 px-3 py-2 text-sm">
-                          <p className="truncate font-semibold text-navy-900">{idx.get(s.unit_id)?.name ?? s.unit_id}</p>
-                          <p className="text-xs text-muted">
+                      <li key={s.id} className="grid grid-cols-[150px_1fr] border-b border-[#eef2f7] last:border-0">
+                        <div className="min-w-0 px-3 py-1.5 text-[13px] font-bold text-navy-900">
+                          <span className="block truncate">{idx.get(s.unit_id)?.name ?? s.unit_id}</span>
+                          <span className="block text-[11px] font-normal text-muted">
                             {s.examiner} · {s.exam_type}
-                          </p>
+                          </span>
                         </div>
-                        <div className="relative h-12">
-                          {win.ticks.map((t) => {
-                            const left = positionOf(t.date, win);
-                            return left === null ? null : <span key={t.date} className="absolute inset-y-0 w-px bg-slate-100" style={{ left: `${left}%` }} aria-hidden />;
-                          })}
-                          {today !== null && <span className="absolute inset-y-0 z-10 w-0.5 bg-rose-600" style={{ left: `${today}%` }} aria-hidden />}
+                        <div className="relative h-11">
+                          {win.columns.map((c) => (
+                            <span key={c.start} className="absolute inset-y-0 w-px bg-[#eef2f7]" style={{ left: `${edgeOf(c.start, win)}%` }} aria-hidden />
+                          ))}
+                          {today !== null && <span className="absolute inset-y-0 z-10 border-l-2 border-dashed border-brand" style={{ left: `${today}%` }} aria-hidden />}
                           <button
                             type="button"
                             onClick={() => setOpenSchedule(s.id)}
                             className={cx(
-                              "absolute top-2.5 flex h-7 min-w-[10px] items-center overflow-hidden rounded-md px-1.5 text-left text-xs font-bold transition hover:brightness-110",
-                              s.date_confirmed ? "text-white" : "border-2 border-dashed border-amber-600 bg-amber-100 text-amber-950",
-                              st === "selesai" && s.date_confirmed && "opacity-60",
+                              "absolute top-2 z-[5] h-7 min-w-[14px] rounded-md shadow-sm transition hover:brightness-105",
+                              PHASE[ph].bar,
+                              !s.date_confirmed && "border-2 border-dashed border-[#c98a0b]",
                             )}
-                            style={{ left: `${pos.left}%`, width: `${Math.max(pos.width, 1.2)}%`, background: s.date_confirmed ? color : undefined }}
+                            style={{ left: `${pos.left}%`, width: `${Math.max(pos.width, 1.5)}%` }}
                             title={`${s.id}: ${formatDate(s.start_date)} – ${formatDate(s.end_date)}${s.date_confirmed ? "" : " (Tentatif)"}`}
                           >
-                            <span className="truncate">
-                              {s.id}
-                              {!s.date_confirmed && " · Tentatif"}
-                            </span>
                             <span className="sr-only">
-                              , {idx.get(s.unit_id)?.name}, {formatDate(s.start_date)} sampai {formatDate(s.end_date)}, {SCHEDULE_STATUS_LABEL[st]}
+                              {s.id}, {idx.get(s.unit_id)?.name}, {formatDate(s.start_date)} sampai {formatDate(s.end_date)}, {PHASE[ph].label}
+                              {!s.date_confirmed && ", tanggal tentatif"}
                             </span>
                           </button>
+                          {(() => {
+                            const label = s.date_confirmed ? rangeLabel(s.start_date, s.end_date) : "(Tentatif)";
+                            const wide = pos.width >= 9;
+                            const right = pos.left + pos.width;
+                            const style = wide
+                              ? { left: `${pos.left}%`, width: `${pos.width}%` }
+                              : right > 78
+                                ? { right: `${100 - pos.left + 0.6}%` }
+                                : { left: `${right + 0.6}%` };
+                            return (
+                              <span
+                                aria-hidden
+                                className={cx(
+                                  "pointer-events-none absolute top-2 z-[6] flex h-7 items-center whitespace-nowrap text-[11.5px] font-bold",
+                                  wide ? "justify-center" : "text-navy-900",
+                                  wide && (ph === "berlangsung" ? "text-white" : "text-navy-900"),
+                                )}
+                                style={style}
+                              >
+                                {label}
+                              </span>
+                            );
+                          })()}
                         </div>
                       </li>
                     );
@@ -248,34 +337,38 @@ export function JadwalView() {
               </div>
             </div>
           )}
+          <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1 text-[12.5px] text-navy-900" aria-label="Legenda">
+            {(Object.keys(PHASE) as Phase[]).map((p) => (
+              <span key={p} className="inline-flex items-center gap-1.5">
+                <span className="h-3 w-3 rounded-full" style={{ background: PHASE[p].dot }} aria-hidden />
+                {PHASE[p].label}
+              </span>
+            ))}
+            <span className="inline-flex items-center gap-1.5">
+              <span className="h-3 w-5 rounded-sm border-2 border-dashed border-[#c98a0b]" aria-hidden />
+              Tentatif (tanggal belum terkonfirmasi)
+            </span>
+          </div>
         </Card>
 
         <Card aria-labelledby="terdekat">
-          <SectionHeader id="terdekat" icon={<History className="h-5 w-5 text-teal-700" aria-hidden />} title="Pemeriksaan terdekat" description="Berlangsung atau akan datang." />
+          <SectionHeader
+            id="terdekat"
+            icon={<CalendarClock />}
+            title="Pemeriksaan Terdekat"
+            actions={
+              upcoming.length > 5 && (
+                <button type="button" onClick={() => setShowAll(true)} className="text-[13px] font-semibold text-brand hover:underline">
+                  Lihat Semua
+                </button>
+              )
+            }
+          />
           {upcoming.length ? (
-            <ul className="space-y-2">
-              {upcoming.map((s) => {
-                const st = scheduleStatus(s, asOf);
-                const d = diffDays(asOf, s.start_date);
-                return (
-                  <li key={s.id}>
-                    <button type="button" onClick={() => setOpenSchedule(s.id)} className="w-full rounded-lg border border-line px-3 py-2 text-left hover:border-sky-300 hover:bg-sky-50/60">
-                      <span className="flex flex-wrap items-center justify-between gap-1">
-                        <span className="font-semibold text-navy-900">{idx.get(s.unit_id)?.name}</span>
-                        <span className="flex gap-1">
-                          <ScheduleStatusBadge status={st} />
-                          {!s.date_confirmed && <TentativeBadge />}
-                        </span>
-                      </span>
-                      <span className="mt-0.5 block text-xs text-muted">
-                        {s.id} · {s.examiner} {s.exam_type} · {formatDate(s.start_date)} – {formatDate(s.end_date)}
-                        {st === "mendatang" && ` · mulai ${d} hari lagi`}
-                        {startsWithin(s, asOf, 7) && " (≤ 7 hari)"}
-                      </span>
-                    </button>
-                  </li>
-                );
-              })}
+            <ul className="divide-y divide-[#eef2f7]">
+              {upcoming.slice(0, 5).map((s) => (
+                <UpcomingItem key={s.id} s={s} unitName={idx.get(s.unit_id)?.name ?? s.unit_id} onOpen={() => setOpenSchedule(s.id)} />
+              ))}
             </ul>
           ) : (
             <EmptyState title="Tidak ada jadwal mendatang" />
@@ -286,28 +379,47 @@ export function JadwalView() {
       <Card aria-labelledby="tindak-lanjut">
         <SectionHeader
           id="tindak-lanjut"
-          title="Tindak lanjut temuan"
-          description="Temuan KPw beserta tenggat, status dan bukti. Klik baris untuk detail dan pembaruan status."
+          icon={<FileText />}
+          title="Penyelesaian Temuan Pemeriksaan"
+          description="Tracking tindak lanjut temuan dan rekomendasi pemeriksaan pada KPwDN. Klik temuan untuk detail & pembaruan status."
           actions={
-            <div className="flex flex-wrap items-end gap-2">
+            <>
               <SelectField
                 id="fu-status"
                 label="Status"
+                hideLabel
+                className="w-[200px]"
                 value={fuStatus}
                 onChange={setFuStatus}
-                options={[
-                  { value: "terbuka", label: "Belum selesai" },
-                  { value: ALL, label: "Semua status" },
-                  ...(["selesai", "dalam_proses", "belum_ditindaklanjuti"] as const).map((s) => ({ value: s, label: FINDING_STATUS_LABEL[s] })),
-                ]}
+                options={[{ value: ALL, label: "Semua status" }, ...FINDING_STATUSES.map((s) => ({ value: s, label: FINDING_STATUS_LABEL[s] }))]}
               />
-              <SearchField id="fu-search" value={fuSearch} onChange={setFuSearch} placeholder="ID, KPw, area…" />
-            </div>
+              <Button onClick={exportCsv} disabled={!followUps.length} className="h-10">
+                <FileSpreadsheet className="h-4 w-4 text-[#1f7a44]" aria-hidden />
+                Unduh Data
+              </Button>
+            </>
           }
         />
-        <DataTable rows={followUps} columns={fuColumns} rowKey={(f) => f.id} caption="Tindak lanjut temuan" onRowOpen={(f) => setOpenFinding(f.id)} initialSort={{ key: "due", dir: "asc" }} />
+        <DataTable
+          rows={followUps}
+          columns={fuColumns}
+          rowKey={(f) => f.id}
+          caption="Penyelesaian temuan pemeriksaan"
+          onRowOpen={(f) => setOpenFinding(f.id)}
+          openColumnKey="title"
+          initialSort={{ key: "due", dir: "asc" }}
+          minWidth={980}
+          toolbar={<SearchField id="fu-search" label="Cari tindak lanjut" hideLabel value={fuSearch} onChange={setFuSearch} placeholder="Cari KPwDN, temuan, atau rekomendasi..." />}
+        />
       </Card>
 
+      <Drawer open={showAll} onClose={() => setShowAll(false)} title="Semua Pemeriksaan Mendatang" subtitle={`${upcoming.length} jadwal berlangsung atau akan datang`}>
+        <ul className="divide-y divide-[#eef2f7]">
+          {upcoming.map((s) => (
+            <UpcomingItem key={s.id} s={s} unitName={idx.get(s.unit_id)?.name ?? s.unit_id} onOpen={() => setOpenSchedule(s.id)} />
+          ))}
+        </ul>
+      </Drawer>
       <Drawer open={!!sched} onClose={() => setOpenSchedule(null)} title={sched ? `Jadwal ${sched.id}` : "Jadwal"} subtitle={sched ? idx.get(sched.unit_id)?.name : undefined}>
         {sched && <ScheduleDetail schedule={sched} />}
       </Drawer>
@@ -316,14 +428,49 @@ export function JadwalView() {
   );
 }
 
+function FilterBox({ children }: { children: React.ReactNode }) {
+  return <div className="panel flex min-w-0 flex-col gap-1 px-3 py-2.5 [&_select]:border-transparent [&_select]:shadow-none">{children}</div>;
+}
+
+function UpcomingItem({ s, unitName, onOpen }: { s: AuditSchedule; unitName: string; onOpen: () => void }) {
+  const { asOf } = useReadySekar();
+  const ph = phaseOf(s, asOf);
+  return (
+    <li>
+      <button type="button" onClick={onOpen} className="flex w-full items-center gap-3 px-1 py-2.5 text-left hover:bg-[#f7fbff]">
+        <IconTile tone={PHASE[ph].tone}>
+          <Building2 />
+        </IconTile>
+        <span className="min-w-0 flex-1">
+          <span className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
+            <span className="text-[14px] font-bold text-navy-900">{unitName}</span>
+            <span className="flex gap-1">
+              <PhasePill phase={ph} />
+              {!s.date_confirmed && <TentativeBadge />}
+            </span>
+          </span>
+          <span className="block text-[12px] text-muted">
+            {s.examiner} {s.exam_type} · {s.id}
+          </span>
+          <span className="mt-0.5 inline-flex items-center gap-1 text-[12px] font-semibold text-navy-900">
+            <CalendarDays className="h-3.5 w-3.5 text-brand" aria-hidden />
+            {s.date_confirmed ? `${formatDate(s.start_date)} – ${formatDate(s.end_date)}` : "Tanggal tentatif"}
+          </span>
+        </span>
+        <ChevronRight className="h-4 w-4 shrink-0 text-navy-800" aria-hidden />
+      </button>
+    </li>
+  );
+}
+
 function ScheduleDetail({ schedule: s }: { schedule: AuditSchedule }) {
   const { data, asOf } = useReadySekar();
-  const st = scheduleStatus(s, asOf);
+  const ph = phaseOf(s, asOf);
   const reqs = data.document_requests.filter((r) => r.schedule_id === s.id);
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-2">
-        <ScheduleStatusBadge status={st} />
+        <PhasePill phase={ph} />
         {s.date_confirmed ? <Badge tone="teal">Tanggal terkonfirmasi</Badge> : <TentativeBadge />}
         <Badge tone="amber">DATA DUMMY</Badge>
       </div>
@@ -335,7 +482,7 @@ function ScheduleDetail({ schedule: s }: { schedule: AuditSchedule }) {
           { term: "Mulai", value: formatDate(s.start_date) },
           { term: "Selesai", value: formatDate(s.end_date) },
           { term: "Durasi", value: `${diffDays(s.start_date, s.end_date) + 1} hari` },
-          { term: "Status (dihitung)", value: `${SCHEDULE_STATUS_LABEL[st]} per ${formatDate(asOf)}` },
+          { term: "Status (dihitung)", value: `${PHASE[ph].label} per ${formatDate(asOf)}` },
         ]}
       />
       <section>

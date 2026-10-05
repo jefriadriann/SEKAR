@@ -4,17 +4,39 @@ const ROUTES = ["/", "/hasil-pemeriksaan", "/permindok", "/jadwal-pemeriksaan", 
 
 async function ready(page: Page, path: string) {
   await page.goto(path);
-  await expect(page.getByText("Mode Demo — Data Simulasi")).toBeVisible();
+  await expect(page.getByText("Mode Demo — Data Simulasi").first()).toBeAttached();
   await expect(page.locator("main h1").first()).toBeVisible();
 }
 
+/** Persona demo dipilih dari menu pengguna (ikon kanan atas). */
 async function persona(page: Page, label: RegExp) {
-  await page.getByLabel("Persona demo").selectOption({ label: (await page.getByLabel("Persona demo").locator("option").allTextContents()).find((t) => label.test(t))! });
+  await page.getByRole("button", { name: /Menu pengguna/ }).click();
+  const select = page.getByLabel("Persona demo");
+  const option = (await select.locator("option").allTextContents()).find((t) => label.test(t))!;
+  await select.selectOption({ label: option });
+  await page.keyboard.press("Escape");
 }
 
 test.beforeEach(async ({ page }) => {
   await page.goto("/");
   await page.evaluate(() => localStorage.clear());
+});
+
+test("beranda: empat menu dapat dibuka", async ({ page }) => {
+  await ready(page, "/");
+  await expect(page.getByRole("heading", { name: "SEKAR", level: 1 })).toBeVisible();
+  const menu = page.getByRole("navigation", { name: "Menu utama SEKAR" });
+  for (const [name, url, h1] of [
+    ["Hasil Pemeriksaan KPwDN", "/hasil-pemeriksaan", "Hasil Pemeriksaan KPwDN"],
+    ["Tracker Permindok", "/permindok", "Tracker Permindok"],
+    ["Jadwal Pemeriksaan", "/jadwal-pemeriksaan", "Timeline Pemeriksaan"],
+    ["SGo dan Ketentuan", "/sgo-ketentuan", "SGo dan Ketentuan"],
+  ] as const) {
+    await ready(page, "/");
+    await menu.getByRole("link", { name: new RegExp(name) }).click();
+    await expect(page).toHaveURL(new RegExp(`${url}$`));
+    await expect(page.getByRole("heading", { level: 1, name: new RegExp(h1, "i") })).toBeVisible();
+  }
 });
 
 test("semua halaman tampil tanpa error konsol dan tanpa overflow horizontal", async ({ page }) => {
@@ -44,35 +66,38 @@ test("semua halaman tampil tanpa error konsol dan tanpa overflow horizontal", as
   expect(errors).toEqual([]);
 });
 
-test("hasil pemeriksaan: filter, klik kategori, drawer, edit status tersimpan lokal", async ({ page }) => {
+test("hasil pemeriksaan: filter, klik kategori, drilldown, edit status tersimpan lokal", async ({ page }) => {
   await ready(page, "/hasil-pemeriksaan");
-  const kpi = page.locator('[data-kpi="Jumlah temuan"]');
-  await expect(kpi).toHaveText("276");
-  await page.getByLabel("Tahun", { exact: true }).selectOption("2026");
-  await expect(kpi).not.toHaveText("276");
-  await page.getByRole("button", { name: "Reset semua filter" }).click();
-  await expect(kpi).toHaveText("276");
+  const areaCard = page.locator("section", { has: page.getByRole("heading", { name: "Jumlah Temuan per Area" }) });
+  await expect(areaCard.getByText(/55 temuan di \d+ KPwDN · tahun 2026/)).toBeVisible();
+  await page.getByLabel("Tahun Pemeriksaan").selectOption("all");
+  await expect(areaCard.getByText(/276 temuan di 46 KPwDN · semua tahun/)).toBeVisible();
 
-  // Klik kategori area via tampilan tabel chart (setara klik bar).
-  const areaCard = page.locator("section", { has: page.getByRole("heading", { name: "Jumlah temuan per area" }) });
+  // Klik kategori via tampilan tabel chart (setara klik bar) + reset.
   await areaCard.getByRole("button", { name: "Tabel" }).click();
   await areaCard.getByRole("button", { name: "Pengadaan" }).click();
   await expect(page.getByRole("button", { name: "Hapus filter Area Pengadaan" })).toBeVisible();
-  await expect(kpi).toHaveText("35");
-  await areaCard.getByRole("button", { name: "Reset" }).click();
-  await expect(kpi).toHaveText("276");
+  await areaCard.getByRole("button", { name: /^Reset/ }).click();
+  await expect(page.getByRole("button", { name: "Hapus filter Area Pengadaan" })).toHaveCount(0);
 
   // Klik bar pada chart.
   await areaCard.getByRole("button", { name: "Chart" }).click();
   await areaCard.locator(".recharts-bar-rectangle").first().click();
-  await expect(page.getByText(/^Dipilih:/).first()).toBeVisible();
+  await expect(areaCard.getByText(/^Dipilih:/)).toBeVisible();
   await page.getByRole("button", { name: "Reset semua filter" }).click();
 
-  // Drawer + edit status.
+  // Drilldown ringkasan → daftar temuan.
+  await page.getByRole("button", { name: /^Buka detail BPK\|/ }).first().click();
+  const group = page.getByRole("dialog");
+  await expect(group.getByText(/temuan di \d+ KPwDN/)).toBeVisible();
+  await page.keyboard.press("Escape");
+
+  // Filter lanjutan + tabel per temuan + edit status.
+  await page.getByRole("button", { name: /^Filter/ }).click();
   await page.getByLabel("Status", { exact: true }).selectOption("belum_ditindaklanjuti");
-  await page.getByRole("button", { name: /^Detail TMN-/ }).first().click();
+  await page.getByRole("button", { name: "Per temuan" }).click();
+  await page.getByRole("button", { name: /^Buka detail TMN-/ }).first().click();
   const drawer = page.getByRole("dialog");
-  await expect(drawer).toBeVisible();
   const id = (await drawer.getByRole("heading").first().textContent())!.replace("Temuan ", "").trim();
   await drawer.getByLabel("Status", { exact: true }).selectOption("selesai");
   await drawer.getByRole("button", { name: "Simpan status" }).click();
@@ -83,19 +108,22 @@ test("hasil pemeriksaan: filter, klik kategori, drawer, edit status tersimpan lo
 
   await page.reload();
   await expect(page.locator("main h1")).toBeVisible();
-  await page.getByLabel("Cari").fill(id);
-  await expect(page.getByRole("table", { name: /Daftar temuan/ }).getByText("Selesai", { exact: true })).toBeVisible();
+  await page.getByLabel("Tahun Pemeriksaan").selectOption("all");
+  await page.getByRole("button", { name: "Per temuan" }).click();
+  await page.getByLabel("Cari temuan atau rekomendasi").fill(id);
+  await expect(page.getByRole("table", { name: /per record/ }).getByText("Selesai", { exact: true })).toBeVisible();
 
-  // Export CSV.
   const dl = page.waitForEvent("download");
-  await page.getByRole("button", { name: "Export CSV" }).click();
+  await page.getByRole("button", { name: "Unduh CSV" }).click();
   expect((await dl).suggestedFilename()).toMatch(/\.csv$/);
+
+  await page.getByRole("button", { name: /Hasil Rekonsiliasi Aset/ }).click();
+  await expect(page.getByRole("dialog").getByRole("table", { name: /Rekonsiliasi aset/ })).toBeVisible();
 });
 
 test("bukti dapat dipratinjau dan diunduh sebagai .txt", async ({ page }) => {
   await ready(page, "/jadwal-pemeriksaan");
-  await page.getByLabel("Status", { exact: true }).last().selectOption("all");
-  await page.getByRole("button", { name: "Lihat" }).first().click();
+  await page.getByRole("button", { name: "Bukti", exact: true }).first().click();
   const preview = page.getByRole("dialog");
   await expect(preview.locator("pre", { hasText: "DOKUMEN SIMULASI" })).toBeVisible();
   const dl = page.waitForEvent("download");
@@ -103,10 +131,10 @@ test("bukti dapat dipratinjau dan diunduh sebagai .txt", async ({ page }) => {
   expect((await dl).suggestedFilename()).toMatch(/SIMULASI\.txt$/);
 });
 
-test("permindok: validasi tanggal dan simpan perubahan", async ({ page }) => {
+test("permindok: validasi tanggal, simpan perubahan, template", async ({ page }) => {
   await ready(page, "/permindok");
-  await page.getByLabel("Kelengkapan", { exact: true }).selectOption("belum_dikirim");
-  await page.getByRole("button", { name: /^Detail\/Edit PMD-/ }).first().click();
+  await page.getByLabel("Status Penyampaian").selectOption("belum_dikirim");
+  await page.getByRole("button", { name: /^Buka detail PMD-/ }).first().click();
   const drawer = page.getByRole("dialog");
   await drawer.getByLabel("Status kelengkapan").selectOption("lengkap");
   await drawer.getByRole("button", { name: "Simpan perubahan" }).click();
@@ -117,59 +145,79 @@ test("permindok: validasi tanggal dan simpan perubahan", async ({ page }) => {
   await drawer.getByLabel("Tanggal penyampaian").fill("2026-10-01");
   await drawer.getByRole("button", { name: "Simpan perubahan" }).click();
   await expect(page.getByText(/Permintaan PMD-\d+ disimpan\./)).toBeVisible();
+  await page.keyboard.press("Escape");
+
   const dl = page.waitForEvent("download");
-  await drawer.getByRole("button", { name: "Tanda terima simulasi" }).click();
-  expect((await dl).suggestedFilename()).toMatch(/tanda-terima-PMD/);
+  await page.getByRole("button", { name: /Template watermark/ }).click();
+  expect((await dl).suggestedFilename()).toMatch(/watermark/);
+  await page.getByRole("button", { name: /Panduan: Tata cara melakukan watermark/ }).click();
+  await expect(page.getByRole("dialog").getByText("Langkah 1:")).toBeAttached();
 });
 
-test("jadwal: tampilan bulan/kuartal/tahun dan tanggal simulasi", async ({ page }) => {
+test("jadwal: tampilan bulan/kuartal/tahun dan posisi data simulasi", async ({ page }) => {
   await ready(page, "/jadwal-pemeriksaan");
-  await expect(page.getByRole("heading", { name: "Timeline — Kuartal 4 2026" })).toBeVisible();
-  await page.getByRole("button", { name: "bulan" }).click();
-  await expect(page.getByRole("heading", { name: "Timeline — Oktober 2026" })).toBeVisible();
+  const card = page.locator("section", { has: page.getByRole("heading", { name: "Jadwal Pemeriksaan KPwDN" }) });
+  await expect(card.getByText(/Juli – Desember 2026/)).toBeVisible();
   await page.getByRole("button", { name: "Periode sebelumnya" }).click();
-  await expect(page.getByRole("heading", { name: "Timeline — September 2026" })).toBeVisible();
-  await page.getByRole("button", { name: "tahun" }).click();
-  await expect(page.getByRole("heading", { name: "Timeline — Tahun 2026" })).toBeVisible();
-  await expect(page.getByText("Tentatif").first()).toBeVisible();
-  await page.getByLabel("Tanggal acuan").fill("2026-12-31");
+  await expect(card.getByText(/Januari – Juni 2026/)).toBeVisible();
+  await page.getByRole("button", { name: "kuartal", exact: true }).click();
+  await expect(card.getByText(/Tahun 2026 ·/)).toBeVisible();
+  await page.getByRole("button", { name: "tahun", exact: true }).click();
+  await expect(card.getByText(/2025 – 2027/)).toBeVisible();
+  await expect(page.getByText("(Tentatif)").first()).toBeVisible();
+  await expect(page.getByText("Hari ini").first()).toBeVisible();
+  await page.getByLabel("Posisi Data").fill("2026-12-31");
   const selesai = page.locator('[data-kpi="Selesai"]');
   await expect(selesai).toHaveText("35");
-  await page.getByRole("button", { name: /Kembali ke 5 Okt 2026/ }).click();
+  await page.getByRole("button", { name: "Reset", exact: true }).click();
   await expect(selesai).toHaveText("16");
 });
 
 test("persona KPw tidak melihat data/route DR", async ({ page }) => {
   await ready(page, "/");
   await persona(page, /^KPw/);
-  await expect(page.getByRole("link", { name: /Dashboard DR/ })).toHaveCount(0);
+  await page.getByRole("button", { name: /Menu pengguna/ }).click();
+  await expect(page.getByRole("link", { name: /Dashboard Departemen Regional/ })).toHaveCount(0);
+  await page.keyboard.press("Escape");
   await ready(page, "/dr");
   await expect(page.getByRole("heading", { name: /Halaman tidak tersedia/ })).toBeVisible();
   await expect(page.getByText("DR-TMN-")).toHaveCount(0);
   await ready(page, "/hasil-pemeriksaan");
-  const units = await page.getByRole("table", { name: /Daftar temuan/ }).locator("tbody tr td:nth-child(2) span span:first-child").allTextContents();
+  await page.getByLabel("Tahun Pemeriksaan").selectOption("all");
+  await page.getByRole("button", { name: "Per temuan" }).click();
+  const units = await page.getByRole("table", { name: /per record/ }).locator("tbody tr td:nth-child(4)").allTextContents();
   expect(new Set(units)).toEqual(new Set(["KPw Simulasi 01"]));
   await ready(page, "/admin");
   await expect(page.getByRole("heading", { name: /Halaman tidak tersedia/ })).toBeVisible();
 });
 
-test("dashboard DR menghitung KPI dari dataset dan filter pemeriksa", async ({ page }) => {
+test("dashboard DR: KPI dihitung dari dataset, filter pemeriksa, edit kepatuhan", async ({ page }) => {
   await ready(page, "/dr");
-  const v = (label: string) => page.locator(`[data-kpi="${label}"]`).first();
-  await expect(v("Temuan DR")).toHaveText("24");
-  await expect(v("Selesai")).toHaveText("16");
-  await expect(v("Dalam proses")).toHaveText("6");
-  await expect(v("Belum ditindaklanjuti")).toHaveText("2");
-  await page.getByRole("button", { name: "BPK (8)" }).click();
-  await expect(page.getByText("Menampilkan 1–8 dari 8 record")).toBeVisible();
+  await expect(page.locator('[data-kpi="Total Temuan Pemeriksaan"]')).toHaveText("24");
+  await expect(page.locator('[data-kpi="Selesai"]')).toHaveText("16");
+  await expect(page.locator('[data-kpi="Dalam Proses"]')).toHaveText("6");
+  await expect(page.locator('[data-kpi="Belum Selesai"]')).toHaveText("2");
+  await page.getByLabel("Pemeriksa", { exact: true }).selectOption("BPK");
+  await expect(page.getByText("Menampilkan 1 - 5 dari 8 data")).toBeVisible();
+  await page.getByRole("button", { name: /^Buka detail KPT-01/ }).click();
+  const drawer = page.getByRole("dialog");
+  await drawer.getByLabel("Status").selectOption("selesai");
+  await drawer.getByRole("button", { name: "Simpan status" }).click();
+  await expect(page.getByText("Status kewajiban KPT-01 diperbarui.")).toBeVisible();
+});
+
+test("notifikasi: lonceng menampilkan tautan tindak lanjut", async ({ page }) => {
+  await ready(page, "/hasil-pemeriksaan");
+  await page.getByRole("button", { name: /Notifikasi/ }).click();
+  await page.getByRole("link", { name: /permintaan dokumen lewat tenggat/ }).click();
+  await expect(page).toHaveURL(/\/permindok$/);
 });
 
 test("SGo: pencarian, preview materi, tutorial langkah demi langkah", async ({ page }) => {
   await ready(page, "/sgo-ketentuan");
   await expect(page.locator("article")).toHaveCount(8);
   await page.getByRole("button", { name: "Tutorial Aset" }).click();
-  const drawer = page.getByRole("dialog");
-  await expect(drawer.getByText("Langkah 1:")).toBeAttached();
+  await expect(page.getByRole("dialog").getByText("Langkah 1:")).toBeAttached();
   await page.keyboard.press("Escape");
   await page.getByLabel("Cari materi").fill("Pengadaan");
   await expect(page.getByRole("heading", { name: "Hasil pencarian (3)" })).toBeVisible();

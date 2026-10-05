@@ -37,14 +37,13 @@ export function SgoView() {
   return (
     <div>
       <PageHeader
-        eyebrow="Materi bersama"
         title="SGo dan Ketentuan"
         description="Worksheet, ketentuan dan tutorial per area pemeriksaan. Seluruh materi berlabel simulasi dan bukan ketentuan resmi."
       />
 
       <div className="mb-5 grid gap-4 lg:grid-cols-2">
         <Card aria-labelledby="apa-sgo" className="bg-gradient-to-br from-white to-sky-50">
-          <SectionHeader id="apa-sgo" icon={<Info className="h-5 w-5 text-sky-700" aria-hidden />} title="Apa itu SGo?" />
+          <SectionHeader id="apa-sgo" icon={<Info />} title="Apa itu SGo?" />
           <p className="text-[15px] text-navy-900">
             Dalam demo ini, SGo diperlakukan sebagai ruang materi panduan pemeriksaan: kumpulan worksheet, ketentuan dan tutorial yang dikelompokkan per
             area agar KPw dan DR merujuk materi yang sama saat menindaklanjuti temuan.
@@ -57,7 +56,7 @@ export function SgoView() {
           </div>
         </Card>
         <Card aria-labelledby="tutorial-umum">
-          <SectionHeader id="tutorial-umum" icon={<ListChecks className="h-5 w-5 text-violet-700" aria-hidden />} title="Tutorial: memakai halaman ini" />
+          <SectionHeader id="tutorial-umum" icon={<ListChecks />} iconTone="violet" title="Tutorial: memakai halaman ini" />
           <ol className="list-decimal space-y-1.5 pl-5 text-[15px] text-navy-900">
             <li>Cari materi dengan kata kunci atau saring berdasarkan jenis.</li>
             <li>Pilih kartu area, lalu klik Worksheet atau Ketentuan untuk pratinjau.</li>
@@ -116,9 +115,10 @@ export function SgoView() {
             {areas.map((area, i) => {
               const refs = data.references.filter((r) => r.area === area);
               return (
-                <article key={area} className="flex flex-col rounded-2xl border border-line bg-white p-4 transition hover:border-sky-300 hover:shadow-md">
+                <article key={area} className="panel relative flex flex-col overflow-hidden p-4 pl-5 transition hover:border-sky-300 hover:shadow-md">
+                  <span aria-hidden className="absolute inset-y-0 left-0 w-[4px]" style={{ background: ["#2f7fe0", "#1fbfa5", "#f0b429", "#6c5fd3"][i % 4] }} />
                   <div className="flex items-center gap-3">
-                    <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 font-bold text-white" aria-hidden>
+                    <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#e6f0ff] font-bold text-brand" aria-hidden>
                       {i + 1}
                     </span>
                     <h3 className="font-bold text-navy-900">{area}</h3>

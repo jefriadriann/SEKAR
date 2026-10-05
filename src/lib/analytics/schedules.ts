@@ -3,7 +3,7 @@
  * Tidak ada status acak/hardcoded.
  */
 import type { AuditSchedule, ISODate } from "../types";
-import { addDays, diffDays, monthLong, monthShort, toUTCDate, fromUTCDate } from "../dates";
+import { diffDays, monthLong, monthShort, toUTCDate, fromUTCDate } from "../dates";
 
 export type ScheduleStatus = "selesai" | "berlangsung" | "mendatang";
 
@@ -53,59 +53,60 @@ export function upcomingSchedules(rows: AuditSchedule[], asOf: ISODate, limit = 
 
 export type TimelineView = "bulan" | "kuartal" | "tahun";
 
+export interface TimelineColumn {
+  start: ISODate;
+  /** inklusif */
+  end: ISODate;
+  label: string;
+}
+
 export interface TimelineWindow {
   start: ISODate;
   /** inklusif */
   end: ISODate;
   days: number;
   label: string;
-  /** Penanda kolom (bulan atau minggu) untuk header timeline. */
-  ticks: { date: ISODate; label: string }[];
+  /** Kolom header timeline sesuai granularitas tampilan. */
+  columns: TimelineColumn[];
 }
 
-/** Jendela timeline yang memuat `anchor`, digeser `offset` periode. */
+const utc = (y: number, m: number, d = 1) => fromUTCDate(new Date(Date.UTC(y, m, d)));
+
+/**
+ * Jendela timeline dengan granularitas kolom:
+ * - bulan   : 6 bulan (semester yang memuat anchor), kolom per bulan;
+ * - kuartal : 12 bulan (tahun anchor), kolom per kuartal;
+ * - tahun   : 3 tahun (tahun sebelum s.d. sesudah anchor), kolom per tahun.
+ * `offset` menggeser jendela sebanyak satu jendela penuh.
+ */
 export function timelineWindow(view: TimelineView, anchor: ISODate, offset = 0): TimelineWindow {
   const a = toUTCDate(anchor);
-  let y = a.getUTCFullYear();
-  let m = a.getUTCMonth();
-  let startD: Date;
-  let endD: Date;
+  const y = a.getUTCFullYear();
+  const m = a.getUTCMonth();
+  const columns: TimelineColumn[] = [];
   let label: string;
   if (view === "bulan") {
-    const t = new Date(Date.UTC(y, m + offset, 1));
-    y = t.getUTCFullYear();
-    m = t.getUTCMonth();
-    startD = t;
-    endD = new Date(Date.UTC(y, m + 1, 0));
-    label = `${monthLong(m)} ${y}`;
-  } else if (view === "kuartal") {
-    const q0 = Math.floor(m / 3) * 3;
-    const t = new Date(Date.UTC(y, q0 + offset * 3, 1));
-    y = t.getUTCFullYear();
-    m = t.getUTCMonth();
-    startD = t;
-    endD = new Date(Date.UTC(y, m + 3, 0));
-    label = `Kuartal ${Math.floor(m / 3) + 1} ${y}`;
-  } else {
-    y = y + offset;
-    startD = new Date(Date.UTC(y, 0, 1));
-    endD = new Date(Date.UTC(y, 11, 31));
-    label = `Tahun ${y}`;
-  }
-  const start = fromUTCDate(startD);
-  const end = fromUTCDate(endD);
-  const days = diffDays(start, end) + 1;
-  const ticks: { date: ISODate; label: string }[] = [];
-  if (view === "bulan") {
-    for (let d = start; d <= end; d = addDays(d, 7)) ticks.push({ date: d, label: String(Number(d.slice(8, 10))) });
-  } else {
-    const n = view === "kuartal" ? 3 : 12;
-    for (let i = 0; i < n; i++) {
-      const t = new Date(Date.UTC(startD.getUTCFullYear(), startD.getUTCMonth() + i, 1));
-      ticks.push({ date: fromUTCDate(t), label: monthShort(t.getUTCMonth()) });
+    const first = new Date(Date.UTC(y, Math.floor(m / 6) * 6 + offset * 6, 1));
+    for (let i = 0; i < 6; i++) {
+      const sy = first.getUTCFullYear();
+      const sm = first.getUTCMonth() + i;
+      const d = new Date(Date.UTC(sy, sm, 1));
+      columns.push({ start: fromUTCDate(d), end: utc(sy, sm + 1, 0), label: `${monthShort(d.getUTCMonth())} ${d.getUTCFullYear()}` });
     }
+    const last = toUTCDate(columns[5].start);
+    label = `${monthLong(first.getUTCMonth())} – ${monthLong(last.getUTCMonth())} ${last.getUTCFullYear()}`;
+  } else if (view === "kuartal") {
+    const yy = y + offset;
+    for (let q = 0; q < 4; q++) columns.push({ start: utc(yy, q * 3), end: utc(yy, q * 3 + 3, 0), label: `Kuartal ${q + 1}` });
+    label = `Tahun ${yy}`;
+  } else {
+    const y0 = y - 1 + offset * 3;
+    for (let i = 0; i < 3; i++) columns.push({ start: utc(y0 + i, 0), end: utc(y0 + i, 11, 31), label: String(y0 + i) });
+    label = `${y0} – ${y0 + 2}`;
   }
-  return { start, end, days, label, ticks };
+  const start = columns[0].start;
+  const end = columns[columns.length - 1].end;
+  return { start, end, days: diffDays(start, end) + 1, label, columns };
 }
 
 /** Posisi bar (persen) dalam jendela; null bila tidak beririsan. */
@@ -121,4 +122,9 @@ export function barPosition(s: Pick<AuditSchedule, "start_date" | "end_date">, w
 export function positionOf(date: ISODate, w: TimelineWindow): number | null {
   if (date < w.start || date > w.end) return null;
   return ((diffDays(w.start, date) + 0.5) / w.days) * 100;
+}
+
+/** Posisi tepi kiri tanggal (awal hari) dalam persen. */
+export function edgeOf(date: ISODate, w: TimelineWindow): number {
+  return (Math.min(Math.max(diffDays(w.start, date), 0), w.days) / w.days) * 100;
 }
