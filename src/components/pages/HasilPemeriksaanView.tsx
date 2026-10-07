@@ -271,7 +271,7 @@ export function HasilPemeriksaanView() {
           table={<CategoryTable data={byKorwil} selected={filters.korwil === ALL ? null : filters.korwil} onSelect={(k) => toggle("korwil", k)} keyHeader="Korwil" />}
         >
           <div className="space-y-3">
-            <div className="rounded-xl bg-gradient-to-b from-[#f2f8ff] to-white px-1 pt-1">
+            <div className="rounded-xl bg-[#f6f8fc] px-1 pt-1">
               <IndonesiaMap
                 values={Object.fromEntries(byKorwil.map((k) => [k.key, k.count]))}
                 selected={filters.korwil === ALL ? null : filters.korwil}
@@ -321,14 +321,12 @@ export function HasilPemeriksaanView() {
         </ChartCard>
         <div className="grid gap-4 lg:col-span-2 lg:grid-cols-2 xl:col-span-1 xl:grid-cols-1">
           <LinkCard
-            glow="#22c3a6"
             icon={<ReconcileIcon size={50} />}
             title="Hasil Rekonsiliasi Aset"
             desc={`${formatPercent(assetSummary.pctReconciled, 1)} item sesuai · ${formatNumber(assetSummary.discrepancy)} selisih`}
             onClick={() => setPanel("aset")}
           />
           <LinkCard
-            glow="#ee2d48"
             icon={<VideoGuideIcon size={52} />}
             title="Video Panduan Penyelesaian Temuan Aset"
             desc="Panduan visual langkah demi langkah · 5 langkah"
@@ -401,17 +399,16 @@ export function HasilPemeriksaanView() {
   );
 }
 
-function LinkCard({ glow, icon, title, desc, onClick }: { glow: string; icon: React.ReactNode; title: string; desc: string; onClick: () => void }) {
+function LinkCard({ icon, title, desc, onClick }: { icon: React.ReactNode; title: string; desc: string; onClick: () => void }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="panel group relative flex w-full items-center gap-4 overflow-hidden p-4 text-left transition duration-300 hover:-translate-y-0.5 hover:shadow-lg"
+      className="panel group relative flex w-full items-center gap-4 overflow-hidden p-4 text-left transition-colors hover:border-[#b9c8e0]"
     >
-      <span aria-hidden className="pointer-events-none absolute -left-10 -top-12 h-32 w-32 rounded-full opacity-15 blur-2xl transition-opacity duration-300 group-hover:opacity-30" style={{ background: glow }} />
       <span
         aria-hidden
-        className="relative grid h-[60px] w-[60px] shrink-0 place-items-center rounded-[18px] bg-gradient-to-br from-white to-[#eef4fb] shadow-[inset_0_1px_0_#fff,0_8px_18px_-10px_rgba(20,42,110,0.45)] ring-1 ring-[#e3ecf7] transition-transform duration-300 group-hover:scale-105"
+        className="grid h-[56px] w-[56px] shrink-0 place-items-center rounded-xl bg-[#eef2f9]"
       >
         {icon}
       </span>
@@ -419,7 +416,7 @@ function LinkCard({ glow, icon, title, desc, onClick }: { glow: string; icon: Re
         <span className="block text-[15px] font-bold leading-snug text-navy-900">{title}</span>
         <span className="mt-0.5 block text-[13px] text-muted">{desc}</span>
       </span>
-      <span className="relative grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#eef4fc] text-navy-800 transition-colors duration-200 group-hover:bg-[linear-gradient(135deg,var(--m1),var(--m2))] group-hover:text-white" aria-hidden>
+      <span className="relative grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#eef4fc] text-navy-800 transition-colors duration-200 group-hover:bg-[var(--m2)] group-hover:text-white" aria-hidden>
         <ChevronRight className="h-4 w-4" />
       </span>
     </button>

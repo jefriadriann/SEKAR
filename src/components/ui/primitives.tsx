@@ -2,7 +2,6 @@ import Link from "next/link";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { ChevronDown, ChevronRight, Inbox, Search, X } from "lucide-react";
 import { NumberTicker } from "@/components/magicui/NumberTicker";
-import { ShineBorder } from "@/components/magicui/ShineBorder";
 
 export function cx(...classes: (string | false | null | undefined)[]) {
   return classes.filter(Boolean).join(" ");
@@ -42,35 +41,34 @@ export function Card({ children, className, as: Tag = "section", ...rest }: { ch
   );
 }
 
-const TILE = {
-  blue: "bg-gradient-to-br from-[#5aa2ff] to-[#1d58b5] text-white shadow-[0_6px_14px_-6px_rgba(29,88,181,0.7)]",
-  teal: "bg-gradient-to-br from-[#34d8b4] to-[#0f9b6e] text-white shadow-[0_6px_14px_-6px_rgba(15,155,110,0.7)]",
-  amber: "bg-gradient-to-br from-[#fcc94a] to-[#e08b0b] text-white shadow-[0_6px_14px_-6px_rgba(224,139,11,0.7)]",
-  rose: "bg-gradient-to-br from-[#ff8a96] to-[#e0313f] text-white shadow-[0_6px_14px_-6px_rgba(224,49,63,0.7)]",
-  violet: "bg-gradient-to-br from-[#b49cff] to-[#6d4fd1] text-white shadow-[0_6px_14px_-6px_rgba(109,79,209,0.7)]",
-  sky: "bg-gradient-to-br from-[#7fd6ff] to-[#1f8fd6] text-white shadow-[0_6px_14px_-6px_rgba(31,143,214,0.7)]",
-  navy: "bg-gradient-to-br from-[#3d4f8f] to-[#1a2552] text-white shadow-[0_6px_14px_-6px_rgba(26,37,82,0.7)]",
-  gold: "bg-gradient-to-br from-[#e6c77d] to-[#b8902f] text-white shadow-[0_6px_14px_-6px_rgba(184,144,47,0.7)]",
-  slate: "bg-gradient-to-br from-[#aab4cf] to-[#6b789e] text-white shadow-[0_6px_14px_-6px_rgba(107,120,158,0.6)]",
+/** Warna solid kalem untuk ubin ikon (tanpa kilau). */
+const TONE_HEX = {
+  blue: "#1d4f9e",
+  teal: "#2e7d5b",
+  amber: "#b7791f",
+  rose: "#b23b3b",
+  violet: "#4f4a8c",
+  sky: "#2b6cb0",
+  navy: "#13235a",
+  gold: "#a8832a",
+  slate: "#5b6780",
 } as const;
-export type TileTone = keyof typeof TILE;
+const TILE = TONE_HEX;
+export type TileTone = keyof typeof TONE_HEX;
 
 export function IconTile({ tone = "blue", children, size = "md" }: { tone?: TileTone; children: ReactNode; size?: "sm" | "md" | "lg" }) {
   return (
     <span
       aria-hidden
+      style={{ background: TILE[tone] }}
       className={cx(
-        "relative grid shrink-0 place-items-center overflow-hidden ring-1 ring-inset ring-white/30",
-        TILE[tone],
-        size === "sm" && "h-8 w-8 rounded-[10px] [&_svg]:h-4 [&_svg]:w-4",
-        size === "md" && "h-10 w-10 rounded-xl [&_svg]:h-5 [&_svg]:w-5",
-        size === "lg" && "h-12 w-12 rounded-[14px] [&_svg]:h-6 [&_svg]:w-6",
+        "grid shrink-0 place-items-center text-white",
+        size === "sm" && "h-8 w-8 rounded-[9px] [&_svg]:h-4 [&_svg]:w-4",
+        size === "md" && "h-10 w-10 rounded-[10px] [&_svg]:h-5 [&_svg]:w-5",
+        size === "lg" && "h-12 w-12 rounded-xl [&_svg]:h-6 [&_svg]:w-6",
       )}
     >
-      {/* kilau lembut di separuh atas */}
-      <span className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/40 to-transparent" />
-      <span className="pointer-events-none absolute -bottom-2 -right-2 h-6 w-6 rounded-full bg-white/15" />
-      <span className="relative grid place-items-center [&_svg]:drop-shadow-[0_1px_1px_rgba(0,0,0,0.18)]">{children}</span>
+      {children}
     </span>
   );
 }
@@ -97,7 +95,7 @@ export function SectionHeader({
         {icon && <IconTile tone={iconTone}>{icon}</IconTile>}
         <div className="min-w-0">
           <h2 id={id} className="flex items-center gap-2 text-[17px] font-bold leading-tight text-navy-900">
-            {!icon && <span aria-hidden className="h-4 w-1.5 shrink-0 rounded-full bg-[linear-gradient(180deg,var(--m2),var(--m3))]" />}
+            {!icon && <span aria-hidden className="h-4 w-1.5 shrink-0 rounded-full bg-[var(--m2)]" />}
             {title}
           </h2>
           {description && <p className="mt-0.5 text-[13px] text-muted">{description}</p>}
@@ -126,19 +124,8 @@ export function PageHeader({
 }) {
   return (
     <div className="hero-banner mb-5 px-5 py-5 sm:px-7 sm:py-6">
-      {/* Ornamen: cincin, titik, dan gelombang tipis (statis). */}
-      <svg aria-hidden focusable="false" className="pointer-events-none absolute inset-0 h-full w-full" preserveAspectRatio="none">
-        <defs>
-          <pattern id="hero-dots" width="18" height="18" patternUnits="userSpaceOnUse">
-            <circle cx="2" cy="2" r="1.1" fill="#fff" fillOpacity=".22" />
-          </pattern>
-        </defs>
-        <rect x="58%" y="0" width="42%" height="100%" fill="url(#hero-dots)" />
-      </svg>
-      <span aria-hidden className="pointer-events-none absolute -right-16 -top-24 h-64 w-64 rounded-full border-[28px] border-white/10" />
-      <span aria-hidden className="pointer-events-none absolute -bottom-20 right-40 h-40 w-40 rounded-full bg-white/10" />
-      <span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/10 to-transparent" />
-
+      <span aria-hidden className="pointer-events-none absolute -right-20 -top-28 h-72 w-72 rounded-full border-[32px] border-white/[0.06]" />
+      <span aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-[3px] bg-[var(--m3)]" />
       <div className="relative">
         <nav aria-label="Breadcrumb" className="mb-2 text-[13px] text-white/80">
           <ol className="flex flex-wrap items-center gap-1">
@@ -158,12 +145,12 @@ export function PageHeader({
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="flex min-w-0 max-w-3xl items-center gap-4">
             {icon && (
-              <span aria-hidden className="hidden h-[68px] w-[68px] shrink-0 place-items-center rounded-[20px] bg-white/95 shadow-[0_10px_24px_-10px_rgba(0,0,0,0.45)] ring-4 ring-white/25 sm:grid">
+              <span aria-hidden className="hidden h-[64px] w-[64px] shrink-0 place-items-center rounded-2xl bg-white sm:grid">
                 {icon}
               </span>
             )}
             <div className="min-w-0">
-              <h1 className={cx("text-[26px] font-extrabold leading-tight tracking-tight text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.15)] sm:text-[32px]", uppercase && "uppercase")}>{title}</h1>
+              <h1 className={cx("text-[26px] font-extrabold leading-tight tracking-tight text-white sm:text-[30px]", uppercase && "uppercase")}>{title}</h1>
               {description && <p className="mt-1 text-[15px] text-white/85">{description}</p>}
             </div>
           </div>
@@ -193,31 +180,7 @@ export function Badge({ tone = "neutral", children, className, title }: { tone?:
   );
 }
 
-/** Gradasi cerah kartu KPI per tone (dua/tiga warna agar tidak monoton). */
-const KPI_GRADIENT: Record<TileTone, string> = {
-  blue: "linear-gradient(135deg, #2563eb 0%, #4f46e5 55%, #7c3aed 100%)",
-  teal: "linear-gradient(135deg, #059669 0%, #10b981 50%, #2dd4bf 100%)",
-  amber: "linear-gradient(135deg, #f59e0b 0%, #f97316 60%, #fb7185 100%)",
-  rose: "linear-gradient(135deg, #e11d48 0%, #f43f5e 50%, #ec4899 100%)",
-  violet: "linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #d946ef 100%)",
-  sky: "linear-gradient(135deg, #0284c7 0%, #0ea5e9 50%, #22d3ee 100%)",
-  navy: "linear-gradient(135deg, #141e46 0%, #26366f 60%, #3d4f8f 100%)",
-  gold: "linear-gradient(135deg, #a8801f 0%, #c9a24a 55%, #e2c27a 100%)",
-  slate: "linear-gradient(135deg, #4b5677 0%, #6b789e 100%)",
-};
-const KPI_SHADOW: Record<TileTone, string> = {
-  blue: "rgba(79,70,229,0.55)",
-  teal: "rgba(16,185,129,0.55)",
-  amber: "rgba(249,115,22,0.55)",
-  rose: "rgba(244,63,94,0.55)",
-  violet: "rgba(168,85,247,0.55)",
-  sky: "rgba(14,165,233,0.55)",
-  navy: "rgba(20,30,70,0.55)",
-  gold: "rgba(168,128,31,0.5)",
-  slate: "rgba(75,86,119,0.5)",
-};
-
-/** Kartu KPI. `tinted` = kartu gradasi cerah dengan teks putih; tanpa `tinted` = panel putih. */
+/** Kartu KPI: panel putih dengan garis aksen kiri dan ikon berwarna solid. `tinted` = latar navy solid (KPI utama). */
 export function KpiCard({
   label,
   value,
@@ -233,27 +196,20 @@ export function KpiCard({
   icon?: ReactNode;
   tinted?: boolean;
 }) {
-  const valueClass = cx("text-[30px] font-extrabold leading-tight tabular-nums", tinted ? "text-white" : "text-navy-900");
+  const solid = tinted && (tone === "navy" || tone === "blue");
+  const valueClass = cx("text-[30px] font-extrabold leading-tight tabular-nums", solid ? "text-white" : "text-navy-900");
   return (
     <div
-      className={cx(
-        "relative flex items-center gap-4 overflow-hidden rounded-[18px] p-4 transition-transform duration-200 hover:-translate-y-0.5",
-        tinted ? "text-white" : "panel panel-accent",
-      )}
-      style={tinted ? { background: KPI_GRADIENT[tone], boxShadow: `0 14px 30px -16px ${KPI_SHADOW[tone]}` } : undefined}
+      className={cx("relative flex items-center gap-4 overflow-hidden rounded-[14px] border p-4", solid ? "border-transparent text-white" : "border-[#e0e6ef] bg-white")}
+      style={{
+        background: solid ? TILE[tone] : undefined,
+        boxShadow: "0 1px 2px rgba(19,35,90,0.04), 0 6px 18px -12px rgba(19,35,90,0.16)",
+      }}
     >
-      {tinted ? (
-        <>
-          <span aria-hidden className="pointer-events-none absolute -right-10 -top-12 h-36 w-36 rounded-full border-[18px] border-white/15" />
-          <span aria-hidden className="pointer-events-none absolute -bottom-10 right-16 h-24 w-24 rounded-full bg-white/10" />
-          <span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/15 to-transparent" />
-        </>
-      ) : (
-        <ShineBorder shineColor={["var(--m2)", "#ffffff", "var(--m3)"]} />
-      )}
+      {!solid && <span aria-hidden className="absolute inset-y-0 left-0 w-1" style={{ background: TILE[tone] }} />}
       {icon &&
-        (tinted ? (
-          <span aria-hidden className="relative grid h-12 w-12 shrink-0 place-items-center rounded-[14px] bg-white/20 ring-1 ring-inset ring-white/40 backdrop-blur-[2px] [&_svg]:h-6 [&_svg]:w-6">
+        (solid ? (
+          <span aria-hidden className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-white/15 [&_svg]:h-6 [&_svg]:w-6">
             {icon}
           </span>
         ) : (
@@ -261,8 +217,8 @@ export function KpiCard({
             {icon}
           </IconTile>
         ))}
-      <div className="relative min-w-0">
-        <p className={cx("text-[14px] font-semibold", tinted ? "text-white/90" : "text-navy-900")}>{label}</p>
+      <div className="min-w-0">
+        <p className={cx("text-[14px] font-semibold", solid ? "text-white/85" : "text-muted")}>{label}</p>
         <p className="flex flex-wrap items-baseline gap-x-2">
           {typeof value === "number" ? (
             <NumberTicker data-kpi={label} value={value} className={valueClass} />
@@ -271,7 +227,7 @@ export function KpiCard({
               {value}
             </span>
           )}
-          {hint && <span className={cx("text-[13px] font-semibold", tinted ? "rounded-full bg-white/20 px-2 py-0.5 text-white" : "text-muted")}>{hint}</span>}
+          {hint && <span className={cx("text-[13px] font-semibold", solid ? "text-white/80" : "text-muted")}>{hint}</span>}
         </p>
       </div>
     </div>
@@ -433,7 +389,7 @@ export function ArrowCircle() {
   return (
     <span
       aria-hidden
-      className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[#d7e3f3] bg-white text-navy-800 transition group-hover:border-transparent group-hover:bg-[linear-gradient(135deg,var(--m1),var(--m2))] group-hover:text-white"
+      className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[#d7e3f3] bg-white text-navy-800 transition group-hover:border-[var(--m2)] group-hover:bg-[var(--m2)] group-hover:text-white"
     >
       <ChevronRight className="h-4 w-4" />
     </span>

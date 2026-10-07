@@ -30,10 +30,10 @@ export function rangeLabel(start: string, end: string): string {
 type Phase = "berlangsung" | "segera" | "mendatang" | "selesai";
 
 const PHASE: Record<Phase, { label: string; bar: string; dot: string; pill: string; tone: TileTone }> = {
-  berlangsung: { label: "Dalam Pemeriksaan", bar: "bg-gradient-to-r from-[#1a2552] to-[#3d4f8f] text-white", dot: "#26366f", pill: "bg-[#e9ecf6] text-[#1a2552] border-[#d3d9ec]", tone: "navy" },
-  segera: { label: "Mendatang (≤7 Hari)", bar: "bg-gradient-to-r from-[#b8902f] to-[#e2c27a] text-white", dot: "#c9a24a", pill: "bg-[#fbf5e6] text-[#8a6a1c] border-[#efe0b8]", tone: "gold" },
+  berlangsung: { label: "Dalam Pemeriksaan", bar: "bg-[#1d4f9e] text-white", dot: "#26366f", pill: "bg-[#e9ecf6] text-[#1a2552] border-[#d3d9ec]", tone: "navy" },
+  segera: { label: "Mendatang (≤7 Hari)", bar: "bg-[#c9a24a] text-white", dot: "#c9a24a", pill: "bg-[#fbf5e6] text-[#8a6a1c] border-[#efe0b8]", tone: "gold" },
   mendatang: { label: "Mendatang", bar: "bg-white text-[#26366f] ring-[1.5px] ring-inset ring-[#7b88b3]", dot: "#7b88b3", pill: "bg-[#f1f3f9] text-[#3d4f8f] border-[#dde2ef]", tone: "slate" },
-  selesai: { label: "Selesai", bar: "bg-gradient-to-r from-[#c9d0e2] to-[#dde2ee] text-[#3d4f8f] ring-1 ring-inset ring-[#bfc7dc]", dot: "#b4bdd4", pill: "bg-[#f4f5f8] text-[#5b6685] border-[#e2e5ec]", tone: "slate" },
+  selesai: { label: "Selesai", bar: "bg-[#cfd7e6] text-[#33447f]", dot: "#b4bdd4", pill: "bg-[#f4f5f8] text-[#5b6685] border-[#e2e5ec]", tone: "slate" },
 };
 
 function phaseOf(s: AuditSchedule, asOf: string): Phase {
@@ -221,7 +221,7 @@ export function JadwalView() {
           <SectionHeader
             id="timeline-title"
             icon={<CalendarDays />}
-            iconTone="navy"
+            iconTone="blue"
             title="Jadwal Pemeriksaan KPwDN"
             description={`${win.label} · ${inWindow.length} jadwal`}
             actions={
@@ -356,7 +356,7 @@ export function JadwalView() {
           <SectionHeader
             id="terdekat"
             icon={<CalendarClock />}
-            iconTone="navy"
+            iconTone="blue"
             title="Pemeriksaan Terdekat"
             actions={
               upcoming.length > 5 && (
@@ -382,7 +382,7 @@ export function JadwalView() {
         <SectionHeader
           id="tindak-lanjut"
           icon={<FileText />}
-          iconTone="navy"
+          iconTone="blue"
           title="Penyelesaian Temuan Pemeriksaan"
           description="Tracking tindak lanjut temuan dan rekomendasi pemeriksaan pada KPwDN."
           actions={

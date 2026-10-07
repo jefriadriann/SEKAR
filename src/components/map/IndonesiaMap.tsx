@@ -11,8 +11,8 @@ import { cn } from "@/lib/utils";
 import { formatNumber } from "@/lib/format";
 import { KORWIL_CENTERS, KORWIL_PATHS, MAP_HEIGHT, MAP_WIDTH, NEIGHBOR_PATH } from "./indonesia-map-data";
 
-const DOT_COLORS = ["#6366f1", "#ec4899", "#f59e0b", "#10b981", "#0ea5e9", "#a855f7"];
-const RAMP = ["#fde2f1", "#f5b0d8", "#d58ae8", "#9b5cf0", "#5b2fd0"];
+const DOT_COLORS = ["#1d4f9e"];
+const RAMP = ["#dbe4f2", "#b5c8e6", "#7f9fd2", "#3f70b9", "#13235a"];
 
 /** Skala warna berurutan dari nilai terkecil hingga terbesar antarkorwil. */
 function rampColor(v: number, min: number, max: number) {
@@ -64,9 +64,8 @@ export function IndonesiaMap({
     >
       <defs>
         <linearGradient id={`${id}-land`} x1="0" x2="1" y1="0" y2="1">
-          <stop offset="0" stopColor="#c4b5fd" />
-          <stop offset="0.5" stopColor="#a5c8fb" />
-          <stop offset="1" stopColor="#8be3d6" />
+          <stop offset="0" stopColor="#cfdcef" />
+          <stop offset="1" stopColor="#b3c7e5" />
         </linearGradient>
         <pattern id={`${id}-dots`} width="9" height="9" patternUnits="userSpaceOnUse">
           <circle cx="4.5" cy="4.5" r="0.9" fill="#ffffff" fillOpacity="0.55" />
@@ -102,7 +101,7 @@ export function IndonesiaMap({
       </g>
 
       {decor && (
-        <g fill="none" stroke="#a78bfa" strokeOpacity="0.75" strokeWidth="1.2" strokeDasharray="4 5">
+        <g fill="none" stroke="#8ea8d4" strokeOpacity="0.7" strokeWidth="1.2" strokeDasharray="4 5">
           {[
             ["Sumatera", "Jawa"],
             ["Jawa", "Kalimantan"],
@@ -135,8 +134,8 @@ export function IndonesiaMap({
         const w = 22 + label.length * 15;
         return (
           <g key={k} pointerEvents="none" aria-hidden>
-            <rect x={x - w / 2} y={y - 18} width={w} height="36" rx="18" fill="#ffffff" fillOpacity="0.95" stroke="#e9d5ff" strokeWidth="1.5" />
-            <text x={x} y={y + 8} textAnchor="middle" fontSize="24" fontWeight="700" fill="#3b0764">
+            <rect x={x - w / 2} y={y - 18} width={w} height="36" rx="18" fill="#ffffff" fillOpacity="0.95" stroke="#cfdaea" strokeWidth="1.5" />
+            <text x={x} y={y + 8} textAnchor="middle" fontSize="24" fontWeight="700" fill="#13235a">
               {label}
             </text>
           </g>

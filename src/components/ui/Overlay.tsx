@@ -87,7 +87,7 @@ export function Drawer({
         tabIndex={-1}
         className={cx("animate-drawer-in relative flex h-full w-full flex-col border-l border-line bg-white shadow-2xl will-change-transform", width)}
       >
-        <div className="flex items-start justify-between gap-3 border-b border-line bg-gradient-to-r from-sky-50 to-cyan-50 px-5 py-4">
+        <div className="flex items-start justify-between gap-3 border-b border-line bg-[#f4f6fb] px-5 py-4">
           <div className="min-w-0">
             <h2 id={titleId} className="text-lg font-bold text-navy-900">
               {title}

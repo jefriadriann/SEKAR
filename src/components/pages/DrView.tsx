@@ -375,7 +375,7 @@ export function DrView() {
           />
         </Card>
         <Card aria-labelledby="dr-dok">
-          <SectionHeader id="dr-dok" icon={<FileText />} iconTone="sky" title="Dokumen Penting" description="Laporan hasil pemeriksaan." />
+          <SectionHeader id="dr-dok" icon={<FileText />} iconTone="blue" title="Dokumen Penting" description="Laporan hasil pemeriksaan." />
           <DataTable
             rows={importantDocs}
             columns={dCols}
@@ -390,7 +390,7 @@ export function DrView() {
           />
         </Card>
         <Card aria-labelledby="dr-ketentuan">
-          <SectionHeader id="dr-ketentuan" icon={<BookOpen />} iconTone="violet" title="Ketentuan Kelompok" description="Kumpulan ketentuan per kelompok." />
+          <SectionHeader id="dr-ketentuan" icon={<BookOpen />} iconTone="blue" title="Ketentuan Kelompok" description="Kumpulan ketentuan per kelompok." />
           <DataTable
             rows={groupRefs}
             columns={gCols}

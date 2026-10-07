@@ -198,8 +198,9 @@ export function PermindokView() {
       />
 
       <div className="mb-4 grid gap-4 lg:grid-cols-2 xl:grid-cols-[1fr_1fr_1.2fr]">
-        <section aria-labelledby="catatan" className="flex min-w-0 flex-col rounded-[16px] border border-[#f6d0d0] bg-gradient-to-br from-[#fff3f3] via-[#fdecec] to-[#fbdcdc] p-4 shadow-[0_8px_24px_-14px_rgba(200,40,50,0.35)]">
-          <h2 id="catatan" className="mb-3 flex items-center gap-2 text-[16px] font-bold text-[#c62f35]">
+        <section aria-labelledby="catatan" className="panel relative flex min-w-0 flex-col overflow-hidden p-4 pl-5">
+          <span aria-hidden className="absolute inset-y-0 left-0 w-1 bg-[#b23b3b]" />
+          <h2 id="catatan" className="mb-3 flex items-center gap-2 text-[16px] font-bold text-[#9b2c2c]">
             <AlertTriangle className="h-5 w-5" aria-hidden />
             Catatan Pemenuhan Permindok
           </h2>
@@ -340,7 +341,7 @@ export function PermindokView() {
         <ol className="space-y-3">
           {(guide === "watermark" ? WATERMARK_STEPS : DELIVERY_STEPS).map((s, i) => (
             <li key={s} className="flex gap-3">
-              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-gradient-to-br from-sky-500 to-blue-700 text-sm font-bold text-white shadow-sm" aria-hidden>
+              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#1d4f9e] text-sm font-bold text-white" aria-hidden>
                 {i + 1}
               </span>
               <span className="pt-0.5 text-[15px] text-navy-900">
@@ -397,9 +398,9 @@ function GuideRow({ visual, title, sub, onClick }: { visual: ReactNode; title: s
       <button
         type="button"
         onClick={onClick}
-        className="group flex w-full items-center gap-3 rounded-xl border border-line bg-white px-3 py-2.5 text-left transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-0.5 hover:border-sky-300 hover:shadow-[0_10px_24px_-16px_rgba(29,78,216,0.6)]"
+        className="group flex w-full items-center gap-3 rounded-xl border border-line bg-white px-3 py-2.5 text-left transition-[transform,box-shadow,border-color] duration-200 hover:border-[#b9c8e0] hover:bg-[#f8fafd]"
       >
-        <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-white to-sky-50 ring-1 ring-sky-100 transition-transform duration-200 group-hover:scale-105">{visual}</span>
+        <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-[#eef2f9]">{visual}</span>
         <span className="min-w-0 flex-1">
           <span className="block text-[14px] font-bold leading-snug text-navy-900">{title}</span>
           <span className="block text-[12px] text-muted">{sub}</span>

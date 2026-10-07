@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 
 const STEP_SECONDS = 5;
 
-export function VideoGuidePlayer({ title, steps, accent = "#ee2d48" }: { title: string; steps: string[]; accent?: string }) {
+export function VideoGuidePlayer({ title, steps, accent = "#c4323b" }: { title: string; steps: string[]; accent?: string }) {
   const [index, setIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [reduce, setReduce] = useState(false);
@@ -57,14 +57,14 @@ export function VideoGuidePlayer({ title, steps, accent = "#ee2d48" }: { title: 
       {/* Adegan */}
       <div
         className="relative mx-4 mt-3 aspect-video overflow-hidden rounded-xl"
-        style={{ background: `radial-gradient(120% 120% at 0% 0%, ${accent}55, transparent 55%), linear-gradient(135deg, #1d3a9a, #0c1a4d)` }}
+        style={{ background: "linear-gradient(135deg, #1d4f9e, #13235a)" }}
       >
         <div aria-hidden className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/5" />
         <div aria-hidden className="absolute -bottom-14 left-1/3 h-48 w-48 rounded-full bg-white/5" />
         <div key={index} className="animate-pop-in relative flex h-full flex-col justify-center gap-4 px-6 sm:px-10" aria-live="polite">
           <span className="text-[12px] font-semibold uppercase tracking-[0.18em] text-white/70">{title}</span>
           <span className="flex items-start gap-4">
-            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl text-[22px] font-extrabold shadow-lg" style={{ background: accent }}>
+            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl text-[22px] font-extrabold" style={{ background: accent }}>
               {index + 1}
             </span>
             <span className="pt-1 text-[17px] font-semibold leading-snug sm:text-[20px]">
@@ -99,7 +99,7 @@ export function VideoGuidePlayer({ title, steps, accent = "#ee2d48" }: { title: 
         <button
           type="button"
           onClick={() => setPlaying((p) => !p)}
-          className={cn("grid h-11 w-11 place-items-center rounded-full shadow-lg transition-transform hover:scale-105")}
+          className={cn("grid h-11 w-11 place-items-center rounded-full transition-colors")}
           style={{ background: accent }}
           aria-label={playing ? "Jeda" : "Putar"}
         >

@@ -103,7 +103,7 @@ function Header({ home }: { home: boolean }) {
       {!home && (
         <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
           <SkylineDecor />
-          <span className="absolute inset-x-0 bottom-0 h-[3px] bg-[linear-gradient(90deg,var(--m1),var(--m2)_50%,var(--m3))]" />
+          <span className="absolute inset-x-0 bottom-0 h-[3px] bg-[var(--m1)]" />
         </div>
       )}
       <div className="relative mx-auto flex max-w-[1440px] items-center gap-4 px-4 py-3 sm:px-6 lg:px-8">
@@ -231,7 +231,7 @@ function UserMenu() {
         aria-haspopup="true"
         className="flex items-center gap-2 rounded-full p-0.5 hover:bg-white/70"
       >
-        <span className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-b from-slate-300 to-slate-400 text-white" aria-hidden>
+        <span className="grid h-9 w-9 place-items-center rounded-full bg-[#5b6780] text-white" aria-hidden>
           <UserRound className="h-5 w-5" />
         </span>
         <span className="sr-only">Menu pengguna: {viewer.name}</span>

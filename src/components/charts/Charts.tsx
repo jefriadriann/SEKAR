@@ -3,7 +3,7 @@
 import { useId, useState, type ReactNode } from "react";
 import { Area, Bar, BarChart, CartesianGrid, Cell, ComposedChart, LabelList, Legend, Line, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { BarChart3, RotateCcw, Table2 } from "lucide-react";
-import { AXIS_TEXT, CATEGORY_GRADIENTS, CATEGORY_RAMP, GRID, SELECTED, SERIES_PRIMARY, SERIES_SECONDARY } from "@/lib/palette";
+import { AXIS_TEXT, CATEGORY_GRADIENTS, CATEGORY_RAMP, GRID, SELECTED, SERIES_PRIMARY } from "@/lib/palette";
 import { formatNumber, formatPercent, percent } from "@/lib/format";
 import { cx } from "@/components/ui/primitives";
 
@@ -41,7 +41,7 @@ export function ChartCard({
           {icon}
           <div className="min-w-0">
             <h2 id={`${id}-t`} className="flex items-center gap-2 text-[16px] font-bold text-navy-900">
-              <span aria-hidden className="h-4 w-1.5 shrink-0 rounded-full bg-[linear-gradient(180deg,var(--m2),var(--m3))]" />
+              <span aria-hidden className="h-4 w-1 shrink-0 rounded-full bg-[var(--m2)]" />
               {title}
             </h2>
             {description && <p className="text-[12px] text-muted">{description}</p>}
@@ -152,7 +152,7 @@ export function ColumnChart({
           {CATEGORY_GRADIENTS.map(([a, b], i) => (
             <linearGradient key={a} id={`colg-${i}`} x1="0" x2="0" y1="0" y2="1">
               <stop offset="0" stopColor={a} />
-              <stop offset="1" stopColor={b} stopOpacity={0.85} />
+              <stop offset="1" stopColor={b} />
             </linearGradient>
           ))}
         </defs>
@@ -160,7 +160,7 @@ export function ColumnChart({
         <XAxis dataKey="key" tick={<WrappedTick />} interval={0} tickLine={false} axisLine={{ stroke: GRID }} height={40} />
         <YAxis allowDecimals={false} tick={{ fill: AXIS_TEXT, fontSize: 11 }} axisLine={false} tickLine={false} />
         <Tooltip
-          cursor={{ fill: "rgba(124,58,237,0.07)" }}
+          cursor={{ fill: "rgba(29,79,158,0.06)" }}
           content={({ active, payload }) => {
             if (!active || !payload?.length) return null;
             const d = payload[0].payload as CategoryDatum;
@@ -200,16 +200,16 @@ export function HorizontalBars({
     <ul className="space-y-2.5">
       {data.map((d, i) => {
         const active = selected === d.key;
-        const [ga, gb] = CATEGORY_GRADIENTS[i % CATEGORY_GRADIENTS.length];
+        const [ga] = CATEGORY_GRADIENTS[i % CATEGORY_GRADIENTS.length];
         const content = (
           <>
             <span className="w-[150px] shrink-0 truncate text-right text-[12.5px] text-navy-900">{d.key}</span>
-            <span className="relative h-[14px] flex-1 overflow-hidden rounded-full bg-[#eef1f8]">
+            <span className="relative h-[14px] flex-1 overflow-hidden rounded-[3px] bg-[#eef1f7]">
               <span
-                className="absolute inset-y-0 left-0 rounded-full"
+                className="absolute inset-y-0 left-0 rounded-[3px]"
                 style={{
                   width: `${(d.count / max) * 100}%`,
-                  background: active ? SELECTED : `linear-gradient(90deg, ${ga}, ${gb})`,
+                  background: active ? SELECTED : ga,
                   opacity: selected && !active ? 0.4 : 1,
                 }}
               />
@@ -263,13 +263,8 @@ export function TrendChart({ data, selected, onSelect }: { data: TrendDatum[]; s
       >
         <defs>
           <linearGradient id="trend-fill" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0" stopColor="#a855f7" stopOpacity={0.32} />
-            <stop offset="0.6" stopColor="#ec4899" stopOpacity={0.1} />
-            <stop offset="1" stopColor="#ec4899" stopOpacity={0.01} />
-          </linearGradient>
-          <linearGradient id="trend-line" x1="0" x2="1" y1="0" y2="0">
-            <stop offset="0" stopColor={SERIES_PRIMARY} />
-            <stop offset="1" stopColor={SERIES_SECONDARY} />
+            <stop offset="0" stopColor="#1d4f9e" stopOpacity={0.14} />
+            <stop offset="1" stopColor="#1d4f9e" stopOpacity={0.01} />
           </linearGradient>
         </defs>
         <CartesianGrid vertical={false} stroke={GRID} />
@@ -287,12 +282,12 @@ export function TrendChart({ data, selected, onSelect }: { data: TrendDatum[]; s
           type="linear"
           dataKey="total"
           name="Jumlah temuan"
-          stroke="url(#trend-line)"
-          strokeWidth={3}
+          stroke={SERIES_PRIMARY}
+          strokeWidth={2.5}
           dot={(p) => {
             const d = p.payload as TrendDatum;
             const sel = selected === d.year;
-            return <circle key={`t-${d.year}`} cx={p.cx} cy={p.cy} r={sel ? 7 : 5} fill={sel ? SELECTED : CATEGORY_RAMP[(Number(d.year) || 0) % 4]} stroke="#fff" strokeWidth={2} />;
+            return <circle key={`t-${d.year}`} cx={p.cx} cy={p.cy} r={sel ? 7 : 5} fill={sel ? SELECTED : SERIES_PRIMARY} stroke="#fff" strokeWidth={2} />;
           }}
           isAnimationActive={false}
         >
@@ -398,7 +393,7 @@ export function StackedHBarChart<K extends string>({
         <CartesianGrid horizontal={false} stroke={GRID} />
         <XAxis type="number" allowDecimals={false} tick={{ fill: AXIS_TEXT, fontSize: 11 }} axisLine={false} tickLine={false} />
         <YAxis type="category" dataKey={categoryKey} width={78} tick={{ fill: "#142a6e", fontSize: 12 }} axisLine={false} tickLine={false} />
-        <Tooltip cursor={{ fill: "rgba(124,58,237,0.07)" }} contentStyle={{ borderRadius: 8, borderColor: "#e1eaf5", fontSize: 13 }} />
+        <Tooltip cursor={{ fill: "rgba(29,79,158,0.06)" }} contentStyle={{ borderRadius: 8, borderColor: "#e1eaf5", fontSize: 13 }} />
         <Legend
           iconType="circle"
           wrapperStyle={{ fontSize: 12 }}

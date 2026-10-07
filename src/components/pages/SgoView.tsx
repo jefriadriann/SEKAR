@@ -55,7 +55,7 @@ export function SgoView() {
           </div>
         </Card>
         <Card aria-labelledby="tutorial-umum">
-          <SectionHeader id="tutorial-umum" icon={<ListChecks />} iconTone="violet" title="Cara Menggunakan" />
+          <SectionHeader id="tutorial-umum" icon={<ListChecks />} iconTone="blue" title="Cara Menggunakan" />
           <ol className="list-decimal space-y-1.5 pl-5 text-[15px] text-navy-900">
             <li>Cari materi atau saring berdasarkan jenis.</li>
             <li>Pilih area, lalu buka Worksheet atau Ketentuan.</li>
@@ -115,9 +115,9 @@ export function SgoView() {
               const refs = data.references.filter((r) => r.area === area);
               return (
                 <article key={area} className="panel relative flex flex-col overflow-hidden p-4 pl-5 transition hover:-translate-y-0.5 hover:shadow-lg">
-                  <span aria-hidden className="absolute inset-y-0 left-0 w-[4px]" style={{ background: ["linear-gradient(180deg,#4f46e5,#a855f7)", "linear-gradient(180deg,#10b981,#22d3ee)", "linear-gradient(180deg,#f59e0b,#f43f5e)", "linear-gradient(180deg,#a855f7,#ec4899)"][i % 4] }} />
+                  <span aria-hidden className="absolute inset-y-0 left-0 w-[4px]" style={{ background: "#1d4f9e" }} />
                   <div className="flex items-center gap-3">
-                    <IconTile tone={(["blue", "teal", "amber", "violet"] as const)[i % 4]}>
+                    <IconTile tone="blue">
                       <span className="text-[15px] font-bold">{i + 1}</span>
                     </IconTile>
                     <h3 className="font-bold text-navy-900">{area}</h3>
@@ -167,12 +167,12 @@ export function SgoView() {
       >
         {tutorial && (
           <div className="space-y-4">
-            <VideoGuidePlayer title={`Tutorial ${tutorial.area}`} steps={tutorialSteps(tutorial.area)} accent="#6c4fe0" />
+            <VideoGuidePlayer title={`Tutorial ${tutorial.area}`} steps={tutorialSteps(tutorial.area)} />
             <SimulationNote>{data.documents.find((d) => d.id === tutorial.document_id)?.content_text ?? "Materi simulasi."}</SimulationNote>
             <ol className="space-y-3">
               {tutorialSteps(tutorial.area).map((s, i) => (
                 <li key={s} className="flex gap-3">
-                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 text-sm font-bold text-white shadow-sm" aria-hidden>
+                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#1d4f9e] text-sm font-bold text-white" aria-hidden>
                     {i + 1}
                   </span>
                   <span className="pt-0.5 text-[15px] text-navy-900">

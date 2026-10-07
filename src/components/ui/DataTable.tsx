@@ -138,7 +138,7 @@ export function DataTable<T>({
           <div className="scrollbar-thin relative overflow-x-auto rounded-xl border border-line">
             <table className={cx("w-full border-collapse text-left", dense ? "text-[13px]" : "text-[13.5px]")} style={{ minWidth }}>
               <caption className="sr-only">{caption}</caption>
-              <thead className="bg-gradient-to-r from-[#e1edfd] via-[#eaf3ff] to-[#e6f0fc] text-navy-900">
+              <thead className="bg-[#eef2f8] text-navy-900">
                 <tr>
                   {showIndex && (
                     <th scope="col" className={cx("whitespace-nowrap border-b border-line py-2.5 text-center font-bold", dense ? "w-8 px-1.5" : "w-12 px-3")}>
@@ -181,7 +181,7 @@ export function DataTable<T>({
                   <tr
                     key={rowKey(row)}
                     onClick={onRowOpen ? () => onRowOpen(row) : undefined}
-                    className={cx("border-b border-[#eef2f7] align-middle last:border-0", onRowOpen && "cursor-pointer hover:bg-gradient-to-r hover:from-[#f1f7ff] hover:to-transparent")}
+                    className={cx("border-b border-[#eef2f7] align-middle last:border-0", onRowOpen && "cursor-pointer hover:bg-[#f6f8fc]")}
                   >
                     {showIndex && <td className={cx(cell, dense && "px-1.5", "text-center tabular-nums text-muted")}>{start + i + 1}</td>}
                     {columns.map((c) => (
