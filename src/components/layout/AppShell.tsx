@@ -22,8 +22,11 @@ export function AppShell({ children }: { children: ReactNode }) {
   const isHome = pathname === "/";
   // Beranda tidak bergantung pada data, jadi langsung tampil saat data masih dimuat.
   const homeVisible = isHome && (status === "ready" || status === "loading");
+  const moduleKey = pathname.split("/")[1] || "home";
   return (
-    <div className={cx("flex min-h-screen flex-col", isHome && "bg-gradient-to-br from-[#e6f2fd] via-[#f4f9fe] to-[#e9f3fc] lg:h-dvh lg:min-h-0 lg:overflow-hidden")}>
+    <div data-module={moduleKey} className={cx("sekar-theme relative isolate flex min-h-screen flex-col", isHome && "lg:h-dvh lg:min-h-0 lg:overflow-hidden")}>
+      {/* Latar mesh gradasi (statis) — warna mengikuti modul aktif. */}
+      <div aria-hidden className={cx("pointer-events-none fixed inset-0 -z-10", isHome ? "home-backdrop" : "sekar-backdrop")} />
       <a
         href="#konten"
         className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[80] focus:rounded-lg focus:bg-white focus:px-3 focus:py-2 focus:font-semibold"
@@ -93,13 +96,13 @@ function Header({ home }: { home: boolean }) {
     <header
       className={cx(
         "relative z-40",
-        home ? "bg-transparent" : "overflow-hidden border-b border-white/60 bg-gradient-to-r from-[#d7e9fc] via-[#eef6ff] to-[#cfe3fa] shadow-[0_6px_20px_-12px_rgba(20,42,110,0.35)]",
+        home ? "bg-transparent" : "header-tint overflow-hidden border-b border-white/60 shadow-[0_6px_20px_-12px_rgba(20,42,110,0.35)]",
       )}
     >
       {!home && (
         <>
           <SkylineDecor />
-          <span aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-[3px] bg-gradient-to-r from-[#142a6e] via-[#1d58b5] to-[#e2b33c]" />
+          <span aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-[3px] bg-[linear-gradient(90deg,var(--m1),var(--m2)_50%,var(--m3))]" />
         </>
       )}
       <div className="relative mx-auto flex max-w-[1440px] items-center gap-4 px-4 py-3 sm:px-6 lg:px-8">

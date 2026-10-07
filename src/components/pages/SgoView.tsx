@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { BookOpen, Download, FileSpreadsheet, GraduationCap, Info, ListChecks, Scale } from "lucide-react";
 import { VideoGuidePlayer } from "@/components/domain/VideoGuidePlayer";
+import { LibraryGearIcon } from "@/components/icons/Illustrations";
 import { useReadySekar } from "@/components/providers/SekarProvider";
 import { Drawer } from "@/components/ui/Overlay";
 import { Badge, Button, Card, EmptyState, IconTile, PageHeader, SearchField, SectionHeader, SelectField, SimulationNote } from "@/components/ui/primitives";
@@ -37,7 +38,7 @@ export function SgoView() {
 
   return (
     <div>
-      <PageHeader
+      <PageHeader icon={<LibraryGearIcon size={46} />}
         title="SGo dan Ketentuan"
         description="Worksheet, ketentuan, dan tutorial per area pemeriksaan."
       />
@@ -114,7 +115,7 @@ export function SgoView() {
               const refs = data.references.filter((r) => r.area === area);
               return (
                 <article key={area} className="panel relative flex flex-col overflow-hidden p-4 pl-5 transition hover:-translate-y-0.5 hover:shadow-lg">
-                  <span aria-hidden className="absolute inset-y-0 left-0 w-[4px]" style={{ background: ["#2f7fe0", "#1fbfa5", "#f0b429", "#6c5fd3"][i % 4] }} />
+                  <span aria-hidden className="absolute inset-y-0 left-0 w-[4px]" style={{ background: ["linear-gradient(180deg,#4f46e5,#a855f7)", "linear-gradient(180deg,#10b981,#22d3ee)", "linear-gradient(180deg,#f59e0b,#f43f5e)", "linear-gradient(180deg,#a855f7,#ec4899)"][i % 4] }} />
                   <div className="flex items-center gap-3">
                     <IconTile tone={(["blue", "teal", "amber", "violet"] as const)[i % 4]}>
                       <span className="text-[15px] font-bold">{i + 1}</span>

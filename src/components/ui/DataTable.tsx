@@ -236,7 +236,7 @@ export function DataTable<T>({
                     aria-label={`Halaman ${p + 1}`}
                     className={cx(
                       "grid h-8 min-w-8 place-items-center rounded-md border px-2 font-semibold tabular-nums",
-                      p === safePage ? "border-brand bg-brand text-white" : "border-line bg-white text-navy-800 hover:bg-sky-50",
+                      p === safePage ? "btn-grad border-transparent text-white" : "border-line bg-white text-navy-800 hover:bg-sky-50",
                     )}
                   >
                     {p + 1}

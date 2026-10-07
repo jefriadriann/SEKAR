@@ -5,7 +5,7 @@ import { BookOpen, CalendarDays, ChevronRight, Download, SlidersHorizontal } fro
 import { CategoryTable, ChartCard, ColumnChart, DonutWithLegend, HorizontalBars, TrendChart } from "@/components/charts/Charts";
 import { FindingDrawer } from "@/components/domain/FindingDrawer";
 import { VideoGuidePlayer } from "@/components/domain/VideoGuidePlayer";
-import { ReconcileIcon, VideoGuideIcon } from "@/components/icons/Illustrations";
+import { ReconcileIcon, VideoGuideIcon, AuditDocIcon } from "@/components/icons/Illustrations";
 import { IndonesiaMap, MapLegend } from "@/components/map/IndonesiaMap";
 import { useReadySekar } from "@/components/providers/SekarProvider";
 import { DataTable, type Column } from "@/components/ui/DataTable";
@@ -193,7 +193,7 @@ export function HasilPemeriksaanView() {
 
   return (
     <div>
-      <PageHeader
+      <PageHeader icon={<AuditDocIcon size={46} />}
         title="Hasil Pemeriksaan KPwDN"
         description="Analisis temuan hasil pemeriksaan BPK, DAI, dan KAA pada KPwDN."
         actions={
@@ -350,7 +350,7 @@ export function HasilPemeriksaanView() {
                     type="button"
                     aria-pressed={tableMode === m}
                     onClick={() => setTableMode(m)}
-                    className={cx("rounded-md px-3 py-1 text-[13px] font-semibold", tableMode === m ? "bg-brand text-white" : "text-navy-800 hover:bg-sky-50")}
+                    className={cx("rounded-md px-3 py-1 text-[13px] font-semibold", tableMode === m ? "btn-grad text-white" : "text-navy-800 hover:bg-sky-50")}
                   >
                     {m === "ringkasan" ? "Ringkasan" : "Per temuan"}
                   </button>
@@ -419,7 +419,7 @@ function LinkCard({ glow, icon, title, desc, onClick }: { glow: string; icon: Re
         <span className="block text-[15px] font-bold leading-snug text-navy-900">{title}</span>
         <span className="mt-0.5 block text-[13px] text-muted">{desc}</span>
       </span>
-      <span className="relative grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#eef4fc] text-navy-800 transition-colors duration-200 group-hover:bg-brand group-hover:text-white" aria-hidden>
+      <span className="relative grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#eef4fc] text-navy-800 transition-colors duration-200 group-hover:bg-[linear-gradient(135deg,var(--m1),var(--m2))] group-hover:text-white" aria-hidden>
         <ChevronRight className="h-4 w-4" />
       </span>
     </button>

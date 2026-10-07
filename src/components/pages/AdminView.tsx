@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { AlertTriangle, CheckCircle2, Database, Download, FileJson, RotateCcw, Upload } from "lucide-react";
+import { ReconcileIcon } from "@/components/icons/Illustrations";
 import { useReadySekar } from "@/components/providers/SekarProvider";
 import { Modal } from "@/components/ui/Overlay";
 import { Badge, Button, Card, DescriptionList, PageHeader, SectionHeader, SimulationNote } from "@/components/ui/primitives";
@@ -57,7 +58,7 @@ export function AdminView() {
 
   return (
     <div>
-      <PageHeader
+      <PageHeader icon={<ReconcileIcon size={46} />}
         title="Admin Dataset"
         description="Kelola dataset: import, export, dan reset."
       />

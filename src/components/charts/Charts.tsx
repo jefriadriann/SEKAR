@@ -3,7 +3,7 @@
 import { useId, useState, type ReactNode } from "react";
 import { Area, Bar, BarChart, CartesianGrid, Cell, ComposedChart, LabelList, Legend, Line, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { BarChart3, RotateCcw, Table2 } from "lucide-react";
-import { AXIS_TEXT, CATEGORY_RAMP, GRID, SELECTED, SERIES_PRIMARY } from "@/lib/palette";
+import { AXIS_TEXT, CATEGORY_GRADIENTS, CATEGORY_RAMP, GRID, SELECTED, SERIES_PRIMARY, SERIES_SECONDARY } from "@/lib/palette";
 import { formatNumber, formatPercent, percent } from "@/lib/format";
 import { cx } from "@/components/ui/primitives";
 
@@ -40,7 +40,8 @@ export function ChartCard({
         <div className="flex min-w-0 items-center gap-2">
           {icon}
           <div className="min-w-0">
-            <h2 id={`${id}-t`} className="text-[16px] font-bold text-navy-900">
+            <h2 id={`${id}-t`} className="flex items-center gap-2 text-[16px] font-bold text-navy-900">
+              <span aria-hidden className="h-4 w-1.5 shrink-0 rounded-full bg-[linear-gradient(180deg,var(--m2),var(--m3))]" />
               {title}
             </h2>
             {description && <p className="text-[12px] text-muted">{description}</p>}
@@ -51,7 +52,7 @@ export function ChartCard({
             <button
               type="button"
               onClick={onReset}
-              className="inline-flex items-center gap-1 rounded-md border border-[#cfe0ff] bg-[#e6efff] px-2 py-1 text-[12px] font-semibold text-[#2457c5] hover:bg-[#d8e6ff]"
+              className="inline-flex items-center gap-1 rounded-md border border-transparent bg-[var(--m-soft)] px-2 py-1 text-[12px] font-semibold text-[var(--m1)] hover:bg-[#d8e6ff]"
             >
               <RotateCcw className="h-3 w-3" aria-hidden />
               Reset<span className="sr-only"> pilihan {selectedLabel}</span>
@@ -62,7 +63,7 @@ export function ChartCard({
               type="button"
               onClick={() => setView("chart")}
               aria-pressed={view === "chart"}
-              className={cx("rounded p-1", view === "chart" ? "bg-[#e6efff] text-brand" : "text-muted hover:bg-sky-50")}
+              className={cx("rounded p-1", view === "chart" ? "bg-[var(--m-soft)] text-[var(--m1)]" : "text-muted hover:bg-sky-50")}
               title="Tampilan chart"
             >
               <BarChart3 className="h-3.5 w-3.5" aria-hidden />
@@ -72,7 +73,7 @@ export function ChartCard({
               type="button"
               onClick={() => setView("table")}
               aria-pressed={view === "table"}
-              className={cx("rounded p-1", view === "table" ? "bg-[#e6efff] text-brand" : "text-muted hover:bg-sky-50")}
+              className={cx("rounded p-1", view === "table" ? "bg-[var(--m-soft)] text-[var(--m1)]" : "text-muted hover:bg-sky-50")}
               title="Tampilan tabel"
             >
               <Table2 className="h-3.5 w-3.5" aria-hidden />
@@ -148,10 +149,10 @@ export function ColumnChart({
     <ResponsiveContainer width="100%" height={height}>
       <BarChart data={data} margin={{ top: 20, right: 4, bottom: 18, left: -18 }} barCategoryGap="18%">
         <defs>
-          {CATEGORY_RAMP.map((c, i) => (
-            <linearGradient key={c} id={`colg-${i}`} x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0" stopColor={c} />
-              <stop offset="1" stopColor={c} stopOpacity={0.55} />
+          {CATEGORY_GRADIENTS.map(([a, b], i) => (
+            <linearGradient key={a} id={`colg-${i}`} x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0" stopColor={a} />
+              <stop offset="1" stopColor={b} stopOpacity={0.85} />
             </linearGradient>
           ))}
         </defs>
@@ -159,7 +160,7 @@ export function ColumnChart({
         <XAxis dataKey="key" tick={<WrappedTick />} interval={0} tickLine={false} axisLine={{ stroke: GRID }} height={40} />
         <YAxis allowDecimals={false} tick={{ fill: AXIS_TEXT, fontSize: 11 }} axisLine={false} tickLine={false} />
         <Tooltip
-          cursor={{ fill: "rgba(68,158,254,0.08)" }}
+          cursor={{ fill: "rgba(124,58,237,0.07)" }}
           content={({ active, payload }) => {
             if (!active || !payload?.length) return null;
             const d = payload[0].payload as CategoryDatum;
@@ -197,17 +198,18 @@ export function HorizontalBars({
   const max = Math.max(1, ...data.map((d) => d.count));
   return (
     <ul className="space-y-2.5">
-      {data.map((d) => {
+      {data.map((d, i) => {
         const active = selected === d.key;
+        const [ga, gb] = CATEGORY_GRADIENTS[i % CATEGORY_GRADIENTS.length];
         const content = (
           <>
             <span className="w-[150px] shrink-0 truncate text-right text-[12.5px] text-navy-900">{d.key}</span>
-            <span className="relative h-[14px] flex-1 overflow-hidden rounded-[3px] bg-[#edf3fa]">
+            <span className="relative h-[14px] flex-1 overflow-hidden rounded-full bg-[#eef1f8]">
               <span
-                className="absolute inset-y-0 left-0 rounded-[3px]"
+                className="absolute inset-y-0 left-0 rounded-full"
                 style={{
                   width: `${(d.count / max) * 100}%`,
-                  background: active ? SELECTED : "linear-gradient(90deg,#449efe,#7cbcf6)",
+                  background: active ? SELECTED : `linear-gradient(90deg, ${ga}, ${gb})`,
                   opacity: selected && !active ? 0.4 : 1,
                 }}
               />
@@ -261,8 +263,13 @@ export function TrendChart({ data, selected, onSelect }: { data: TrendDatum[]; s
       >
         <defs>
           <linearGradient id="trend-fill" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0" stopColor="#449efe" stopOpacity={0.35} />
-            <stop offset="1" stopColor="#449efe" stopOpacity={0.02} />
+            <stop offset="0" stopColor="#a855f7" stopOpacity={0.32} />
+            <stop offset="0.6" stopColor="#ec4899" stopOpacity={0.1} />
+            <stop offset="1" stopColor="#ec4899" stopOpacity={0.01} />
+          </linearGradient>
+          <linearGradient id="trend-line" x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0" stopColor={SERIES_PRIMARY} />
+            <stop offset="1" stopColor={SERIES_SECONDARY} />
           </linearGradient>
         </defs>
         <CartesianGrid vertical={false} stroke={GRID} />
@@ -280,12 +287,12 @@ export function TrendChart({ data, selected, onSelect }: { data: TrendDatum[]; s
           type="linear"
           dataKey="total"
           name="Jumlah temuan"
-          stroke={SERIES_PRIMARY}
-          strokeWidth={2}
+          stroke="url(#trend-line)"
+          strokeWidth={3}
           dot={(p) => {
             const d = p.payload as TrendDatum;
             const sel = selected === d.year;
-            return <circle key={`t-${d.year}`} cx={p.cx} cy={p.cy} r={sel ? 7 : 5} fill={sel ? SELECTED : SERIES_PRIMARY} stroke="#fff" strokeWidth={2} />;
+            return <circle key={`t-${d.year}`} cx={p.cx} cy={p.cy} r={sel ? 7 : 5} fill={sel ? SELECTED : CATEGORY_RAMP[(Number(d.year) || 0) % 4]} stroke="#fff" strokeWidth={2} />;
           }}
           isAnimationActive={false}
         >
@@ -391,7 +398,7 @@ export function StackedHBarChart<K extends string>({
         <CartesianGrid horizontal={false} stroke={GRID} />
         <XAxis type="number" allowDecimals={false} tick={{ fill: AXIS_TEXT, fontSize: 11 }} axisLine={false} tickLine={false} />
         <YAxis type="category" dataKey={categoryKey} width={78} tick={{ fill: "#142a6e", fontSize: 12 }} axisLine={false} tickLine={false} />
-        <Tooltip cursor={{ fill: "rgba(68,158,254,0.08)" }} contentStyle={{ borderRadius: 8, borderColor: "#e1eaf5", fontSize: 13 }} />
+        <Tooltip cursor={{ fill: "rgba(124,58,237,0.07)" }} contentStyle={{ borderRadius: 8, borderColor: "#e1eaf5", fontSize: 13 }} />
         <Legend
           iconType="circle"
           wrapperStyle={{ fontSize: 12 }}
@@ -441,7 +448,7 @@ export function CategoryTable({
   return (
     <div className="relative max-h-[260px] overflow-auto rounded-lg border border-line">
       <table className="w-full text-[13px]">
-        <thead className="sticky top-0 bg-[#eef5fd] text-left text-navy-900">
+        <thead className="sticky top-0 bg-[var(--m-soft)] text-left text-navy-900">
           <tr>
             <th scope="col" className="px-2 py-1.5">
               {keyHeader}

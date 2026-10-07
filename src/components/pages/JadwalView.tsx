@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { Building2, CalendarClock, CalendarDays, CheckCircle2, ChevronLeft, ChevronRight, ClipboardList, ExternalLink, FileSpreadsheet, FileText, Layers, MapPin, Timer } from "lucide-react";
 import { FindingDrawer } from "@/components/domain/FindingDrawer";
+import { CalendarClockIcon } from "@/components/icons/Illustrations";
 import { useReadySekar } from "@/components/providers/SekarProvider";
 import { DataTable, type Column } from "@/components/ui/DataTable";
 import { Drawer } from "@/components/ui/Overlay";
@@ -29,10 +30,10 @@ export function rangeLabel(start: string, end: string): string {
 type Phase = "berlangsung" | "segera" | "mendatang" | "selesai";
 
 const PHASE: Record<Phase, { label: string; bar: string; dot: string; pill: string; tone: TileTone }> = {
-  berlangsung: { label: "Dalam Pemeriksaan", bar: "bg-[#2f6fe4] text-white", dot: "#2f6fe4", pill: "bg-[#e6efff] text-[#2457c5] border-[#cfe0ff]", tone: "blue" },
-  segera: { label: "Mendatang (≤7 Hari)", bar: "bg-[#f9d97f] text-[#7a5300]", dot: "#f0b429", pill: "bg-[#fff4dc] text-[#a86a06] border-[#f7e0a8]", tone: "amber" },
-  mendatang: { label: "Mendatang", bar: "bg-[#c4dbf7] text-[#1c3a8a]", dot: "#9cc3f0", pill: "bg-[#eaf3fe] text-[#2457c5] border-[#d6e7fb]", tone: "sky" },
-  selesai: { label: "Selesai", bar: "bg-[#8fdcbd] text-[#0d5f3e]", dot: "#3cc48d", pill: "bg-[#e3f7ec] text-[#13804f] border-[#c4ecd5]", tone: "teal" },
+  berlangsung: { label: "Dalam Pemeriksaan", bar: "bg-gradient-to-r from-[#4f46e5] to-[#8b5cf6] text-white", dot: "#6366f1", pill: "bg-[#e6efff] text-[#2457c5] border-[#cfe0ff]", tone: "blue" },
+  segera: { label: "Mendatang (≤7 Hari)", bar: "bg-gradient-to-r from-[#f59e0b] to-[#f97316] text-white", dot: "#f59e0b", pill: "bg-[#fff4dc] text-[#a86a06] border-[#f7e0a8]", tone: "amber" },
+  mendatang: { label: "Mendatang", bar: "bg-gradient-to-r from-[#38bdf8] to-[#22d3ee] text-white", dot: "#0ea5e9", pill: "bg-[#eaf3fe] text-[#2457c5] border-[#d6e7fb]", tone: "sky" },
+  selesai: { label: "Selesai", bar: "bg-gradient-to-r from-[#10b981] to-[#34d399] text-white", dot: "#10b981", pill: "bg-[#e3f7ec] text-[#13804f] border-[#c4ecd5]", tone: "teal" },
 };
 
 function phaseOf(s: AuditSchedule, asOf: string): Phase {
@@ -162,7 +163,7 @@ export function JadwalView() {
 
   return (
     <div>
-      <PageHeader title="Timeline Pemeriksaan" crumb="Jadwal Pemeriksaan" uppercase description="Jadwal pemeriksaan dan agenda terdekat." />
+      <PageHeader icon={<CalendarClockIcon size={46} />} title="Timeline Pemeriksaan" crumb="Jadwal Pemeriksaan" uppercase description="Jadwal pemeriksaan dan agenda terdekat." />
 
       <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
         <FilterBox>
@@ -240,7 +241,7 @@ export function JadwalView() {
                         setView(v);
                         setOffset(0);
                       }}
-                      className={cx("rounded-md px-3 py-1 text-[13px] font-semibold capitalize", view === v ? "bg-brand text-white" : "text-navy-800 hover:bg-sky-50")}
+                      className={cx("rounded-md px-3 py-1 text-[13px] font-semibold capitalize", view === v ? "btn-grad text-white" : "text-navy-800 hover:bg-sky-50")}
                     >
                       {v}
                     </button>
@@ -267,7 +268,7 @@ export function JadwalView() {
                       </span>
                     ))}
                     {today !== null && (
-                      <span className="absolute top-1 z-20 -translate-x-1/2 whitespace-nowrap rounded-md bg-brand px-1.5 py-0.5 text-[11px] font-bold text-white" style={{ left: `${today}%` }}>
+                      <span className="absolute top-1 z-20 -translate-x-1/2 whitespace-nowrap rounded-md bg-gradient-to-r from-[#f43f5e] to-[#f97316] px-1.5 py-0.5 text-[11px] font-bold text-white" style={{ left: `${today}%` }}>
                         Hari ini
                       </span>
                     )}
@@ -288,7 +289,7 @@ export function JadwalView() {
                           {win.columns.map((c) => (
                             <span key={c.start} className="absolute inset-y-0 w-px bg-[#eef2f7]" style={{ left: `${edgeOf(c.start, win)}%` }} aria-hidden />
                           ))}
-                          {today !== null && <span className="absolute inset-y-0 z-10 border-l-2 border-dashed border-brand" style={{ left: `${today}%` }} aria-hidden />}
+                          {today !== null && <span className="absolute inset-y-0 z-10 border-l-2 border-dashed border-[#f43f5e]" style={{ left: `${today}%` }} aria-hidden />}
                           <button
                             type="button"
                             onClick={() => setOpenSchedule(s.id)}

@@ -5,7 +5,7 @@ import { AlertTriangle, Ban, CalendarDays, CheckCircle2, ChevronRight, Clipboard
 import { CategoryTable, ChartCard, StackedHBarChart } from "@/components/charts/Charts";
 import { receiptText, RequestDrawer } from "@/components/domain/RequestDrawer";
 import { VideoGuidePlayer } from "@/components/domain/VideoGuidePlayer";
-import { FileTypeIcon, GuideBookIcon, VideoGuideIcon } from "@/components/icons/Illustrations";
+import { FileTypeIcon, GuideBookIcon, VideoGuideIcon, FolderCheckIcon } from "@/components/icons/Illustrations";
 import { useReadySekar } from "@/components/providers/SekarProvider";
 import { DataTable, type Column } from "@/components/ui/DataTable";
 import { Drawer } from "@/components/ui/Overlay";
@@ -157,7 +157,7 @@ export function PermindokView() {
 
   return (
     <div>
-      <PageHeader
+      <PageHeader icon={<FolderCheckIcon size={46} />}
         title="Tracker Permindok"
         description="Monitoring pemenuhan dokumen permintaan pemeriksaan pada KPwDN."
         actions={

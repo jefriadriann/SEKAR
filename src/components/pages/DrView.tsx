@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { AlertCircle, BookOpen, CalendarDays, CheckCircle2, Clock, Download, FileSearch, FileText, FolderOpen, ListChecks, Save } from "lucide-react";
 import { FindingDrawer } from "@/components/domain/FindingDrawer";
 import { RequestDrawer } from "@/components/domain/RequestDrawer";
-import { FileTypeIcon } from "@/components/icons/Illustrations";
+import { FileTypeIcon, AuditDocIcon } from "@/components/icons/Illustrations";
 import { useReadySekar } from "@/components/providers/SekarProvider";
 import { DataTable, type Column } from "@/components/ui/DataTable";
 import { Drawer } from "@/components/ui/Overlay";
@@ -276,7 +276,7 @@ export function DrView() {
 
   return (
     <div>
-      <PageHeader
+      <PageHeader icon={<AuditDocIcon size={46} />}
         title="Dashboard Departemen Regional"
         description="Informasi pemeriksaan, kepatuhan satker, permintaan dokumen, dan referensi untuk mendukung pengawasan, evaluasi, dan pembelajaran."
         actions={
@@ -293,7 +293,7 @@ export function DrView() {
       />
 
       <div className="mb-4 grid grid-cols-2 gap-3 xl:grid-cols-4">
-        <KpiCard label="Total Temuan Pemeriksaan" value={summary.total} icon={<FileSearch />} tone="blue" />
+        <KpiCard tinted label="Total Temuan Pemeriksaan" value={summary.total} icon={<FileSearch />} tone="blue" />
         <KpiCard tinted tone="teal" label="Selesai" value={summary.byStatus.selesai} hint={formatPercent(summary.pctSelesai)} icon={<CheckCircle2 />} />
         <KpiCard tinted tone="amber" label="Dalam Proses" value={summary.byStatus.dalam_proses} hint={formatPercent(percent(summary.byStatus.dalam_proses, summary.total))} icon={<Clock />} />
         <KpiCard

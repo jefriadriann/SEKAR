@@ -67,6 +67,86 @@ body {
   scrollbar-width: thin;
 }
 
+/*
+ * Tema warna per modul. Setiap menu punya palet gradasinya sendiri
+ * (--m1 → --m2 → --m3) agar tiap halaman terasa berbeda namun tetap satu keluarga.
+ */
+.sekar-theme {
+  --m1: #1d58b5;
+  --m2: #449efe;
+  --m3: #22c3a6;
+  --m-ink: #142a6e;
+  --m-soft: #e8f1fd;
+}
+.sekar-theme[data-module="hasil-pemeriksaan"] {
+  --m1: #4338ca;
+  --m2: #7c3aed;
+  --m3: #ec4899;
+  --m-ink: #312e81;
+  --m-soft: #efeafe;
+}
+.sekar-theme[data-module="permindok"] {
+  --m1: #0f766e;
+  --m2: #10b981;
+  --m3: #22d3ee;
+  --m-ink: #134e4a;
+  --m-soft: #e3f8f1;
+}
+.sekar-theme[data-module="jadwal-pemeriksaan"] {
+  --m1: #ea580c;
+  --m2: #f43f5e;
+  --m3: #f59e0b;
+  --m-ink: #7c2d12;
+  --m-soft: #fff0e6;
+}
+.sekar-theme[data-module="sgo-ketentuan"] {
+  --m1: #6d28d9;
+  --m2: #c026d3;
+  --m3: #fb7185;
+  --m-ink: #4c1d95;
+  --m-soft: #f6ebfe;
+}
+.sekar-theme[data-module="dr"] {
+  --m1: #0c1a4d;
+  --m2: #2563eb;
+  --m3: #22d3ee;
+  --m-ink: #0c1a4d;
+  --m-soft: #e9effc;
+}
+.sekar-theme[data-module="admin"] {
+  --m1: #0e7490;
+  --m2: #6366f1;
+  --m3: #a855f7;
+  --m-ink: #164e63;
+  --m-soft: #e6f6fb;
+}
+
+/* Lapisan latar halaman: gradasi mesh multi-warna (statis, tanpa animasi). */
+.sekar-backdrop {
+  background:
+    radial-gradient(820px 460px at 100% -6%, color-mix(in srgb, var(--m2) 24%, transparent), transparent 70%),
+    radial-gradient(640px 420px at -8% 22%, color-mix(in srgb, var(--m3) 18%, transparent), transparent 70%),
+    radial-gradient(760px 520px at 55% 108%, color-mix(in srgb, var(--m1) 14%, transparent), transparent 70%),
+    radial-gradient(520px 360px at 85% 60%, rgba(253, 186, 116, 0.12), transparent 70%),
+    linear-gradient(180deg, color-mix(in srgb, var(--m-soft) 85%, white) 0%, #f6f9fe 420px, #f7f9fd 100%);
+}
+
+.home-backdrop {
+  background:
+    radial-gradient(700px 460px at 102% -4%, rgba(99, 102, 241, 0.2), transparent 70%),
+    radial-gradient(560px 420px at 70% 40%, rgba(34, 211, 238, 0.12), transparent 70%),
+    radial-gradient(620px 460px at -6% 10%, rgba(226, 179, 60, 0.16), transparent 70%),
+    radial-gradient(640px 460px at 30% 110%, rgba(236, 72, 153, 0.1), transparent 70%),
+    radial-gradient(560px 380px at 100% 100%, rgba(16, 185, 129, 0.12), transparent 70%),
+    linear-gradient(135deg, #eef4ff 0%, #f8faff 50%, #f1f6ff 100%);
+}
+
+.header-tint {
+  background:
+    radial-gradient(520px 120px at 85% 0%, color-mix(in srgb, var(--m3) 22%, transparent), transparent 70%),
+    linear-gradient(90deg, color-mix(in srgb, var(--m-soft) 92%, var(--m2)) 0%, #f7faff 50%, color-mix(in srgb, var(--m-soft) 80%, var(--m2)) 100%);
+}
+
 @layer components {
   .panel {
     position: relative;
@@ -83,10 +163,38 @@ body {
     content: "";
     position: absolute;
     inset: 0 0 auto 0;
-    height: 3px;
+    height: 4px;
     border-radius: 16px 16px 0 0;
-    background: linear-gradient(90deg, #1d58b5, #449efe 35%, #22c3a6 65%, #a98ce8);
-    opacity: 0.85;
+    background: linear-gradient(90deg, var(--m1, #1d58b5), var(--m2, #449efe) 50%, var(--m3, #22c3a6));
+  }
+
+  /* Banner judul halaman bergradasi warna modul. */
+  .hero-banner {
+    position: relative;
+    overflow: hidden;
+    border-radius: 22px;
+    color: #fff;
+    background:
+      radial-gradient(420px 220px at 92% -20%, color-mix(in srgb, var(--m3) 85%, transparent), transparent 70%),
+      radial-gradient(380px 260px at 0% 120%, color-mix(in srgb, var(--m3) 45%, transparent), transparent 70%),
+      linear-gradient(118deg, var(--m1) 0%, var(--m2) 62%, color-mix(in srgb, var(--m2) 60%, var(--m3)) 100%);
+    box-shadow: 0 18px 40px -22px color-mix(in srgb, var(--m1) 85%, transparent);
+  }
+
+  /* Tombol utama bergradasi warna modul. */
+  .btn-grad {
+    background: linear-gradient(120deg, var(--m1, #1d58b5), var(--m2, #449efe));
+    box-shadow: 0 6px 16px -8px color-mix(in srgb, var(--m1, #1d58b5) 80%, transparent);
+  }
+  .btn-grad:hover {
+    filter: brightness(1.08);
+  }
+
+  .text-grad {
+    background: linear-gradient(100deg, var(--m1), var(--m2) 55%, var(--m3));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
 }
 

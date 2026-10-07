@@ -23,7 +23,7 @@ export function Button({
       className={cx(
         "inline-flex items-center justify-center gap-2 rounded-lg font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50",
         size === "sm" ? "px-2.5 py-1.5 text-sm" : "px-3.5 py-2 text-[15px]",
-        variant === "primary" && "bg-brand text-white hover:bg-navy-800",
+        variant === "primary" && "btn-grad text-white",
         variant === "secondary" && "border border-line bg-white text-navy-900 shadow-sm hover:border-sky-300 hover:bg-sky-50",
         variant === "ghost" && "text-navy-800 hover:bg-sky-50",
         variant === "danger" && "bg-rose-600 text-white hover:bg-rose-700",
@@ -93,7 +93,8 @@ export function SectionHeader({
       <div className="flex min-w-0 items-start gap-3">
         {icon && <IconTile tone={iconTone}>{icon}</IconTile>}
         <div className="min-w-0">
-          <h2 id={id} className="text-[17px] font-bold leading-tight text-navy-900">
+          <h2 id={id} className="flex items-center gap-2 text-[17px] font-bold leading-tight text-navy-900">
+            {!icon && <span aria-hidden className="h-4 w-1.5 shrink-0 rounded-full bg-[linear-gradient(180deg,var(--m2),var(--m3))]" />}
             {title}
           </h2>
           {description && <p className="mt-0.5 text-[13px] text-muted">{description}</p>}
@@ -104,43 +105,67 @@ export function SectionHeader({
   );
 }
 
-/** Breadcrumb + judul halaman + deskripsi + kontrol di kanan (sesuai referensi). */
+/** Banner judul halaman bergradasi warna modul: breadcrumb, judul, deskripsi, ilustrasi, dan kontrol. */
 export function PageHeader({
   title,
   description,
   actions,
   crumb,
   uppercase,
+  icon,
 }: {
   title: string;
   description?: ReactNode;
   actions?: ReactNode;
   crumb?: string;
   uppercase?: boolean;
+  icon?: ReactNode;
 }) {
   return (
-    <div className="mb-4">
-      <nav aria-label="Breadcrumb" className="mb-1 text-[13px] text-muted">
-        <ol className="flex flex-wrap items-center gap-1">
-          <li>
-            <Link href="/" className="hover:text-navy-900 hover:underline">
-              Beranda
-            </Link>
-          </li>
-          <li aria-hidden>
-            <ChevronRight className="h-3.5 w-3.5" />
-          </li>
-          <li aria-current="page" className="text-navy-900">
-            {crumb ?? title}
-          </li>
-        </ol>
-      </nav>
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="min-w-0 max-w-3xl">
-          <h1 className={cx("text-[28px] font-extrabold leading-tight tracking-tight text-navy-900 sm:text-[32px]", uppercase && "uppercase")}>{title}</h1>
-          {description && <p className="mt-0.5 text-[15px] text-muted">{description}</p>}
+    <div className="hero-banner mb-5 px-5 py-5 sm:px-7 sm:py-6">
+      {/* Ornamen: cincin, titik, dan gelombang tipis (statis). */}
+      <svg aria-hidden focusable="false" className="pointer-events-none absolute inset-0 h-full w-full" preserveAspectRatio="none">
+        <defs>
+          <pattern id="hero-dots" width="18" height="18" patternUnits="userSpaceOnUse">
+            <circle cx="2" cy="2" r="1.1" fill="#fff" fillOpacity=".22" />
+          </pattern>
+        </defs>
+        <rect x="58%" y="0" width="42%" height="100%" fill="url(#hero-dots)" />
+      </svg>
+      <span aria-hidden className="pointer-events-none absolute -right-16 -top-24 h-64 w-64 rounded-full border-[28px] border-white/10" />
+      <span aria-hidden className="pointer-events-none absolute -bottom-20 right-40 h-40 w-40 rounded-full bg-white/10" />
+      <span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/10 to-transparent" />
+
+      <div className="relative">
+        <nav aria-label="Breadcrumb" className="mb-2 text-[13px] text-white/80">
+          <ol className="flex flex-wrap items-center gap-1">
+            <li>
+              <Link href="/" className="rounded hover:text-white hover:underline">
+                Beranda
+              </Link>
+            </li>
+            <li aria-hidden>
+              <ChevronRight className="h-3.5 w-3.5" />
+            </li>
+            <li aria-current="page" className="font-semibold text-white">
+              {crumb ?? title}
+            </li>
+          </ol>
+        </nav>
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div className="flex min-w-0 max-w-3xl items-center gap-4">
+            {icon && (
+              <span aria-hidden className="hidden h-[68px] w-[68px] shrink-0 place-items-center rounded-[20px] bg-white/95 shadow-[0_10px_24px_-10px_rgba(0,0,0,0.45)] ring-4 ring-white/25 sm:grid">
+                {icon}
+              </span>
+            )}
+            <div className="min-w-0">
+              <h1 className={cx("text-[26px] font-extrabold leading-tight tracking-tight text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.15)] sm:text-[32px]", uppercase && "uppercase")}>{title}</h1>
+              {description && <p className="mt-1 text-[15px] text-white/85">{description}</p>}
+            </div>
+          </div>
+          {actions && <div className="flex flex-wrap items-end gap-2 [&_label]:text-white/90">{actions}</div>}
         </div>
-        {actions && <div className="flex flex-wrap items-end gap-2">{actions}</div>}
       </div>
     </div>
   );
@@ -165,7 +190,25 @@ export function Badge({ tone = "neutral", children, className, title }: { tone?:
   );
 }
 
-/** Kartu KPI. `tinted` memberi latar berwarna seperti KPI Jadwal/DR pada referensi. */
+/** Gradasi cerah kartu KPI per tone (dua/tiga warna agar tidak monoton). */
+const KPI_GRADIENT: Record<TileTone, string> = {
+  blue: "linear-gradient(135deg, #2563eb 0%, #4f46e5 55%, #7c3aed 100%)",
+  teal: "linear-gradient(135deg, #059669 0%, #10b981 50%, #2dd4bf 100%)",
+  amber: "linear-gradient(135deg, #f59e0b 0%, #f97316 60%, #fb7185 100%)",
+  rose: "linear-gradient(135deg, #e11d48 0%, #f43f5e 50%, #ec4899 100%)",
+  violet: "linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #d946ef 100%)",
+  sky: "linear-gradient(135deg, #0284c7 0%, #0ea5e9 50%, #22d3ee 100%)",
+};
+const KPI_SHADOW: Record<TileTone, string> = {
+  blue: "rgba(79,70,229,0.55)",
+  teal: "rgba(16,185,129,0.55)",
+  amber: "rgba(249,115,22,0.55)",
+  rose: "rgba(244,63,94,0.55)",
+  violet: "rgba(168,85,247,0.55)",
+  sky: "rgba(14,165,233,0.55)",
+};
+
+/** Kartu KPI. `tinted` = kartu gradasi cerah dengan teks putih; tanpa `tinted` = panel putih. */
 export function KpiCard({
   label,
   value,
@@ -181,35 +224,45 @@ export function KpiCard({
   icon?: ReactNode;
   tinted?: boolean;
 }) {
-  const bg = {
-    blue: "bg-gradient-to-br from-[#e4f0ff] via-[#f2f8ff] to-[#d8e9fd] border-[#cfe2fa]",
-    teal: "bg-gradient-to-br from-[#dcf7ea] via-[#f1fcf6] to-[#cdf1df] border-[#c4ecd5]",
-    amber: "bg-gradient-to-br from-[#fff1cf] via-[#fff9ea] to-[#ffe7b3] border-[#f6e0a8]",
-    rose: "bg-gradient-to-br from-[#ffe3e3] via-[#fff4f4] to-[#fdd5d6] border-[#f8cccc]",
-    violet: "bg-gradient-to-br from-[#ece5ff] via-[#f7f3ff] to-[#e0d6fd] border-[#ddd2fa]",
-    sky: "bg-gradient-to-br from-[#def2fd] via-[#f1faff] to-[#cdebfb] border-[#c9e6f8]",
-  }[tone];
-  const glow = { blue: "#449efe", teal: "#22c3a6", amber: "#f5b324", rose: "#f25c68", violet: "#a98ce8", sky: "#38bdf8" }[tone];
+  const valueClass = cx("text-[30px] font-extrabold leading-tight tabular-nums", tinted ? "text-white" : "text-navy-900");
   return (
-    <div className={cx("relative flex items-center gap-4 overflow-hidden rounded-[16px] border p-4 shadow-[0_8px_24px_-14px_rgba(20,42,110,0.35)]", tinted ? bg : "panel")}>
-      <span aria-hidden className="pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full opacity-30 blur-2xl" style={{ background: glow }} />
-      <ShineBorder shineColor={[glow, "#ffffff", glow]} duration={14} />
-      {icon && (
-        <IconTile tone={tone} size="lg">
-          {icon}
-        </IconTile>
+    <div
+      className={cx(
+        "relative flex items-center gap-4 overflow-hidden rounded-[18px] p-4 transition-transform duration-200 hover:-translate-y-0.5",
+        tinted ? "text-white" : "panel panel-accent",
       )}
-      <div className="min-w-0">
-        <p className="text-[14px] font-semibold text-navy-900">{label}</p>
+      style={tinted ? { background: KPI_GRADIENT[tone], boxShadow: `0 14px 30px -16px ${KPI_SHADOW[tone]}` } : undefined}
+    >
+      {tinted ? (
+        <>
+          <span aria-hidden className="pointer-events-none absolute -right-10 -top-12 h-36 w-36 rounded-full border-[18px] border-white/15" />
+          <span aria-hidden className="pointer-events-none absolute -bottom-10 right-16 h-24 w-24 rounded-full bg-white/10" />
+          <span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/15 to-transparent" />
+        </>
+      ) : (
+        <ShineBorder shineColor={["var(--m2)", "#ffffff", "var(--m3)"]} />
+      )}
+      {icon &&
+        (tinted ? (
+          <span aria-hidden className="relative grid h-12 w-12 shrink-0 place-items-center rounded-[14px] bg-white/20 ring-1 ring-inset ring-white/40 backdrop-blur-[2px] [&_svg]:h-6 [&_svg]:w-6">
+            {icon}
+          </span>
+        ) : (
+          <IconTile tone={tone} size="lg">
+            {icon}
+          </IconTile>
+        ))}
+      <div className="relative min-w-0">
+        <p className={cx("text-[14px] font-semibold", tinted ? "text-white/90" : "text-navy-900")}>{label}</p>
         <p className="flex flex-wrap items-baseline gap-x-2">
           {typeof value === "number" ? (
-            <NumberTicker data-kpi={label} value={value} className="text-[30px] font-extrabold leading-tight text-navy-900" />
+            <NumberTicker data-kpi={label} value={value} className={valueClass} />
           ) : (
-            <span data-kpi={label} className="text-[30px] font-extrabold leading-tight text-navy-900 tabular-nums">
+            <span data-kpi={label} className={valueClass}>
               {value}
             </span>
           )}
-          {hint && <span className="text-[13px] font-semibold text-muted">{hint}</span>}
+          {hint && <span className={cx("text-[13px] font-semibold", tinted ? "rounded-full bg-white/20 px-2 py-0.5 text-white" : "text-muted")}>{hint}</span>}
         </p>
       </div>
     </div>
@@ -331,7 +384,7 @@ export function FilterChips({ chips, onClearAll }: { chips: { label: string; onR
           key={c.label}
           type="button"
           onClick={c.onRemove}
-          className="inline-flex items-center gap-1 rounded-full border border-[#cfe0ff] bg-[#e6efff] px-2.5 py-0.5 text-[13px] font-semibold text-[#2457c5] hover:bg-[#d8e6ff]"
+          className="inline-flex items-center gap-1 rounded-full border border-transparent bg-[var(--m-soft)] px-2.5 py-0.5 text-[13px] font-semibold text-[var(--m1)] hover:brightness-95"
           aria-label={`Hapus filter ${c.label}`}
         >
           {c.label}
@@ -371,7 +424,7 @@ export function ArrowCircle() {
   return (
     <span
       aria-hidden
-      className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[#d7e3f3] bg-white text-navy-800 transition group-hover:border-brand group-hover:bg-brand group-hover:text-white"
+      className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[#d7e3f3] bg-white text-navy-800 transition group-hover:border-transparent group-hover:bg-[linear-gradient(135deg,var(--m1),var(--m2))] group-hover:text-white"
     >
       <ChevronRight className="h-4 w-4" />
     </span>

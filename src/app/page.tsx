@@ -16,6 +16,7 @@ interface MenuCard {
   title: string;
   desc: string;
   accent: string;
+  grad: [string, string, string];
   tileBg: string;
   icon: (p: { size?: number }) => React.ReactNode;
 }
@@ -25,32 +26,36 @@ const MENU: MenuCard[] = [
     href: "/hasil-pemeriksaan",
     title: "Hasil Pemeriksaan KPwDN",
     desc: "Temuan dan rekomendasi hasil pemeriksaan BPK, DAI, dan KAA.",
-    accent: "#2f7fe0",
-    tileBg: "linear-gradient(145deg,#f3f8ff 0%,#dceaff 100%)",
+    accent: "#6d28d9",
+    grad: ["#4338ca", "#7c3aed", "#ec4899"],
+    tileBg: "linear-gradient(145deg,#f5f3ff 0%,#e0e7ff 55%,#fce7f3 100%)",
     icon: AuditDocIcon,
   },
   {
     href: "/permindok",
     title: "Tracker Permindok",
     desc: "Monitoring pemenuhan dokumen permintaan pemeriksaan.",
-    accent: "#1fbfa5",
-    tileBg: "linear-gradient(145deg,#f0fdf9 0%,#d3f5ea 100%)",
+    accent: "#10b981",
+    grad: ["#0f766e", "#10b981", "#22d3ee"],
+    tileBg: "linear-gradient(145deg,#ecfdf5 0%,#ccfbf1 55%,#cffafe 100%)",
     icon: FolderCheckIcon,
   },
   {
     href: "/jadwal-pemeriksaan",
     title: "Jadwal Pemeriksaan",
     desc: "Timeline dan agenda pemeriksaan KPwDN.",
-    accent: "#f0b429",
-    tileBg: "linear-gradient(145deg,#fffaf0 0%,#ffedc8 100%)",
+    accent: "#f97316",
+    grad: ["#ea580c", "#f43f5e", "#f59e0b"],
+    tileBg: "linear-gradient(145deg,#fff7ed 0%,#ffedd5 55%,#ffe4e6 100%)",
     icon: CalendarClockIcon,
   },
   {
     href: "/sgo-ketentuan",
     title: "SGo dan Ketentuan",
     desc: "Materi SGo, pedoman, dan ketentuan per area pemeriksaan.",
-    accent: "#6c5fd3",
-    tileBg: "linear-gradient(145deg,#f7f5ff 0%,#e4ddfd 100%)",
+    accent: "#a21caf",
+    grad: ["#6d28d9", "#c026d3", "#fb7185"],
+    tileBg: "linear-gradient(145deg,#faf5ff 0%,#f3e8ff 55%,#fce7f3 100%)",
     icon: LibraryGearIcon,
   },
 ];
@@ -78,8 +83,9 @@ export default function HomePage() {
       {/* Dekorasi latar */}
       <DotPattern className="[mask-image:radial-gradient(700px_circle_at_70%_20%,white,transparent)]" />
       <div className="pointer-events-none absolute -left-40 top-16 h-[520px] w-[520px] rounded-full border-[60px] border-white/50" aria-hidden />
-      <div className="pointer-events-none absolute -right-32 top-24 h-[420px] w-[420px] rounded-full bg-[#449efe]/15 blur-3xl" aria-hidden />
-      <div className="pointer-events-none absolute bottom-0 left-1/3 h-[300px] w-[500px] rounded-full bg-[#a98ce8]/12 blur-3xl" aria-hidden />
+      <div className="pointer-events-none absolute -right-32 top-24 h-[420px] w-[420px] rounded-full bg-[#818cf8]/20 blur-3xl" aria-hidden />
+      <div className="pointer-events-none absolute bottom-0 left-1/3 h-[300px] w-[500px] rounded-full bg-[#f472b6]/12 blur-3xl" aria-hidden />
+      <div className="pointer-events-none absolute left-[8%] top-[8%] h-[280px] w-[280px] rounded-full bg-[#fbbf24]/14 blur-3xl" aria-hidden />
       <BuildingIllustration className="pointer-events-none absolute bottom-0 left-0 hidden w-[13%] max-w-[220px] opacity-90 lg:block" />
       <WaveLines className="pointer-events-none absolute bottom-0 right-0 h-[34%] w-[75%]" />
 
@@ -114,11 +120,17 @@ export default function HomePage() {
                     <Link
                       href={card.href}
                       className="group relative z-10 flex h-full min-h-[120px] items-center gap-4 overflow-hidden rounded-[16px] border border-white py-4 pl-6 pr-4 transition hover:-translate-y-0.5 lg:min-h-[96px] xl:min-h-[min(17vh,150px)]"
+                      style={{ "--m1": card.grad[0], "--m2": card.grad[1] } as React.CSSProperties}
                     >
-                      <span aria-hidden className="absolute inset-y-0 left-0 w-[5px]" style={{ background: card.accent }} />
+                      <span aria-hidden className="absolute inset-y-0 left-0 w-[5px]" style={{ background: `linear-gradient(180deg, ${card.grad.join(", ")})` }} />
+                      <span
+                        aria-hidden
+                        className="pointer-events-none absolute -right-10 -top-14 h-40 w-40 rounded-full opacity-25 blur-2xl transition-opacity duration-300 group-hover:opacity-45"
+                        style={{ background: `radial-gradient(circle, ${card.grad[2]}, ${card.grad[1]} 60%, transparent 70%)` }}
+                      />
                       <Illustration card={card} />
                       <span className="min-w-0 flex-1">
-                        <span className="block text-[18px] font-bold leading-snug text-[#1c2568]">{card.title}</span>
+                        <span className="block text-[18px] font-bold leading-snug text-[#1c2568] transition-colors group-hover:text-[var(--m1)]">{card.title}</span>
                         <span className="mt-1.5 line-clamp-3 block text-[13.5px] leading-relaxed text-muted">{card.desc}</span>
                       </span>
                       <ArrowCircle />
