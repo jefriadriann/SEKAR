@@ -26,6 +26,14 @@ npm run build
 npm run start      # http://localhost:3000
 ```
 
+## Dataset simulasi
+
+`data/sekar-dummy.json` (v1.1) dibangkitkan secara deterministik oleh `node scripts/generate-dummy-data.mjs` dari paket awal `data/base/sekar-dummy-v1.json` (tidak diubah). Isinya: 46 KPw fiktif + unit DR, **659 temuan** (635 KPw tahun 2022–2026 + 24 DR), **115 jadwal** (2025–2027, 11 tentatif), **291 permintaan dokumen**, **138 rekonsiliasi aset** (2024–2026), **24 kewajiban DR**, **32 materi** (worksheet, ketentuan, pedoman teknis, tutorial) dan 446 dokumen bukti/materi. Semua record bertanda `is_dummy`.
+
+Peta Indonesia memakai geometri Natural Earth 1:10m (public domain) yang dibangun oleh `node scripts/build-indonesia-map.mjs <ne_10m_admin_0_countries.geojson>`; pulau dikelompokkan per korwil dan peta hanya menampilkan agregat per korwil.
+
+Logo SEKAR berada di `public/brand/` (logo penuh & emblem) serta `src/app/icon.png`.
+
 ## 2. Pemeriksaan kualitas
 
 | Perintah | Isi |

@@ -136,7 +136,7 @@ export function ColumnChart({
   selected,
   onSelect,
   unitLabel = "temuan",
-  height = 250,
+  height = 370,
 }: {
   data: CategoryDatum[];
   selected: string | null;

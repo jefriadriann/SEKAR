@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { BarChart3, CalendarDays, CheckCircle2, Clock, FileText, FolderOpen, Search, Settings, Files, type LucideIcon } from "lucide-react";
 import { ArchipelagoDecor, BuildingIllustration, WaveLines } from "@/components/layout/Decor";
@@ -89,17 +90,26 @@ export default function HomePage() {
       <div className="pointer-events-none absolute -left-40 top-24 h-[520px] w-[520px] rounded-full border-[60px] border-white/50" aria-hidden />
       <div className="pointer-events-none absolute -right-32 top-40 h-[420px] w-[420px] rounded-full bg-[#449efe]/15 blur-3xl" aria-hidden />
       <div className="pointer-events-none absolute bottom-0 left-1/3 h-[300px] w-[500px] rounded-full bg-[#a98ce8]/12 blur-3xl" aria-hidden />
-      <ArchipelagoDecor className="pointer-events-none absolute right-[-2%] -top-4 hidden w-[52%] max-w-[760px] lg:block" />
+      <ArchipelagoDecor className="pointer-events-none absolute right-[4%] top-12 hidden w-[46%] max-w-[760px] opacity-95 lg:block" />
       <BuildingIllustration className="pointer-events-none absolute bottom-0 left-0 hidden w-[19%] max-w-[300px] lg:block" />
       <WaveLines className="pointer-events-none absolute bottom-0 right-0 h-[38%] w-[75%]" />
 
-      <section className="relative mx-auto max-w-[1440px] px-4 pb-16 pt-8 sm:px-6 lg:pl-[21%] lg:pr-[6%] lg:pt-14">
+      <section className="relative mx-auto max-w-[1440px] px-4 pb-16 pt-8 sm:px-6 lg:pl-[21%] lg:pr-[6%] lg:pt-8">
         <div aria-hidden className="h-[3px] w-12 rounded bg-gold" />
-        <p className="mt-5 text-[26px] font-light text-navy-900 sm:text-[30px]">Selamat Datang di</p>
-        <h1 className="bg-gradient-to-r from-[#141f63] via-[#1d3a9a] to-[#1d58b5] bg-clip-text text-[64px] font-extrabold leading-[1.05] tracking-tight text-transparent sm:text-[84px]">SEKAR</h1>
-        <p className="mt-2 text-[20px] font-light text-navy-900/85 sm:text-[26px]">Sistem Informasi Evaluasi Kepatuhan, Audit &amp; Risiko</p>
+        <p className="mt-4 text-[24px] font-light text-navy-900 sm:text-[28px]">Selamat Datang di</p>
+        <h1 className="mt-2">
+          <span className="sr-only">SEKAR — Sistem Informasi Evaluasi Kepatuhan, Audit &amp; Risiko</span>
+          <Image
+            src="/brand/sekar-logo.webp"
+            alt=""
+            width={900}
+            height={788}
+            priority
+            className="h-auto w-[300px] drop-shadow-[0_10px_24px_rgba(20,42,110,0.18)] sm:w-[380px]"
+          />
+        </h1>
 
-        <nav aria-label="Menu utama SEKAR" className="mt-10">
+        <nav aria-label="Menu utama SEKAR" className="mt-8">
           <ul className="grid gap-5 md:grid-cols-2">
             {MENU.map((card) => (
               <li key={card.href}>

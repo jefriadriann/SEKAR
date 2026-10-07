@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
@@ -94,7 +95,7 @@ function Header({ home }: { home: boolean }) {
       {!home && (
         <>
           <SkylineDecor />
-          <span aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-[3px] bg-gradient-to-r from-[#1d58b5] via-[#449efe] to-[#22c3a6]" />
+          <span aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-[3px] bg-gradient-to-r from-[#142a6e] via-[#1d58b5] to-[#e2b33c]" />
         </>
       )}
       <div className="relative mx-auto flex max-w-[1440px] items-center gap-4 px-4 py-3 sm:px-6 lg:px-8">
@@ -103,10 +104,13 @@ function Header({ home }: { home: boolean }) {
         </Link>
         <div className="ml-auto flex items-center gap-2 sm:gap-3">
           {!home && (
-            <div className="hidden text-right leading-tight md:block">
-              <p className="text-[24px] font-extrabold tracking-wide text-navy-900">SEKAR</p>
-              <p className="text-[11.5px] font-semibold text-navy-800">Sistem Informasi Evaluasi Kepatuhan, Audit &amp; Risiko</p>
-            </div>
+            <Link href="/" className="hidden items-center gap-2.5 rounded-lg md:flex" aria-label="SEKAR — beranda">
+              <Image src="/brand/sekar-emblem.webp" alt="" width={567} height={360} className="h-11 w-auto" />
+              <span className="text-right leading-tight">
+                <span className="block text-[24px] font-extrabold tracking-[0.08em] text-navy-950">SEKAR</span>
+                <span className="block text-[11px] font-semibold text-navy-800">Sistem Informasi Evaluasi Kepatuhan, Audit &amp; Risiko</span>
+              </span>
+            </Link>
           )}
           {config.mode === "dummy" ? (
             <span className="hidden items-center gap-1 rounded-full border border-amber-300 bg-amber-100 px-2.5 py-1 text-[11.5px] font-bold text-amber-900 sm:inline-flex">

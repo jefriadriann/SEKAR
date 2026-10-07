@@ -1,3 +1,5 @@
+import { IndonesiaMap } from "@/components/map/IndonesiaMap";
+
 /**
  * Ilustrasi dekoratif (SVG buatan sendiri). Hanya hiasan: bukan foto, bukan
  * logo resmi, dan bukan peta data geografis.
@@ -66,43 +68,9 @@ export function BuildingIllustration({ className }: { className?: string }) {
   );
 }
 
-/** Pola kepulauan abstrak — dekorasi, sengaja tidak akurat dan tanpa data. */
+/** Peta Indonesia (Natural Earth) sebagai dekorasi — tanpa data. */
 export function ArchipelagoDecor({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 600 230" className={className} aria-hidden focusable="false">
-      <g fill="#c4daf3" fillOpacity="0.75">
-        <path d="M30 30 C60 40 95 80 130 115 C150 135 160 150 150 160 C135 158 110 135 90 110 C65 82 40 60 30 30Z" />
-        <path d="M165 172 C200 168 250 172 300 178 C305 184 300 190 290 189 C240 186 195 186 168 182 C160 178 160 174 165 172Z" />
-        <path d="M305 186 C315 184 322 186 324 190 C318 193 310 192 305 186Z M332 188 C345 186 352 188 356 192 C346 195 338 194 332 188Z M362 190 C380 188 392 190 398 195 C385 198 370 197 362 190Z" />
-        <path d="M195 55 C225 35 270 38 295 60 C305 85 290 115 262 128 C235 135 205 120 195 95 C188 80 188 66 195 55Z" />
-        <path d="M335 60 C350 55 365 58 372 66 C360 70 352 76 350 88 C365 86 380 90 384 100 C372 104 356 104 350 112 C352 128 346 145 336 150 C330 135 334 118 330 104 C326 90 326 72 335 60Z" />
-        <path d="M410 90 C418 86 424 90 424 98 C418 104 410 100 410 90Z M428 118 C440 114 448 118 446 126 C438 130 430 126 428 118Z M402 135 C412 132 418 136 416 142 C408 145 402 142 402 135Z" />
-        <path d="M455 105 C480 92 520 95 550 108 C575 118 592 135 588 160 C570 172 540 168 515 160 C495 150 480 140 470 128 C460 120 452 113 455 105Z" />
-      </g>
-      <g fill="#ffffff" fillOpacity="0.6">
-        {Array.from({ length: 40 }, (_, i) => (
-          <circle key={i} cx={40 + ((i * 53) % 540)} cy={40 + ((i * 37) % 150)} r="1.6" />
-        ))}
-      </g>
-      <g fill="none" stroke="#9cc3ec" strokeOpacity="0.6" strokeWidth="1" strokeDasharray="3 4">
-        <path d="M110 120 Q 220 20 340 90" />
-        <path d="M240 90 Q 400 10 520 130" />
-        <path d="M230 180 Q 330 120 430 120" />
-      </g>
-      <g fill="#7fb2ea">
-        {[
-          [110, 120],
-          [240, 90],
-          [340, 90],
-          [520, 130],
-          [230, 180],
-          [430, 120],
-        ].map(([x, y]) => (
-          <circle key={`${x}-${y}`} cx={x} cy={y} r="3" />
-        ))}
-      </g>
-    </svg>
-  );
+  return <IndonesiaMap variant="decor" className={className} />;
 }
 
 export function WaveLines({ className }: { className?: string }) {

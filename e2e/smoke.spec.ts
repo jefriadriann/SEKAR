@@ -69,9 +69,9 @@ test("semua halaman tampil tanpa error konsol dan tanpa overflow horizontal", as
 test("hasil pemeriksaan: filter, klik kategori, drilldown, edit status tersimpan lokal", async ({ page }) => {
   await ready(page, "/hasil-pemeriksaan");
   const areaCard = page.locator("section", { has: page.getByRole("heading", { name: "Jumlah Temuan per Area" }) });
-  await expect(areaCard.getByText(/55 temuan · \d+ KPwDN · tahun 2026/)).toBeVisible();
+  await expect(areaCard.getByText(/143 temuan · \d+ KPwDN · tahun 2026/)).toBeVisible();
   await page.getByLabel("Tahun Pemeriksaan").selectOption("all");
-  await expect(areaCard.getByText(/276 temuan · 46 KPwDN · semua tahun/)).toBeVisible();
+  await expect(areaCard.getByText(/635 temuan · 46 KPwDN · semua tahun/)).toBeVisible();
 
   // Klik kategori via tampilan tabel chart (setara klik bar) + reset.
   await areaCard.getByRole("button", { name: "Tabel" }).click();
@@ -139,7 +139,7 @@ test("permindok: validasi tanggal, simpan perubahan, template", async ({ page })
   await drawer.getByLabel("Status kelengkapan").selectOption("lengkap");
   await drawer.getByRole("button", { name: "Simpan perubahan" }).click();
   await expect(drawer.getByText("Status Lengkap memerlukan tanggal penyampaian.")).toBeVisible();
-  await drawer.getByLabel("Tanggal penyampaian").fill("2026-01-01");
+  await drawer.getByLabel("Tanggal penyampaian").fill("2020-01-01");
   await drawer.getByRole("button", { name: "Simpan perubahan" }).click();
   await expect(drawer.getByText("Tanggal penyampaian tidak boleh mendahului tanggal permintaan.")).toBeVisible();
   await drawer.getByLabel("Tanggal penyampaian").fill("2026-10-01");
@@ -168,9 +168,9 @@ test("jadwal: tampilan bulan/kuartal/tahun dan posisi data simulasi", async ({ p
   await expect(page.getByText("Hari ini").first()).toBeVisible();
   await page.getByLabel("Posisi Data").fill("2026-12-31");
   const selesai = page.locator('[data-kpi="Selesai"]');
-  await expect(selesai).toHaveText("35");
+  await expect(selesai).toHaveText("46");
   await page.getByRole("button", { name: "Reset", exact: true }).click();
-  await expect(selesai).toHaveText("16");
+  await expect(selesai).toHaveText("27");
 });
 
 test("persona KPw tidak melihat data/route DR", async ({ page }) => {
@@ -199,11 +199,12 @@ test("dashboard DR: KPI dihitung dari dataset, filter pemeriksa, edit kepatuhan"
   await expect(page.locator('[data-kpi="Belum Selesai"]')).toHaveText("2");
   await page.getByLabel("Pemeriksa", { exact: true }).selectOption("BPK");
   await expect(page.getByText("Menampilkan 1 - 5 dari 8 data")).toBeVisible();
-  await page.getByRole("button", { name: /^Buka detail KPT-01/ }).click();
+  await page.getByRole("button", { name: /^Buka detail KPT-/ }).first().click();
   const drawer = page.getByRole("dialog");
-  await drawer.getByLabel("Status").selectOption("selesai");
+  const current = await drawer.getByLabel("Status").inputValue();
+  await drawer.getByLabel("Status").selectOption(current === "selesai" ? "dalam_proses" : "selesai");
   await drawer.getByRole("button", { name: "Simpan status" }).click();
-  await expect(page.getByText("Status kewajiban KPT-01 diperbarui.")).toBeVisible();
+  await expect(page.getByText(/Status kewajiban KPT-\d+ diperbarui\./)).toBeVisible();
 });
 
 test("notifikasi: lonceng menampilkan tautan tindak lanjut", async ({ page }) => {
@@ -220,7 +221,7 @@ test("SGo: pencarian, preview materi, tutorial langkah demi langkah", async ({ p
   await expect(page.getByRole("dialog").getByText("Langkah 1:")).toBeAttached();
   await page.keyboard.press("Escape");
   await page.getByLabel("Cari materi").fill("Pengadaan");
-  await expect(page.getByRole("heading", { name: "Hasil pencarian (3)" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Hasil pencarian (4)" })).toBeVisible();
   await page.getByRole("button", { name: "Buka" }).first().click();
   await expect(page.getByRole("dialog").getByText("MATERI SIMULASI")).toBeVisible();
 });

@@ -122,13 +122,13 @@ export function SgoView() {
                   </div>
                   <p className="mt-2 flex-1 text-sm text-muted">{refs.length} materi tersedia</p>
                   <div className="mt-3 flex flex-wrap gap-2">
-                    {REFERENCE_KINDS.map((k) => {
-                      const ref = refs.find((r) => r.kind === k);
-                      const Icon = KIND_ICON[k];
+                    {refs.map((ref) => {
+                      const Icon = KIND_ICON[ref.kind];
+                      const label = ref.id.endsWith("-pedoman") ? "Pedoman" : REFERENCE_KIND_LABEL[ref.kind];
                       return (
-                        <Button key={k} size="sm" variant={k === "worksheet" ? "primary" : "secondary"} disabled={!ref} onClick={() => ref && open(ref)}>
+                        <Button key={ref.id} size="sm" variant={ref.kind === "worksheet" ? "primary" : "secondary"} onClick={() => open(ref)}>
                           <Icon className="h-4 w-4" aria-hidden />
-                          {REFERENCE_KIND_LABEL[k]}
+                          {label}
                           <span className="sr-only"> {area}</span>
                         </Button>
                       );

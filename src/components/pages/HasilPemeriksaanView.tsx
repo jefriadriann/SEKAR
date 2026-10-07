@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { BookOpen, CalendarDays, ChevronRight, Database, Download, ListChecks, SlidersHorizontal } from "lucide-react";
 import { CategoryTable, ChartCard, ColumnChart, DonutWithLegend, HorizontalBars, TrendChart } from "@/components/charts/Charts";
 import { FindingDrawer } from "@/components/domain/FindingDrawer";
-import { ArchipelagoDecor } from "@/components/layout/Decor";
+import { IndonesiaMap, MapLegend } from "@/components/map/IndonesiaMap";
 import { useReadySekar } from "@/components/providers/SekarProvider";
 import { DataTable, type Column } from "@/components/ui/DataTable";
 import { Drawer } from "@/components/ui/Overlay";
@@ -263,13 +263,22 @@ export function HasilPemeriksaanView() {
         </ChartCard>
         <ChartCard
           title="Sebaran Temuan per Korwil"
-                    summary={byKorwil.map((k) => `${k.key}: ${k.count} temuan / ${k.uniqueUnits} KPw`).join("; ")}
+          summary={byKorwil.map((k) => `${k.key}: ${k.count} temuan / ${k.uniqueUnits} KPw`).join("; ")}
           selectedLabel={filters.korwil !== ALL ? filters.korwil : null}
           onReset={() => set("korwil", ALL)}
           table={<CategoryTable data={byKorwil} selected={filters.korwil === ALL ? null : filters.korwil} onSelect={(k) => toggle("korwil", k)} keyHeader="Korwil" />}
         >
-          <div className="grid items-center gap-2 sm:grid-cols-[0.8fr_1.2fr]">
-            <ArchipelagoDecor className="hidden w-[130%] max-w-none -translate-x-[8%] sm:block" />
+          <div className="space-y-3">
+            <div className="rounded-xl bg-gradient-to-b from-[#f2f8ff] to-white px-1 pt-1">
+              <IndonesiaMap
+                values={Object.fromEntries(byKorwil.map((k) => [k.key, k.count]))}
+                selected={filters.korwil === ALL ? null : filters.korwil}
+                onSelect={(k) => toggle("korwil", k)}
+              />
+            </div>
+            <div className="flex justify-end">
+              <MapLegend min={Math.min(...byKorwil.map((k) => k.count))} max={Math.max(0, ...byKorwil.map((k) => k.count))} />
+            </div>
             <HorizontalBars data={byKorwil} selected={filters.korwil === ALL ? null : filters.korwil} onSelect={(k) => toggle("korwil", k)} />
           </div>
         </ChartCard>

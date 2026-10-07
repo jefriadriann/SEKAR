@@ -38,14 +38,14 @@ describe("seed dataset", () => {
     const r = validateDataset(ds());
     expect(r.errors).toEqual([]);
     expect(r.ok).toBe(true);
-    expect(r.counts).toMatchObject({ units: 47, findings: 300, document_requests: 96, audit_schedules: 40, references: 24, compliance: 12, asset_reconciliations: 46 });
+    expect(r.counts).toMatchObject({ units: 47, findings: 659, document_requests: 291, audit_schedules: 115, references: 32, compliance: 24, asset_reconciliations: 138 });
   });
 });
 
 describe("agregasi temuan", () => {
-  it("memisahkan temuan KPw (276) dari temuan DR (24)", () => {
+  it("memisahkan temuan KPw (635) dari temuan DR (24)", () => {
     const d = ds();
-    expect(kpwModuleData(d).findings).toHaveLength(276);
+    expect(kpwModuleData(d).findings).toHaveLength(635);
     expect(kpwModuleData(d).findings.some((f) => f.unit_id === "dr")).toBe(false);
     expect(onlyDr(d.findings)).toHaveLength(24);
   });
@@ -71,20 +71,20 @@ describe("agregasi temuan", () => {
   it("filter tahun, pemeriksa dan korwil konsisten dengan total", () => {
     const k = kpwModuleData(ds());
     const all = filterFindings(k.findings, k.units, DEFAULT_FINDING_FILTERS, AS_OF);
-    expect(all).toHaveLength(276);
+    expect(all).toHaveLength(635);
     const byYear = [2022, 2023, 2024, 2025, 2026].map((y) => filterFindings(k.findings, k.units, { ...DEFAULT_FINDING_FILTERS, year: y }, AS_OF).length);
-    expect(byYear.reduce((a, b) => a + b, 0)).toBe(276);
+    expect(byYear.reduce((a, b) => a + b, 0)).toBe(635);
     const jawa = filterFindings(k.findings, k.units, { ...DEFAULT_FINDING_FILTERS, korwil: "Jawa" }, AS_OF);
     const jawaUnits = new Set(k.units.filter((u) => u.korwil === "Jawa").map((u) => u.id));
     expect(jawa.every((f) => jawaUnits.has(f.unit_id))).toBe(true);
     const ignoreYear = filterFindings(k.findings, k.units, { ...DEFAULT_FINDING_FILTERS, year: 2022 }, AS_OF, ["year"]);
-    expect(ignoreYear).toHaveLength(276);
+    expect(ignoreYear).toHaveLength(635);
   });
 
   it("agregasi tema menjumlahkan kembali ke total temuan", () => {
     const k = kpwModuleData(ds());
     const agg = aggregateByTheme(k.findings);
-    expect(agg.reduce((s, a) => s + a.count, 0)).toBe(276);
+    expect(agg.reduce((s, a) => s + a.count, 0)).toBe(635);
     for (const a of agg) expect(a.affectedUnits).toBeLessThanOrEqual(a.count);
   });
 
@@ -106,11 +106,11 @@ describe("scope DR/KPw/admin", () => {
     expect(s.compliance).toHaveLength(0);
     expect(s.findings.length).toBeGreaterThan(0);
     expect(s.documents.every((d) => d.scope === "shared" || d.scope === "kpw-01")).toBe(true);
-    expect(s.references).toHaveLength(24);
+    expect(s.references).toHaveLength(32);
   });
 
   it("persona DR dan admin melihat seluruh data", () => {
-    expect(scopeDatasetForViewer(ds(), dr).findings).toHaveLength(300);
+    expect(scopeDatasetForViewer(ds(), dr).findings).toHaveLength(659);
     expect(scopeDatasetForViewer(ds(), admin).units).toHaveLength(47);
   });
 
@@ -141,9 +141,9 @@ describe("status berbasis tanggal", () => {
 
   it("KPI jadwal KPw konsisten (selesai + berlangsung + mendatang = total)", () => {
     const k = scheduleKpis(kpwModuleData(ds()).audit_schedules, AS_OF);
-    expect(k.total).toBe(35);
+    expect(k.total).toBe(106);
     expect(k.selesai + k.berlangsung + k.mendatang).toBe(k.total);
-    expect(k.tentatif).toBe(5);
+    expect(k.tentatif).toBe(11);
   });
 
   it("jendela timeline dan posisi bar", () => {
