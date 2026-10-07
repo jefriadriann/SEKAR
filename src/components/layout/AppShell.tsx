@@ -96,14 +96,15 @@ function Header({ home }: { home: boolean }) {
     <header
       className={cx(
         "relative z-40",
-        home ? "bg-transparent" : "header-tint overflow-hidden border-b border-white/60 shadow-[0_6px_20px_-12px_rgba(20,42,110,0.35)]",
+        home ? "bg-transparent" : "header-tint border-b border-white/60 shadow-[0_6px_20px_-12px_rgba(20,42,110,0.35)]",
       )}
     >
+      {/* Dekorasi dipotong di wadahnya sendiri agar menu dropdown tidak ikut terpotong. */}
       {!home && (
-        <>
+        <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
           <SkylineDecor />
-          <span aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-[3px] bg-[linear-gradient(90deg,var(--m1),var(--m2)_50%,var(--m3))]" />
-        </>
+          <span className="absolute inset-x-0 bottom-0 h-[3px] bg-[linear-gradient(90deg,var(--m1),var(--m2)_50%,var(--m3))]" />
+        </div>
       )}
       <div className="relative mx-auto flex max-w-[1440px] items-center gap-4 px-4 py-3 sm:px-6 lg:px-8">
         <Link href="/" aria-label="SEKAR — kembali ke beranda" className="rounded-lg">
@@ -218,6 +219,7 @@ function Notifications() {
 function UserMenu() {
   const { viewer, personas, setPersona, asOf, datasetAsOf, setAsOf, resetAsOf, config, signOut } = useSekar();
   const { open, setOpen, ref } = usePopover();
+  const pathname = usePathname();
   if (!viewer) return null;
   const links = NAV_ITEMS.filter((n) => canAccessRoute(viewer.role, n.href));
   return (
@@ -284,8 +286,16 @@ function UserMenu() {
             <ul>
               {links.map((n) => (
                 <li key={n.href}>
-                  <Link href={n.href} onClick={() => setOpen(false)} className="flex items-center gap-2 rounded-lg px-2 py-1.5 font-semibold text-navy-900 hover:bg-sky-50">
-                    <n.icon className="h-4 w-4 text-brand" aria-hidden />
+                  <Link
+                    href={n.href}
+                    onClick={() => setOpen(false)}
+                    aria-current={pathname === n.href ? "page" : undefined}
+                    className={cx(
+                      "flex items-center gap-2 rounded-lg px-2 py-1.5 font-semibold text-navy-900 hover:bg-sky-50",
+                      pathname === n.href && "bg-[var(--m-soft)] text-[var(--m-ink)]",
+                    )}
+                  >
+                    <n.icon className="h-4 w-4 text-[var(--m2)]" aria-hidden />
                     {n.label}
                   </Link>
                 </li>

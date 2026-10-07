@@ -49,6 +49,9 @@ const TILE = {
   rose: "bg-gradient-to-br from-[#ff8a96] to-[#e0313f] text-white shadow-[0_6px_14px_-6px_rgba(224,49,63,0.7)]",
   violet: "bg-gradient-to-br from-[#b49cff] to-[#6d4fd1] text-white shadow-[0_6px_14px_-6px_rgba(109,79,209,0.7)]",
   sky: "bg-gradient-to-br from-[#7fd6ff] to-[#1f8fd6] text-white shadow-[0_6px_14px_-6px_rgba(31,143,214,0.7)]",
+  navy: "bg-gradient-to-br from-[#3d4f8f] to-[#1a2552] text-white shadow-[0_6px_14px_-6px_rgba(26,37,82,0.7)]",
+  gold: "bg-gradient-to-br from-[#e6c77d] to-[#b8902f] text-white shadow-[0_6px_14px_-6px_rgba(184,144,47,0.7)]",
+  slate: "bg-gradient-to-br from-[#aab4cf] to-[#6b789e] text-white shadow-[0_6px_14px_-6px_rgba(107,120,158,0.6)]",
 } as const;
 export type TileTone = keyof typeof TILE;
 
@@ -198,6 +201,9 @@ const KPI_GRADIENT: Record<TileTone, string> = {
   rose: "linear-gradient(135deg, #e11d48 0%, #f43f5e 50%, #ec4899 100%)",
   violet: "linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #d946ef 100%)",
   sky: "linear-gradient(135deg, #0284c7 0%, #0ea5e9 50%, #22d3ee 100%)",
+  navy: "linear-gradient(135deg, #141e46 0%, #26366f 60%, #3d4f8f 100%)",
+  gold: "linear-gradient(135deg, #a8801f 0%, #c9a24a 55%, #e2c27a 100%)",
+  slate: "linear-gradient(135deg, #4b5677 0%, #6b789e 100%)",
 };
 const KPI_SHADOW: Record<TileTone, string> = {
   blue: "rgba(79,70,229,0.55)",
@@ -206,6 +212,9 @@ const KPI_SHADOW: Record<TileTone, string> = {
   rose: "rgba(244,63,94,0.55)",
   violet: "rgba(168,85,247,0.55)",
   sky: "rgba(14,165,233,0.55)",
+  navy: "rgba(20,30,70,0.55)",
+  gold: "rgba(168,128,31,0.5)",
+  slate: "rgba(75,86,119,0.5)",
 };
 
 /** Kartu KPI. `tinted` = kartu gradasi cerah dengan teks putih; tanpa `tinted` = panel putih. */

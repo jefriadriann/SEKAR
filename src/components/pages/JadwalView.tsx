@@ -30,10 +30,10 @@ export function rangeLabel(start: string, end: string): string {
 type Phase = "berlangsung" | "segera" | "mendatang" | "selesai";
 
 const PHASE: Record<Phase, { label: string; bar: string; dot: string; pill: string; tone: TileTone }> = {
-  berlangsung: { label: "Dalam Pemeriksaan", bar: "bg-gradient-to-r from-[#4f46e5] to-[#8b5cf6] text-white", dot: "#6366f1", pill: "bg-[#e6efff] text-[#2457c5] border-[#cfe0ff]", tone: "blue" },
-  segera: { label: "Mendatang (≤7 Hari)", bar: "bg-gradient-to-r from-[#f59e0b] to-[#f97316] text-white", dot: "#f59e0b", pill: "bg-[#fff4dc] text-[#a86a06] border-[#f7e0a8]", tone: "amber" },
-  mendatang: { label: "Mendatang", bar: "bg-gradient-to-r from-[#38bdf8] to-[#22d3ee] text-white", dot: "#0ea5e9", pill: "bg-[#eaf3fe] text-[#2457c5] border-[#d6e7fb]", tone: "sky" },
-  selesai: { label: "Selesai", bar: "bg-gradient-to-r from-[#10b981] to-[#34d399] text-white", dot: "#10b981", pill: "bg-[#e3f7ec] text-[#13804f] border-[#c4ecd5]", tone: "teal" },
+  berlangsung: { label: "Dalam Pemeriksaan", bar: "bg-gradient-to-r from-[#1a2552] to-[#3d4f8f] text-white", dot: "#26366f", pill: "bg-[#e9ecf6] text-[#1a2552] border-[#d3d9ec]", tone: "navy" },
+  segera: { label: "Mendatang (≤7 Hari)", bar: "bg-gradient-to-r from-[#b8902f] to-[#e2c27a] text-white", dot: "#c9a24a", pill: "bg-[#fbf5e6] text-[#8a6a1c] border-[#efe0b8]", tone: "gold" },
+  mendatang: { label: "Mendatang", bar: "bg-white text-[#26366f] ring-[1.5px] ring-inset ring-[#7b88b3]", dot: "#7b88b3", pill: "bg-[#f1f3f9] text-[#3d4f8f] border-[#dde2ef]", tone: "slate" },
+  selesai: { label: "Selesai", bar: "bg-gradient-to-r from-[#c9d0e2] to-[#dde2ee] text-[#3d4f8f] ring-1 ring-inset ring-[#bfc7dc]", dot: "#b4bdd4", pill: "bg-[#f4f5f8] text-[#5b6685] border-[#e2e5ec]", tone: "slate" },
 };
 
 function phaseOf(s: AuditSchedule, asOf: string): Phase {
@@ -130,7 +130,7 @@ export function JadwalView() {
               e.stopPropagation();
               openDocument(f.evidence_document_id!);
             }}
-            className="inline-flex items-center gap-1 whitespace-nowrap font-semibold text-brand hover:underline"
+            className="inline-flex items-center gap-1 whitespace-nowrap font-semibold text-[#33447f] hover:underline"
           >
             <FileText className="h-3.5 w-3.5" aria-hidden />
             Bukti
@@ -210,10 +210,10 @@ export function JadwalView() {
       </div>
 
       <div className="mb-4 grid grid-cols-2 gap-3 xl:grid-cols-4">
-        <KpiCard tinted tone="blue" label="Total Pemeriksaan" value={kpis.total} hint={`${kpis.berlangsung} berlangsung · ${kpis.tentatif} tentatif`} icon={<ClipboardList />} />
-        <KpiCard tinted tone="amber" label="Mulai ≤ 7 Hari" value={kpis.mulai7Hari} icon={<Timer />} />
-        <KpiCard tinted tone="sky" label="Mendatang" value={kpis.mendatang} icon={<CalendarClock />} />
-        <KpiCard tinted tone="teal" label="Selesai" value={kpis.selesai} icon={<CheckCircle2 />} />
+        <KpiCard tinted tone="navy" label="Total Pemeriksaan" value={kpis.total} hint={`${kpis.berlangsung} berlangsung · ${kpis.tentatif} tentatif`} icon={<ClipboardList />} />
+        <KpiCard tone="gold" label="Mulai ≤ 7 Hari" value={kpis.mulai7Hari} icon={<Timer />} />
+        <KpiCard tone="slate" label="Mendatang" value={kpis.mendatang} icon={<CalendarClock />} />
+        <KpiCard tone="navy" label="Selesai" value={kpis.selesai} icon={<CheckCircle2 />} />
       </div>
 
       <div className="mb-4 grid gap-4 xl:grid-cols-[1fr_380px]">
@@ -221,6 +221,7 @@ export function JadwalView() {
           <SectionHeader
             id="timeline-title"
             icon={<CalendarDays />}
+            iconTone="navy"
             title="Jadwal Pemeriksaan KPwDN"
             description={`${win.label} · ${inWindow.length} jadwal`}
             actions={
@@ -255,7 +256,7 @@ export function JadwalView() {
           ) : (
             <div className="scrollbar-thin relative max-h-[470px] overflow-auto rounded-xl border border-line">
               <div className="min-w-[720px]">
-                <div className="sticky top-0 z-30 grid grid-cols-[150px_1fr] border-b border-line bg-[#eef5fd] text-[12.5px] font-bold text-navy-900">
+                <div className="sticky top-0 z-30 grid grid-cols-[150px_1fr] border-b border-line bg-[#f3f5fa] text-[12.5px] font-bold text-navy-900">
                   <div className="px-3 py-2">KPwDN</div>
                   <div className="relative h-9">
                     {win.columns.map((c) => (
@@ -268,7 +269,7 @@ export function JadwalView() {
                       </span>
                     ))}
                     {today !== null && (
-                      <span className="absolute top-1 z-20 -translate-x-1/2 whitespace-nowrap rounded-md bg-gradient-to-r from-[#f43f5e] to-[#f97316] px-1.5 py-0.5 text-[11px] font-bold text-white" style={{ left: `${today}%` }}>
+                      <span className="absolute top-1 z-20 -translate-x-1/2 whitespace-nowrap rounded-md bg-[#c9a24a] px-1.5 py-0.5 text-[11px] font-bold text-white" style={{ left: `${today}%` }}>
                         Hari ini
                       </span>
                     )}
@@ -289,7 +290,7 @@ export function JadwalView() {
                           {win.columns.map((c) => (
                             <span key={c.start} className="absolute inset-y-0 w-px bg-[#eef2f7]" style={{ left: `${edgeOf(c.start, win)}%` }} aria-hidden />
                           ))}
-                          {today !== null && <span className="absolute inset-y-0 z-10 border-l-2 border-dashed border-[#f43f5e]" style={{ left: `${today}%` }} aria-hidden />}
+                          {today !== null && <span className="absolute inset-y-0 z-10 border-l-2 border-dashed border-[#c9a24a]" style={{ left: `${today}%` }} aria-hidden />}
                           <button
                             type="button"
                             onClick={() => setOpenSchedule(s.id)}
@@ -355,10 +356,11 @@ export function JadwalView() {
           <SectionHeader
             id="terdekat"
             icon={<CalendarClock />}
+            iconTone="navy"
             title="Pemeriksaan Terdekat"
             actions={
               upcoming.length > 5 && (
-                <button type="button" onClick={() => setShowAll(true)} className="text-[13px] font-semibold text-brand hover:underline">
+                <button type="button" onClick={() => setShowAll(true)} className="text-[13px] font-semibold text-[#33447f] hover:underline">
                   Lihat Semua
                 </button>
               )
@@ -380,6 +382,7 @@ export function JadwalView() {
         <SectionHeader
           id="tindak-lanjut"
           icon={<FileText />}
+          iconTone="navy"
           title="Penyelesaian Temuan Pemeriksaan"
           description="Tracking tindak lanjut temuan dan rekomendasi pemeriksaan pada KPwDN."
           actions={
@@ -437,7 +440,7 @@ function UpcomingItem({ s, unitName, onOpen }: { s: AuditSchedule; unitName: str
   const ph = phaseOf(s, asOf);
   return (
     <li>
-      <button type="button" onClick={onOpen} className="flex w-full items-center gap-3 px-1 py-2.5 text-left hover:bg-[#f7fbff]">
+      <button type="button" onClick={onOpen} className="flex w-full items-center gap-3 px-1 py-2.5 text-left hover:bg-[#f6f7fb]">
         <IconTile tone={PHASE[ph].tone}>
           <Building2 />
         </IconTile>
@@ -453,7 +456,7 @@ function UpcomingItem({ s, unitName, onOpen }: { s: AuditSchedule; unitName: str
             {s.examiner} {s.exam_type} · {s.id}
           </span>
           <span className="mt-0.5 inline-flex items-center gap-1 text-[12px] font-semibold text-navy-900">
-            <CalendarDays className="h-3.5 w-3.5 text-brand" aria-hidden />
+            <CalendarDays className="h-3.5 w-3.5 text-[#33447f]" aria-hidden />
             {s.date_confirmed ? `${formatDate(s.start_date)} – ${formatDate(s.end_date)}` : "Tanggal tentatif"}
           </span>
         </span>
