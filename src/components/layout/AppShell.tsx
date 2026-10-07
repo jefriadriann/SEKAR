@@ -20,6 +20,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { status } = useSekar();
   const pathname = usePathname();
   const isHome = pathname === "/";
+  // Beranda tidak bergantung pada data, jadi langsung tampil saat data masih dimuat.
+  const homeVisible = isHome && (status === "ready" || status === "loading");
   return (
     <div className={cx("flex min-h-screen flex-col", isHome && "bg-gradient-to-br from-[#e6f2fd] via-[#f4f9fe] to-[#e9f3fc] lg:h-dvh lg:min-h-0 lg:overflow-hidden")}>
       <a
@@ -28,9 +30,9 @@ export function AppShell({ children }: { children: ReactNode }) {
       >
         Lewati ke konten
       </a>
-      <Header home={isHome && status === "ready"} />
-      <main id="konten" className={cx("flex-1", isHome && status === "ready" ? "lg:min-h-0" : "mx-auto w-full max-w-[1440px] px-4 pb-10 pt-4 sm:px-6 lg:px-8")}>
-        {status === "ready" ? children : <StatusScreen />}
+      <Header home={homeVisible} />
+      <main id="konten" className={cx("flex-1", homeVisible ? "lg:min-h-0" : "mx-auto w-full max-w-[1440px] px-4 pb-10 pt-4 sm:px-6 lg:px-8")}>
+        {status === "ready" || homeVisible ? children : <StatusScreen />}
       </main>
       <div className={cx(isHome && "lg:hidden")}>
         <Footer />
@@ -302,7 +304,7 @@ function UserMenu() {
 function Footer() {
   const { datasetAsOf } = useSekar();
   return (
-    <footer className="border-t border-white/70 bg-white/60 backdrop-blur">
+    <footer className="border-t border-white/70 bg-white/70">
       <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-2 px-4 py-3 text-[12px] text-muted sm:px-6 lg:px-8">
         <p>© SEKAR · Departemen Regional</p>
         <p>Data simulasi{datasetAsOf ? ` · posisi ${formatDateLong(datasetAsOf)}` : ""} · identitas berupa placeholder teks</p>

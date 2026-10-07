@@ -43,7 +43,6 @@ body {
     radial-gradient(700px 380px at 0% 30%, rgba(34, 195, 166, 0.09), transparent 70%),
     radial-gradient(800px 500px at 60% 100%, rgba(169, 140, 232, 0.1), transparent 70%),
     linear-gradient(180deg, #e8f2fd 0%, #f1f7fe 360px, #f4f8fd 100%);
-  background-attachment: fixed;
   color: var(--color-ink);
   font-family: var(--font-sans);
   font-size: 16px;
@@ -91,7 +90,79 @@ body {
   }
 }
 
+/* Transisi halus berbasis transform/opacity (dikerjakan GPU, tidak memicu layout). */
+@keyframes sekar-page-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes sekar-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes sekar-drawer-in {
+  from {
+    opacity: 0.6;
+    transform: translate3d(32px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes sekar-pop-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes sekar-beam {
+  to {
+    offset-distance: 100%;
+  }
+}
+
+.animate-page-in {
+  animation: sekar-page-in 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.animate-fade-in {
+  animation: sekar-fade-in 200ms ease-out both;
+}
+.animate-drawer-in {
+  animation: sekar-drawer-in 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.animate-pop-in {
+  animation: sekar-pop-in 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Easing seragam untuk semua transisi interaktif. */
+a,
+button,
+select,
+input,
+textarea,
+[role="button"] {
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
   *,
   *::before,
   *::after {

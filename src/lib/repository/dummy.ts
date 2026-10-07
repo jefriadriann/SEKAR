@@ -3,7 +3,6 @@
  * diubah). Perubahan demo disimpan di localStorage dengan namespace dan versi,
  * dan dapat di-reset. Tidak ada upload ke server.
  */
-import seedJson from "../../../data/sekar-dummy.json";
 import type { ComplianceStatus, Dataset, FindingStatus, ISODate, SekarDocument } from "../types";
 import { updateComplianceInDataset, updateFindingInDataset, updateRequestInDataset, type RequestPatch } from "../mutations";
 import { validateDataset } from "../validation";
@@ -14,9 +13,24 @@ export const STORAGE_VERSION = 1;
 export const DATASET_KEY = `${STORAGE_NAMESPACE}:v${STORAGE_VERSION}:dataset`;
 export const PREFS_KEY = `${STORAGE_NAMESPACE}:v${STORAGE_VERSION}:prefs`;
 
+let seedCache: Dataset | null = null;
+
+/**
+ * Seed dimuat sebagai chunk terpisah (dynamic import) agar paket JavaScript
+ * awal kecil dan halaman tampil lebih cepat.
+ */
+export async function loadSeedDataset(): Promise<Dataset> {
+  if (!seedCache) {
+    const mod = await import("../../../data/sekar-dummy.json");
+    seedCache = (mod.default ?? mod) as unknown as Dataset;
+  }
+  return seedCache;
+}
+
 export function getSeedDataset(): Dataset {
+  if (!seedCache) throw new Error("Seed belum dimuat; panggil loadSeedDataset() terlebih dahulu.");
   // Salinan dalam agar seed tidak pernah termutasi.
-  return structuredClone(seedJson as unknown as Dataset);
+  return structuredClone(seedCache);
 }
 
 interface StoredState {
@@ -104,6 +118,7 @@ export class DummyRepository implements SekarRepository {
   }
 
   async load(): Promise<LoadResult> {
+    await loadSeedDataset();
     return this.result();
   }
 
@@ -113,18 +128,22 @@ export class DummyRepository implements SekarRepository {
   }
 
   async updateFindingStatus(id: string, status: FindingStatus, asOf: ISODate) {
+    await loadSeedDataset();
     return this.mutate((ds) => updateFindingInDataset(ds, id, status, asOf));
   }
 
   async updateDocumentRequest(id: string, patch: RequestPatch, asOf: ISODate) {
+    await loadSeedDataset();
     return this.mutate((ds) => updateRequestInDataset(ds, id, patch, asOf));
   }
 
   async updateComplianceStatus(id: string, status: ComplianceStatus) {
+    await loadSeedDataset();
     return this.mutate((ds) => updateComplianceInDataset(ds, id, status));
   }
 
   async replaceDataset(ds: Dataset, label: string) {
+    await loadSeedDataset();
     const check = validateDataset(ds);
     if (!check.ok) throw new Error("Dataset tidak valid; dataset aktif tidak diubah.");
     return this.write({
@@ -136,6 +155,7 @@ export class DummyRepository implements SekarRepository {
   }
 
   async resetToSeed() {
+    await loadSeedDataset();
     this.storage?.removeItem(DATASET_KEY);
     this.state = null;
     this.warning = this.storage ? null : this.warning;

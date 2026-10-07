@@ -66,9 +66,6 @@ export function IndonesiaMap({
           <stop offset="0" stopColor="#cfe2f8" />
           <stop offset="1" stopColor="#9fc4ee" />
         </linearGradient>
-        <filter id={`${id}-shadow`} x="-5%" y="-5%" width="110%" height="110%">
-          <feDropShadow dx="0" dy="2" stdDeviation="2.5" floodColor="#1d58b5" floodOpacity="0.18" />
-        </filter>
         <pattern id={`${id}-dots`} width="9" height="9" patternUnits="userSpaceOnUse">
           <circle cx="4.5" cy="4.5" r="0.9" fill="#ffffff" fillOpacity="0.55" />
         </pattern>
@@ -76,7 +73,7 @@ export function IndonesiaMap({
 
       <path d={NEIGHBOR_PATH} fill={decor ? "#e6eff9" : "#eef3f9"} stroke="#d5e2f1" strokeWidth="0.6" />
 
-      <g filter={`url(#${id}-shadow)`}>
+      <g>
         {korwils.map((k) => {
           const v = values?.[k] ?? 0;
           const active = selected === k;
@@ -91,11 +88,11 @@ export function IndonesiaMap({
               aria-label={interactive ? `${k}: ${formatNumber(v)} ${unitLabel}` : undefined}
               onClick={interactive ? () => onSelect?.(k) : undefined}
               onKeyDown={interactive ? onKey(k) : undefined}
-              className={cn(interactive && "cursor-pointer outline-none [&:focus-visible>path]:stroke-[#f0b429] [&:focus-visible>path]:stroke-[2.5]", "transition-opacity")}
+              className={cn(interactive && "cursor-pointer outline-none [&:focus-visible>path]:stroke-[#f0b429] [&:focus-visible>path]:stroke-[2.5]", "transition-opacity duration-200")}
               opacity={!decor && selected && !active ? 0.45 : 1}
             >
               <title>{decor ? k : `${k}: ${formatNumber(v)} ${unitLabel}`}</title>
-              <path d={KORWIL_PATHS[k]} fill={fill} stroke="#ffffff" strokeWidth={decor ? 0.6 : 0.9} strokeLinejoin="round" className={cn(interactive && "hover:brightness-95")} />
+              <path d={KORWIL_PATHS[k]} fill={fill} stroke="#ffffff" strokeWidth={decor ? 0.6 : 0.9} strokeLinejoin="round" className={cn(interactive && "transition-[fill] duration-200 hover:fill-[#3a7ee0]")} />
               {decor && <path d={KORWIL_PATHS[k]} fill={`url(#${id}-dots)`} />}
             </g>
           );
@@ -126,7 +123,7 @@ export function IndonesiaMap({
         if (decor)
           return (
             <g key={k}>
-              <circle cx={x} cy={y} r="9" fill="#449efe" fillOpacity="0.25" className="motion-safe:animate-ping" style={{ transformOrigin: `${x}px ${y}px` }} />
+              <circle cx={x} cy={y} r="10" fill="#449efe" fillOpacity="0.2" />
               <circle cx={x} cy={y} r="4.5" fill="#1d58b5" stroke="#ffffff" strokeWidth="1.5" />
             </g>
           );

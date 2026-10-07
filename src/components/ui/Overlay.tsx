@@ -78,14 +78,14 @@ export function Drawer({
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
-      <div className="absolute inset-0 bg-navy-950/40" onClick={onClose} aria-hidden />
+      <div className="animate-fade-in absolute inset-0 bg-navy-950/40" onClick={onClose} aria-hidden />
       <div
         ref={ref}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className={cx("relative flex h-full w-full flex-col border-l border-line bg-white shadow-2xl", width)}
+        className={cx("animate-drawer-in relative flex h-full w-full flex-col border-l border-line bg-white shadow-2xl will-change-transform", width)}
       >
         <div className="flex items-start justify-between gap-3 border-b border-line bg-gradient-to-r from-sky-50 to-cyan-50 px-5 py-4">
           <div className="min-w-0">
@@ -123,14 +123,14 @@ export function Modal({
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-navy-950/50" onClick={onClose} aria-hidden />
+      <div className="animate-fade-in absolute inset-0 bg-navy-950/50" onClick={onClose} aria-hidden />
       <div
         ref={ref}
         role="alertdialog"
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className="relative w-full max-w-lg rounded-2xl border border-line bg-white shadow-2xl"
+        className="animate-pop-in relative w-full max-w-lg rounded-2xl border border-line bg-white shadow-2xl"
       >
         <div className="flex items-start justify-between gap-3 px-5 pt-5">
           <h2 id={titleId} className="text-lg font-bold text-navy-900">
