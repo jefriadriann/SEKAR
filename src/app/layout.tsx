@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import "@fontsource-variable/plus-jakarta-sans";
 import "./globals.css";
 import { AppShell } from "@/components/layout/AppShell";
 import { SekarProvider } from "@/components/providers/SekarProvider";

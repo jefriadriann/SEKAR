@@ -9,7 +9,7 @@ import { validateDataset } from "../validation";
 import { documentFilename, documentText, type DatasetSource, type DocumentContent, type LoadResult, type SekarRepository } from "./types";
 
 export const STORAGE_NAMESPACE = "sekar-demo";
-export const STORAGE_VERSION = 1;
+export const STORAGE_VERSION = 2;
 export const DATASET_KEY = `${STORAGE_NAMESPACE}:v${STORAGE_VERSION}:dataset`;
 export const PREFS_KEY = `${STORAGE_NAMESPACE}:v${STORAGE_VERSION}:prefs`;
 
@@ -64,6 +64,11 @@ export class DummyRepository implements SekarRepository {
 
   constructor(storage?: KV | null) {
     this.storage = storage === undefined ? safeStorage() : storage;
+    // Bersihkan data versi lama (dataset lebih kecil / persona tersimpan) agar demo mulai dari seed terbaru.
+    for (let v = 1; v < STORAGE_VERSION; v++) {
+      this.storage?.removeItem(`${STORAGE_NAMESPACE}:v${v}:dataset`);
+      this.storage?.removeItem(`${STORAGE_NAMESPACE}:v${v}:prefs`);
+    }
     if (!this.storage) this.warning = "Penyimpanan lokal browser tidak tersedia; perubahan demo hanya bertahan sampai halaman dimuat ulang.";
   }
 

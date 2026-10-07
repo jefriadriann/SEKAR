@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: Calibri, Carlito, "Segoe UI", Arial, sans-serif;
+  --font-sans: "Plus Jakarta Sans Variable", "Plus Jakarta Sans", "Segoe UI", Arial, sans-serif;
   --color-navy-950: #0c1a4d;
   --color-navy-900: #142a6e;
   --color-navy-800: #1c3a8a;
@@ -48,6 +48,11 @@ body {
   font-size: 16px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Judul halaman sedikit dirapatkan agar tegas seperti tipografi korporat modern. */
+h1 {
+  letter-spacing: -0.01em;
 }
 
 :focus-visible {

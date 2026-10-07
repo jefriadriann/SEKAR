@@ -74,7 +74,7 @@ end $$;
 reset role;
 set role authenticated;
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-00000000000d', false);
-select pg_temp.expect('dr findings', (select count(*) from public.findings), 659);
+select pg_temp.expect('dr findings', (select count(*) from public.findings), 1289);
 select pg_temp.expect('dr findings unit dr', (select count(*) from public.findings where unit_id = 'dr'), 24);
 select pg_temp.expect('dr compliance', (select count(*) from public.compliance_items), 24);
 select pg_temp.expect('dr storage', (select count(*) from storage.objects), 4);

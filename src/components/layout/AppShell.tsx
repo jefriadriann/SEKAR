@@ -35,6 +35,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </a>
       <Header home={homeVisible} />
       <main id="konten" className={cx("flex-1", homeVisible ? "lg:min-h-0" : "mx-auto w-full max-w-[1440px] px-4 pb-10 pt-4 sm:px-6 lg:px-8")}>
+        {status === "ready" && !isHome && <PersonaNotice />}
         {status === "ready" || homeVisible ? children : <StatusScreen />}
       </main>
       <div className={cx(isHome && "lg:hidden")}>
@@ -42,6 +43,27 @@ export function AppShell({ children }: { children: ReactNode }) {
       </div>
       <DocumentPreview />
       <Toasts />
+    </div>
+  );
+}
+
+/** Pemberitahuan saat persona KPw aktif: data dibatasi pada satu KPw, dengan tombol kembali ke tampilan DR. */
+function PersonaNotice() {
+  const { viewer, data, personas, setPersona } = useSekar();
+  if (!viewer || viewer.role !== "kpw") return null;
+  const unit = data?.units.find((u) => u.id === viewer.unit_id);
+  const dr = personas.find((p) => p.role === "dr");
+  return (
+    <div role="status" className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#d6dfee] bg-white px-4 py-2.5 text-[14px] text-navy-900">
+      <span>
+        Anda melihat sebagai <strong>{viewer.name}</strong>. Data dibatasi pada <strong>{unit?.name ?? viewer.unit_id}</strong>
+        {unit?.korwil ? ` (Korwil ${unit.korwil})` : ""}.
+      </span>
+      {dr && (
+        <Button size="sm" variant="primary" onClick={() => setPersona(dr.id)}>
+          Lihat seluruh KPwDN (persona DR)
+        </Button>
+      )}
     </div>
   );
 }

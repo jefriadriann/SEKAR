@@ -9,7 +9,7 @@
  *
  * Seluruh record asli dipertahankan apa adanya (termasuk 24 temuan DR) dan
  * ditambah record baru yang konsisten: temuan KPw multi-tahun, jadwal 2025–2027,
- * permintaan dokumen per jadwal, rekonsiliasi aset 2024–2025, kewajiban DR,
+ * permintaan dokumen per jadwal, rekonsiliasi aset 2023–2026, kewajiban DR,
  * materi pedoman, dan dokumen bukti. Semua tetap bertanda data dummy.
  */
 import { readFileSync, writeFileSync } from "node:fs";
@@ -118,7 +118,7 @@ let doc = Math.max(...ds.documents.filter((d) => d.id.startsWith("DOC-")).map((d
 
 for (const year of [2022, 2023, 2024, 2025, 2026]) {
   for (const unit of KPW) {
-    const n = year === 2026 ? int(1, 3) : int(1, 2);
+    const n = year === 2026 ? int(4, 7) : int(3, 5);
     for (let i = 0; i < n; i++) {
       const area = pick(AREAS);
       const [title, summary, rec] = pick(FINDING_TEMPLATES[area]);
@@ -196,7 +196,7 @@ function addSchedule(unitId, year, start, confirmed = true) {
 }
 
 function addRequests(s) {
-  const count = int(2, 4);
+  const count = int(3, 6);
   for (let i = 0; i < count; i++) {
     const category = pick(CATEGORIES);
     const requested = addDays(s.start_date, -int(7, 16));
@@ -231,24 +231,28 @@ function addRequests(s) {
   }
 }
 
-// 2025: satu pemeriksaan per KPw + DR, seluruhnya telah selesai.
-KPW.forEach((u, i) => addRequests(addSchedule(u.id, 2025, addDays("2025-01-13", i * 7 + int(0, 3)))));
+// 2025: dua pemeriksaan per KPw (semester I dan II) + DR, seluruhnya telah selesai.
+KPW.forEach((u, i) => addRequests(addSchedule(u.id, 2025, addDays("2025-01-13", i * 3 + int(0, 2)))));
+KPW.forEach((u, i) => addRequests(addSchedule(u.id, 2025, addDays("2025-07-07", i * 3 + int(0, 2)))));
 for (const m of ["2025-03-10", "2025-06-16", "2025-09-08", "2025-11-17"]) addRequests(addSchedule("dr", 2025, m));
 // 2026 semester I: KPw yang belum memiliki jadwal 2026.
 const has2026 = new Set(base.audit_schedules.filter((s) => s.year === 2026).map((s) => s.unit_id));
 KPW.filter((u) => !has2026.has(u.id)).forEach((u, i) => addRequests(addSchedule(u.id, 2026, addDays("2026-02-02", i * 12 + int(0, 4)))));
-// 2027 kuartal I: rencana awal (sebagian tentatif).
-KPW.slice(0, 14).forEach((u, i) => {
-  const s = addSchedule(u.id, 2027, addDays("2027-01-11", i * 5), chance(0.5));
+// 2026: pemeriksaan tematik tambahan yang tersebar di seluruh korwil (Maret–Desember).
+KPW.forEach((u, i) => addRequests(addSchedule(u.id, 2026, addDays("2026-03-02", ((i * 17) % 46) * 6 + int(0, 3)), chance(0.88))));
+// 2027: rencana satu tahun penuh untuk seluruh KPw (makin jauh makin banyak yang tentatif).
+KPW.forEach((u, i) => {
+  const start = addDays("2027-01-11", ((i * 23) % 46) * 7 + int(0, 3));
+  const s = addSchedule(u.id, 2027, start, start < "2027-04-01" ? chance(0.6) : chance(0.25));
   if (s.date_confirmed) addRequests(s);
 });
 
 // ---------------------------------------------------------------- rekonsiliasi aset
 let ast = ds.asset_reconciliations.length;
-for (const year of [2024, 2025]) {
+for (const year of [2023, 2024, 2025, 2026]) {
   for (const u of KPW) {
     const total = int(90, 260);
-    const disc = year === 2024 ? int(4, 26) : int(2, 18);
+    const disc = year <= 2024 ? int(4, 26) : int(2, 18);
     ast += 1;
     ds.asset_reconciliations.push({
       id: `AST-${pad(ast, 3)}`,
@@ -318,9 +322,9 @@ AREA_ORDER.forEach((area, i) => {
   });
 });
 
-ds.metadata.version = "1.1";
+ds.metadata.version = "1.2";
 ds.metadata.note =
-  "46 KPw fiktif, bukan daftar kantor resmi. Angka dan uraian tidak mewakili kondisi BI. v1.1: data diperluas secara deterministik (scripts/generate-dummy-data.mjs).";
+  "46 KPw fiktif, bukan daftar kantor resmi. Angka dan uraian tidak mewakili kondisi BI. v1.2: data diperluas secara deterministik untuk seluruh korwil (scripts/generate-dummy-data.mjs).";
 
 writeFileSync(join(root, "data/sekar-dummy.json"), JSON.stringify(ds, null, 2) + "\n");
 const counts = Object.fromEntries(Object.entries(ds).filter(([, v]) => Array.isArray(v)).map(([k, v]) => [k, v.length]));

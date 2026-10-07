@@ -8,3 +8,8 @@
 | `public/brand/*`, `src/app/icon.png`, `src/app/apple-icon.png` | Logo SEKAR dari pemilik proyek | Milik pemilik proyek |
 
 Adaptasi: label/format angka bahasa Indonesia, dukungan `prefers-reduced-motion`, tanpa ketergantungan tema gelap.
+
+## Plus Jakarta Sans
+
+- Font antarmuka, dipasang lewat paket `@fontsource-variable/plus-jakarta-sans` (self-hosted, tanpa request ke Google Fonts saat runtime).
+- Lisensi: SIL Open Font License 1.1 — Tokotype.
