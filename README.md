@@ -104,6 +104,8 @@ Jika sudah memakai Git: `git add . && git commit -m "..." && git push`.
 
 ## 7. Deploy ke Vercel (mode dummy)
 
+> **Production branch = `main`.** Hanya commit di `main` yang tampil di domain utama (mis. `sekar-demo.vercel.app`). Push ke branch lain menghasilkan *Preview deployment* dengan URL tersendiri. Untuk memperbarui situs utama, gabungkan perubahan ke `main` (atau atur *Settings → Environments → Production → Branch Tracking* di Vercel).
+
 1. Masuk ke <https://vercel.com> dengan akun GitHub.
 2. **Add New → Project**, pilih repo SEKAR, klik **Import**.
 3. Framework terdeteksi otomatis sebagai **Next.js**. Build command `npm run build`, output default.
