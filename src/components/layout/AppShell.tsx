@@ -21,7 +21,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const isHome = pathname === "/";
   return (
-    <div className={cx("flex min-h-screen flex-col", isHome && "bg-gradient-to-br from-[#e6f2fd] via-[#f4f9fe] to-[#e9f3fc]")}>
+    <div className={cx("flex min-h-screen flex-col", isHome && "bg-gradient-to-br from-[#e6f2fd] via-[#f4f9fe] to-[#e9f3fc] lg:h-dvh lg:min-h-0 lg:overflow-hidden")}>
       <a
         href="#konten"
         className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[80] focus:rounded-lg focus:bg-white focus:px-3 focus:py-2 focus:font-semibold"
@@ -29,10 +29,12 @@ export function AppShell({ children }: { children: ReactNode }) {
         Lewati ke konten
       </a>
       <Header home={isHome && status === "ready"} />
-      <main id="konten" className={cx("flex-1", isHome && status === "ready" ? "" : "mx-auto w-full max-w-[1440px] px-4 pb-10 pt-4 sm:px-6 lg:px-8")}>
+      <main id="konten" className={cx("flex-1", isHome && status === "ready" ? "lg:min-h-0" : "mx-auto w-full max-w-[1440px] px-4 pb-10 pt-4 sm:px-6 lg:px-8")}>
         {status === "ready" ? children : <StatusScreen />}
       </main>
-      <Footer />
+      <div className={cx(isHome && "lg:hidden")}>
+        <Footer />
+      </div>
       <DocumentPreview />
       <Toasts />
     </div>
