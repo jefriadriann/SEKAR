@@ -339,7 +339,7 @@ export function DrView() {
           />
         </Card>
         <Card aria-labelledby="dr-kepatuhan">
-          <SectionHeader id="dr-kepatuhan" icon={<ListChecks />} title="Data Kepatuhan Satker DR" description="Daftar aspek kepatuhan beserta target waktunya. Klik untuk ubah status (demo)." />
+          <SectionHeader id="dr-kepatuhan" icon={<ListChecks />} title="Data Kepatuhan Satker DR" description="Daftar aspek kepatuhan beserta target waktunya." />
           <DataTable
             rows={compliance}
             columns={cCols}
@@ -358,7 +358,7 @@ export function DrView() {
 
       <div className="grid gap-4 xl:grid-cols-[1.15fr_1fr_1fr]">
         <Card aria-labelledby="dr-permindok">
-          <SectionHeader id="dr-permindok" icon={<FolderOpen />} title="Tracker Permintaan Dokumen (Permindok)" description="Monitoring pemenuhan permintaan dokumen DR." />
+          <SectionHeader id="dr-permindok" icon={<FolderOpen />} title="Tracker Permintaan Dokumen (Permindok)" description="Monitoring permintaan dokumen pemeriksaan." />
           <DataTable
             rows={requests}
             columns={rCols}
@@ -374,7 +374,7 @@ export function DrView() {
           />
         </Card>
         <Card aria-labelledby="dr-dok">
-          <SectionHeader id="dr-dok" icon={<FileText />} iconTone="sky" title="Dokumen Penting" description="Laporan hasil pemeriksaan (ringkasan simulasi dari data)." />
+          <SectionHeader id="dr-dok" icon={<FileText />} iconTone="sky" title="Dokumen Penting" description="Laporan hasil pemeriksaan." />
           <DataTable
             rows={importantDocs}
             columns={dCols}
@@ -389,7 +389,7 @@ export function DrView() {
           />
         </Card>
         <Card aria-labelledby="dr-ketentuan">
-          <SectionHeader id="dr-ketentuan" icon={<BookOpen />} iconTone="violet" title="Ketentuan Kelompok" description="Materi ketentuan (simulasi) sesuai area temuan tiap kelompok." />
+          <SectionHeader id="dr-ketentuan" icon={<BookOpen />} iconTone="violet" title="Ketentuan Kelompok" description="Kumpulan ketentuan per kelompok." />
           <DataTable
             rows={groupRefs}
             columns={gCols}

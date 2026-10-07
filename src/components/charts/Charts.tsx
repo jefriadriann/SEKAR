@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useState, type ReactNode } from "react";
-import { Bar, BarChart, CartesianGrid, Cell, LabelList, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Area, Bar, BarChart, CartesianGrid, Cell, ComposedChart, LabelList, Legend, Line, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { BarChart3, RotateCcw, Table2 } from "lucide-react";
 import { AXIS_TEXT, CATEGORY_RAMP, GRID, SELECTED, SERIES_PRIMARY } from "@/lib/palette";
 import { formatNumber, formatPercent, percent } from "@/lib/format";
@@ -35,7 +35,7 @@ export function ChartCard({
   const [view, setView] = useState<"chart" | "table">("chart");
   const id = useId();
   return (
-    <section aria-labelledby={`${id}-t`} className={cx("panel flex min-w-0 flex-col p-4", className)}>
+    <section aria-labelledby={`${id}-t`} className={cx("panel panel-accent flex min-w-0 flex-col p-4", className)}>
       <div className="flex items-start justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2">
           {icon}
@@ -147,6 +147,14 @@ export function ColumnChart({
   return (
     <ResponsiveContainer width="100%" height={height}>
       <BarChart data={data} margin={{ top: 20, right: 4, bottom: 18, left: -18 }} barCategoryGap="18%">
+        <defs>
+          {CATEGORY_RAMP.map((c, i) => (
+            <linearGradient key={c} id={`colg-${i}`} x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0" stopColor={c} />
+              <stop offset="1" stopColor={c} stopOpacity={0.55} />
+            </linearGradient>
+          ))}
+        </defs>
         <CartesianGrid vertical={false} stroke={GRID} />
         <XAxis dataKey="key" tick={<WrappedTick />} interval={0} tickLine={false} axisLine={{ stroke: GRID }} height={40} />
         <YAxis allowDecimals={false} tick={{ fill: AXIS_TEXT, fontSize: 11 }} axisLine={false} tickLine={false} />
@@ -166,7 +174,7 @@ export function ColumnChart({
         <Bar dataKey="count" radius={[4, 4, 0, 0]} maxBarSize={44} cursor={onSelect ? "pointer" : undefined} onClick={(_, index) => onSelect?.(data[index].key)} isAnimationActive={false}>
           <LabelList dataKey="count" position="top" fill="#142a6e" fontSize={12} fontWeight={700} />
           {data.map((d, i) => (
-            <Cell key={d.key} fill={selected === d.key ? SELECTED : CATEGORY_RAMP[i % CATEGORY_RAMP.length]} fillOpacity={selected && selected !== d.key ? 0.35 : 1} />
+            <Cell key={d.key} fill={selected === d.key ? SELECTED : `url(#colg-${i % CATEGORY_RAMP.length})`} fillOpacity={selected && selected !== d.key ? 0.35 : 1} />
           ))}
         </Bar>
       </BarChart>
@@ -239,7 +247,7 @@ export interface TrendDatum {
 export function TrendChart({ data, selected, onSelect }: { data: TrendDatum[]; selected: number | null; onSelect?: (year: number) => void }) {
   return (
     <ResponsiveContainer width="100%" height={210}>
-      <LineChart
+      <ComposedChart
         data={data}
         margin={{ top: 22, right: 18, bottom: 0, left: -16 }}
         onClick={(state) => {
@@ -251,8 +259,15 @@ export function TrendChart({ data, selected, onSelect }: { data: TrendDatum[]; s
         }}
         style={{ cursor: onSelect ? "pointer" : undefined }}
       >
+        <defs>
+          <linearGradient id="trend-fill" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0" stopColor="#449efe" stopOpacity={0.35} />
+            <stop offset="1" stopColor="#449efe" stopOpacity={0.02} />
+          </linearGradient>
+        </defs>
         <CartesianGrid vertical={false} stroke={GRID} />
         <XAxis dataKey="year" tick={{ fill: AXIS_TEXT, fontSize: 12 }} tickLine={false} axisLine={{ stroke: GRID }} padding={{ left: 18, right: 18 }} />
+        <Area type="linear" dataKey="total" fill="url(#trend-fill)" stroke="none" isAnimationActive={false} tooltipType="none" />
         <YAxis allowDecimals={false} tick={{ fill: AXIS_TEXT, fontSize: 11 }} axisLine={false} tickLine={false} />
         <Tooltip
           content={({ active, payload }) => {
@@ -276,7 +291,7 @@ export function TrendChart({ data, selected, onSelect }: { data: TrendDatum[]; s
         >
           <LabelList dataKey="total" position="top" offset={10} fill="#142a6e" fontSize={12} fontWeight={700} />
         </Line>
-      </LineChart>
+      </ComposedChart>
     </ResponsiveContainer>
   );
 }

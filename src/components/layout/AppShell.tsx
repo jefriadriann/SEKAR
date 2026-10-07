@@ -43,11 +43,11 @@ export function IdentityPlaceholder({ compact }: { compact?: boolean }) {
   return (
     <div className="flex items-center gap-3" title="Placeholder identitas berbasis teks, bukan logo resmi">
       <div className="leading-none">
-        <p className={cx("font-serif font-bold tracking-wide text-navy-950", compact ? "text-[17px]" : "text-[20px]")}>BANK INDONESIA</p>
-        <p className={cx("mt-1 font-semibold uppercase tracking-[0.08em] text-navy-900", compact ? "text-[7.5px]" : "text-[8.5px]")}>Bank Sentral Republik Indonesia</p>
+        <p className={cx("whitespace-nowrap font-serif font-bold tracking-wide text-navy-950", compact ? "text-[14px] sm:text-[17px]" : "text-[16px] sm:text-[20px]")}>BANK INDONESIA</p>
+        <p className={cx("mt-1 hidden whitespace-nowrap font-semibold uppercase tracking-[0.08em] text-navy-900 sm:block", compact ? "text-[7.5px]" : "text-[8.5px]")}>Bank Sentral Republik Indonesia</p>
       </div>
       <span aria-hidden className={cx("w-px bg-navy-900/60", compact ? "h-8" : "h-9")} />
-      <p className={cx("font-bold uppercase leading-tight text-navy-900", compact ? "text-[11px]" : "text-[12px]")}>
+      <p className={cx("font-bold uppercase leading-tight text-navy-900", compact ? "text-[10px] sm:text-[11px]" : "text-[11px] sm:text-[12px]")}>
         Departemen
         <br />
         Regional
@@ -62,8 +62,8 @@ function SkylineDecor() {
     <svg viewBox="0 0 600 80" preserveAspectRatio="xMidYMax slice" className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden focusable="false">
       <defs>
         <linearGradient id="sky-b" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0" stopColor="#b9d8f5" stopOpacity="0.55" />
-          <stop offset="1" stopColor="#dcecfb" stopOpacity="0.1" />
+          <stop offset="0" stopColor="#9cc6f0" stopOpacity="0.75" />
+          <stop offset="1" stopColor="#dcecfb" stopOpacity="0.15" />
         </linearGradient>
       </defs>
       <g fill="url(#sky-b)">
@@ -85,8 +85,18 @@ function SkylineDecor() {
 function Header({ home }: { home: boolean }) {
   const { config, status } = useSekar();
   return (
-    <header className={cx("relative z-40", home ? "bg-transparent" : "border-b border-[#dbe8f6] bg-gradient-to-r from-[#eef7fe] via-[#e4f0fb] to-[#eef7fe]")}>
-      {!home && <SkylineDecor />}
+    <header
+      className={cx(
+        "relative z-40",
+        home ? "bg-transparent" : "overflow-hidden border-b border-white/60 bg-gradient-to-r from-[#d7e9fc] via-[#eef6ff] to-[#cfe3fa] shadow-[0_6px_20px_-12px_rgba(20,42,110,0.35)]",
+      )}
+    >
+      {!home && (
+        <>
+          <SkylineDecor />
+          <span aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-[3px] bg-gradient-to-r from-[#1d58b5] via-[#449efe] to-[#22c3a6]" />
+        </>
+      )}
       <div className="relative mx-auto flex max-w-[1440px] items-center gap-4 px-4 py-3 sm:px-6 lg:px-8">
         <Link href="/" aria-label="SEKAR — kembali ke beranda" className="rounded-lg">
           <IdentityPlaceholder compact={!home} />
@@ -284,16 +294,12 @@ function UserMenu() {
 }
 
 function Footer() {
-  const { datasetAsOf, fullDataset } = useSekar();
+  const { datasetAsOf } = useSekar();
   return (
-    <footer className="border-t border-line bg-white/70">
+    <footer className="border-t border-white/70 bg-white/60 backdrop-blur">
       <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-2 px-4 py-3 text-[12px] text-muted sm:px-6 lg:px-8">
-        <p>
-          SEKAR — prototipe demonstrasi. Seluruh unit (46 KPw fiktif + DR), angka, dan dokumen adalah data simulasi
-          {fullDataset ? ` (${fullDataset.metadata.name} v${fullDataset.metadata.version}` : ""}
-          {datasetAsOf ? `, tanggal dataset ${formatDateLong(datasetAsOf)})` : fullDataset ? ")" : ""}.
-        </p>
-        <p>Identitas di header adalah placeholder teks, bukan logo resmi.</p>
+        <p>© SEKAR · Departemen Regional</p>
+        <p>Data simulasi{datasetAsOf ? ` · posisi ${formatDateLong(datasetAsOf)}` : ""} · identitas berupa placeholder teks</p>
       </div>
     </footer>
   );

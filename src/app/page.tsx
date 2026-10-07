@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { BarChart3, CalendarDays, CheckCircle2, Clock, FileText, FolderOpen, Search, Settings, Files, type LucideIcon } from "lucide-react";
 import { ArchipelagoDecor, BuildingIllustration, WaveLines } from "@/components/layout/Decor";
-import { useReadySekar } from "@/components/providers/SekarProvider";
+import { BorderBeam } from "@/components/magicui/BorderBeam";
+import { DotPattern } from "@/components/magicui/DotPattern";
+import { SpotlightCard } from "@/components/magicui/SpotlightCard";
 import { ArrowCircle } from "@/components/ui/primitives";
-import { ROLE_LABEL } from "@/lib/format";
 
 interface MenuCard {
   href: string;
@@ -81,11 +82,13 @@ function Illustration({ card }: { card: MenuCard }) {
 }
 
 export default function HomePage() {
-  const { viewer } = useReadySekar();
   return (
     <div className="relative min-h-[calc(100vh-72px)] overflow-hidden">
       {/* Dekorasi latar */}
+      <DotPattern className="[mask-image:radial-gradient(700px_circle_at_70%_20%,white,transparent)]" />
       <div className="pointer-events-none absolute -left-40 top-24 h-[520px] w-[520px] rounded-full border-[60px] border-white/50" aria-hidden />
+      <div className="pointer-events-none absolute -right-32 top-40 h-[420px] w-[420px] rounded-full bg-[#449efe]/15 blur-3xl" aria-hidden />
+      <div className="pointer-events-none absolute bottom-0 left-1/3 h-[300px] w-[500px] rounded-full bg-[#a98ce8]/12 blur-3xl" aria-hidden />
       <ArchipelagoDecor className="pointer-events-none absolute right-[-2%] -top-4 hidden w-[52%] max-w-[760px] lg:block" />
       <BuildingIllustration className="pointer-events-none absolute bottom-0 left-0 hidden w-[19%] max-w-[300px] lg:block" />
       <WaveLines className="pointer-events-none absolute bottom-0 right-0 h-[38%] w-[75%]" />
@@ -93,16 +96,17 @@ export default function HomePage() {
       <section className="relative mx-auto max-w-[1440px] px-4 pb-16 pt-8 sm:px-6 lg:pl-[21%] lg:pr-[6%] lg:pt-14">
         <div aria-hidden className="h-[3px] w-12 rounded bg-gold" />
         <p className="mt-5 text-[26px] font-light text-navy-900 sm:text-[30px]">Selamat Datang di</p>
-        <h1 className="text-[64px] font-extrabold leading-[1.02] tracking-tight text-[#1c2568] sm:text-[84px]">SEKAR</h1>
+        <h1 className="bg-gradient-to-r from-[#141f63] via-[#1d3a9a] to-[#1d58b5] bg-clip-text text-[64px] font-extrabold leading-[1.05] tracking-tight text-transparent sm:text-[84px]">SEKAR</h1>
         <p className="mt-2 text-[20px] font-light text-navy-900/85 sm:text-[26px]">Sistem Informasi Evaluasi Kepatuhan, Audit &amp; Risiko</p>
 
         <nav aria-label="Menu utama SEKAR" className="mt-10">
           <ul className="grid gap-5 md:grid-cols-2">
             {MENU.map((card) => (
               <li key={card.href}>
+                <SpotlightCard className="rounded-[16px] bg-gradient-to-br from-white via-white to-[#eef5ff] shadow-[0_10px_30px_-14px_rgba(20,42,110,0.35)]" color={`${card.accent}26`}>
                 <Link
                   href={card.href}
-                  className="group relative flex min-h-[148px] items-center gap-5 overflow-hidden rounded-[16px] border border-[#e3ecf7] bg-white py-5 pl-7 pr-5 shadow-[0_6px_24px_rgba(20,42,110,0.07)] transition hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(20,42,110,0.12)]"
+                  className="group relative z-10 flex min-h-[148px] items-center gap-5 overflow-hidden rounded-[16px] border border-white py-5 pl-7 pr-5 transition hover:-translate-y-0.5"
                 >
                   <span aria-hidden className="absolute inset-y-0 left-0 w-[5px]" style={{ background: card.accent }} />
                   <Illustration card={card} />
@@ -111,16 +115,14 @@ export default function HomePage() {
                     <span className="mt-2 block text-[14px] leading-relaxed text-muted">{card.desc}</span>
                   </span>
                   <ArrowCircle />
+                  <BorderBeam colorFrom={card.accent} colorTo="#ffffff" size={90} duration={10} delay={MENU.indexOf(card) * 2.5} />
                 </Link>
+                </SpotlightCard>
               </li>
             ))}
           </ul>
         </nav>
 
-        <p className="mt-8 text-[13px] text-muted">
-          Persona aktif: <strong className="text-navy-900">{ROLE_LABEL[viewer.role]} — {viewer.name}</strong>
-          {viewer.simulated && " (simulasi, ganti melalui ikon pengguna di kanan atas)"}. Seluruh data adalah simulasi: 46 KPw fiktif.
-        </p>
       </section>
     </div>
   );

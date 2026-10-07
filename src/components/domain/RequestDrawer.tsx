@@ -146,7 +146,7 @@ function RequestForm({ req }: { req: DocumentRequest }) {
           </Button>
         </div>
       </form>
-      <SimulationNote>Unggah berkas tidak tersedia di mode demo; tidak ada data yang dikirim ke server.</SimulationNote>
+      <SimulationNote>Unggah berkas tidak tersedia di mode demo.</SimulationNote>
     </div>
   );
 }

@@ -14,7 +14,7 @@ import { barPosition, edgeOf, positionOf, scheduleKpis, scheduleStatus, startsWi
 import { toCsv } from "@/lib/csv";
 import { diffDays, formatDate, monthShort, toUTCDate } from "@/lib/dates";
 import { downloadText } from "@/lib/download";
-import { clean, FINDING_STATUS_LABEL, formatNumber } from "@/lib/format";
+import { clean, FINDING_STATUS_LABEL } from "@/lib/format";
 import { kpwModuleData } from "@/lib/scope";
 import { FINDING_STATUSES, type AuditSchedule, type Finding, type FindingStatus } from "@/lib/types";
 
@@ -96,7 +96,6 @@ export function JadwalView() {
       render: (f) => (
         <span>
           <span className="block">{f.title}</span>
-          <span className="text-[12px] text-muted">{f.id}</span>
         </span>
       ),
       sortValue: (f) => f.title,
@@ -163,7 +162,7 @@ export function JadwalView() {
 
   return (
     <div>
-      <PageHeader title="Timeline Pemeriksaan" crumb="Jadwal Pemeriksaan" uppercase description="Jadwal pemeriksaan dan agenda terdekat. Status dihitung dari tanggal terhadap posisi data." />
+      <PageHeader title="Timeline Pemeriksaan" crumb="Jadwal Pemeriksaan" uppercase description="Jadwal pemeriksaan dan agenda terdekat." />
 
       <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
         <FilterBox>
@@ -210,10 +209,10 @@ export function JadwalView() {
       </div>
 
       <div className="mb-4 grid grid-cols-2 gap-3 xl:grid-cols-4">
-        <KpiCard tinted tone="blue" label="Total Pemeriksaan" value={formatNumber(kpis.total)} hint={`${kpis.berlangsung} berlangsung · ${kpis.tentatif} tentatif`} icon={<ClipboardList />} />
-        <KpiCard tinted tone="amber" label="Mulai ≤ 7 Hari" value={formatNumber(kpis.mulai7Hari)} icon={<Timer />} />
-        <KpiCard tinted tone="sky" label="Mendatang" value={formatNumber(kpis.mendatang)} icon={<CalendarClock />} />
-        <KpiCard tinted tone="teal" label="Selesai" value={formatNumber(kpis.selesai)} icon={<CheckCircle2 />} />
+        <KpiCard tinted tone="blue" label="Total Pemeriksaan" value={kpis.total} hint={`${kpis.berlangsung} berlangsung · ${kpis.tentatif} tentatif`} icon={<ClipboardList />} />
+        <KpiCard tinted tone="amber" label="Mulai ≤ 7 Hari" value={kpis.mulai7Hari} icon={<Timer />} />
+        <KpiCard tinted tone="sky" label="Mendatang" value={kpis.mendatang} icon={<CalendarClock />} />
+        <KpiCard tinted tone="teal" label="Selesai" value={kpis.selesai} icon={<CheckCircle2 />} />
       </div>
 
       <div className="mb-4 grid gap-4 xl:grid-cols-[1fr_380px]">
@@ -222,7 +221,7 @@ export function JadwalView() {
             id="timeline-title"
             icon={<CalendarDays />}
             title="Jadwal Pemeriksaan KPwDN"
-            description={`${win.label} · ${inWindow.length} jadwal. Klik bar untuk detail.`}
+            description={`${win.label} · ${inWindow.length} jadwal`}
             actions={
               <>
                 <Button size="sm" variant="ghost" onClick={() => setOffset((o) => o - 1)} aria-label="Periode sebelumnya">
@@ -251,7 +250,7 @@ export function JadwalView() {
             }
           />
           {inWindow.length === 0 ? (
-            <EmptyState title="Tidak ada jadwal pada periode ini" description="Geser periode atau ubah filter untuk melihat jadwal lain." />
+            <EmptyState title="Tidak ada jadwal pada periode ini" description="Geser periode atau ubah filter." />
           ) : (
             <div className="scrollbar-thin relative max-h-[470px] overflow-auto rounded-xl border border-line">
               <div className="min-w-[720px]">
@@ -346,7 +345,7 @@ export function JadwalView() {
             ))}
             <span className="inline-flex items-center gap-1.5">
               <span className="h-3 w-5 rounded-sm border-2 border-dashed border-[#c98a0b]" aria-hidden />
-              Tentatif (tanggal belum terkonfirmasi)
+              Tentatif
             </span>
           </div>
         </Card>
@@ -381,7 +380,7 @@ export function JadwalView() {
           id="tindak-lanjut"
           icon={<FileText />}
           title="Penyelesaian Temuan Pemeriksaan"
-          description="Tracking tindak lanjut temuan dan rekomendasi pemeriksaan pada KPwDN. Klik temuan untuk detail & pembaruan status."
+          description="Tracking tindak lanjut temuan dan rekomendasi pemeriksaan pada KPwDN."
           actions={
             <>
               <SelectField
@@ -413,7 +412,7 @@ export function JadwalView() {
         />
       </Card>
 
-      <Drawer open={showAll} onClose={() => setShowAll(false)} title="Semua Pemeriksaan Mendatang" subtitle={`${upcoming.length} jadwal berlangsung atau akan datang`}>
+      <Drawer open={showAll} onClose={() => setShowAll(false)} title="Semua Pemeriksaan Mendatang" subtitle={`${upcoming.length} jadwal`}>
         <ul className="divide-y divide-[#eef2f7]">
           {upcoming.map((s) => (
             <UpcomingItem key={s.id} s={s} unitName={idx.get(s.unit_id)?.name ?? s.unit_id} onOpen={() => setOpenSchedule(s.id)} />

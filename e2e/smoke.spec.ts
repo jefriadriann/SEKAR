@@ -69,9 +69,9 @@ test("semua halaman tampil tanpa error konsol dan tanpa overflow horizontal", as
 test("hasil pemeriksaan: filter, klik kategori, drilldown, edit status tersimpan lokal", async ({ page }) => {
   await ready(page, "/hasil-pemeriksaan");
   const areaCard = page.locator("section", { has: page.getByRole("heading", { name: "Jumlah Temuan per Area" }) });
-  await expect(areaCard.getByText(/55 temuan di \d+ KPwDN · tahun 2026/)).toBeVisible();
+  await expect(areaCard.getByText(/55 temuan · \d+ KPwDN · tahun 2026/)).toBeVisible();
   await page.getByLabel("Tahun Pemeriksaan").selectOption("all");
-  await expect(areaCard.getByText(/276 temuan di 46 KPwDN · semua tahun/)).toBeVisible();
+  await expect(areaCard.getByText(/276 temuan · 46 KPwDN · semua tahun/)).toBeVisible();
 
   // Klik kategori via tampilan tabel chart (setara klik bar) + reset.
   await areaCard.getByRole("button", { name: "Tabel" }).click();

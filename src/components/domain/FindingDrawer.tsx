@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Download, Eye, Save } from "lucide-react";
 import { useReadySekar } from "@/components/providers/SekarProvider";
 import { Drawer } from "@/components/ui/Overlay";
-import { Badge, Button, DescriptionList, SimulationNote } from "@/components/ui/primitives";
+import { Badge, Button, DescriptionList } from "@/components/ui/primitives";
 import { FindingStatusBadge, TimelinessBadge } from "@/components/ui/StatusBadges";
 import { findingTimeliness } from "@/lib/analytics/findings";
 import { formatDate } from "@/lib/dates";
@@ -138,7 +138,6 @@ function FindingDetail({ finding }: { finding: Finding }) {
           </ul>
         </section>
       )}
-      <SimulationNote>Seluruh isi temuan adalah data dummy untuk demonstrasi.</SimulationNote>
-    </div>
+          </div>
   );
 }

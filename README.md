@@ -58,6 +58,8 @@ Kontrol global di header (kanan atas):
 - **Lonceng notifikasi** — jumlah jadwal yang mulai ≤ 7 hari, permindok dan temuan yang lewat tenggat (dihitung dari data).
 - Label **Mode Demo — Data Simulasi** selalu tampil. Di halaman Jadwal, kotak **Posisi Data** juga mengubah tanggal acuan.
 
+Komponen animasi (NumberTicker, BorderBeam, ShineBorder, DotPattern, sorotan kartu) diadaptasi dari Magic UI yang juga dipublikasikan di 21st.dev — lihat `docs/THIRD-PARTY.md`. Animasi otomatis nonaktif bila perangkat meminta *reduced motion*.
+
 Tata letak mengikuti referensi visual (header identitas teks + SEKAR, judul besar, kartu putih bersudut lembut, palet biru/teal/amber/violet). Ilustrasi gedung dan kepulauan adalah dekorasi SVG buatan sendiri, bukan foto, logo resmi, atau peta data.
 
 ## 4. Aturan data yang diterapkan

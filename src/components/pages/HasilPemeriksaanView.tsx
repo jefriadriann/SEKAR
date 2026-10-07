@@ -193,7 +193,7 @@ export function HasilPemeriksaanView() {
     <div>
       <PageHeader
         title="Hasil Pemeriksaan KPwDN"
-        description="Analisis temuan hasil pemeriksaan BPK, DAI dan KAA pada KPwDN (data simulasi; temuan unit DR tidak termasuk)."
+        description="Analisis temuan hasil pemeriksaan BPK, DAI, dan KAA pada KPwDN."
         actions={
           <>
             <Button onClick={() => setShowFilters((s) => !s)} aria-expanded={showFilters} aria-controls="filter-lanjutan" className="h-10">
@@ -245,18 +245,25 @@ export function HasilPemeriksaanView() {
       <div className="mb-4 grid gap-4 xl:grid-cols-[1.45fr_1fr]">
         <ChartCard
           title="Jumlah Temuan per Area"
-          description={`${formatNumber(summary.total)} temuan di ${summary.uniqueUnits} KPwDN · ${yearLabel}`}
+          description={`${formatNumber(summary.total)} temuan · ${summary.uniqueUnits} KPwDN · ${yearLabel}`}
           summary={byArea.map((a) => `${a.key}: ${a.count} temuan di ${a.uniqueUnits} KPw`).join("; ") || "Tidak ada temuan."}
           selectedLabel={filters.area !== ALL ? filters.area : null}
           onReset={() => set("area", ALL)}
           table={<CategoryTable data={byArea} selected={filters.area === ALL ? null : filters.area} onSelect={(k) => toggle("area", k)} keyHeader="Area" />}
         >
-          {byArea.length ? <ColumnChart data={byArea} selected={filters.area === ALL ? null : filters.area} onSelect={(k) => toggle("area", k)} /> : <EmptyState title="Tidak ada data" />}
+          {byArea.length ? (
+            <div className="scrollbar-thin relative overflow-x-auto">
+              <div className="min-w-[560px]">
+                <ColumnChart data={byArea} selected={filters.area === ALL ? null : filters.area} onSelect={(k) => toggle("area", k)} />
+              </div>
+            </div>
+          ) : (
+            <EmptyState title="Tidak ada data" />
+          )}
         </ChartCard>
         <ChartCard
           title="Sebaran Temuan per Korwil"
-          description="Klik baris untuk memfilter. Ilustrasi kepulauan hanya dekorasi."
-          summary={byKorwil.map((k) => `${k.key}: ${k.count} temuan / ${k.uniqueUnits} KPw`).join("; ")}
+                    summary={byKorwil.map((k) => `${k.key}: ${k.count} temuan / ${k.uniqueUnits} KPw`).join("; ")}
           selectedLabel={filters.korwil !== ALL ? filters.korwil : null}
           onReset={() => set("korwil", ALL)}
           table={<CategoryTable data={byKorwil} selected={filters.korwil === ALL ? null : filters.korwil} onSelect={(k) => toggle("korwil", k)} keyHeader="Korwil" />}
@@ -271,7 +278,7 @@ export function HasilPemeriksaanView() {
       <div className="mb-4 grid gap-4 lg:grid-cols-2 xl:grid-cols-[1fr_1fr_0.85fr]">
         <ChartCard
           title="Tren Jumlah Temuan"
-          description="Cakupan semua tahun dengan filter lain aktif. Klik titik untuk memilih tahun."
+          description="Seluruh tahun"
           summary={trend.map((t) => `${t.year}: ${t.total} temuan`).join("; ")}
           table={
             <CategoryTable
@@ -286,8 +293,7 @@ export function HasilPemeriksaanView() {
         </ChartCard>
         <ChartCard
           title="Proporsi Temuan per Pemeriksaan"
-          description="Klik segmen atau legenda untuk memfilter."
-          summary={byExaminer.map((e) => `${e.key}: ${e.count}`).join("; ")}
+                    summary={byExaminer.map((e) => `${e.key}: ${e.count}`).join("; ")}
           selectedLabel={filters.examiner !== ALL ? filters.examiner : null}
           onReset={() => set("examiner", ALL)}
           table={
@@ -307,14 +313,14 @@ export function HasilPemeriksaanView() {
             tone="teal"
             icon={<Database />}
             title="Hasil Rekonsiliasi Aset"
-            desc={`Rekonsiliasi aset ${assetSummary.units} KPwDN: ${formatPercent(assetSummary.pctReconciled, 1)} item sesuai, ${formatNumber(assetSummary.discrepancy)} selisih.`}
+            desc={`${formatPercent(assetSummary.pctReconciled, 1)} item sesuai · ${formatNumber(assetSummary.discrepancy)} selisih`}
             onClick={() => setPanel("aset")}
           />
           <LinkCard
             tone="rose"
             icon={<ListChecks />}
             title="Panduan Penyelesaian Temuan Pengelolaan Aset"
-            desc="Langkah demi langkah penyelesaian temuan dan materi pembelajaran (simulasi)."
+            desc="Langkah penyelesaian dan materi pembelajaran"
             onClick={() => setPanel("panduan")}
           />
         </div>
@@ -324,11 +330,6 @@ export function HasilPemeriksaanView() {
         <SectionHeader
           id="tabel-temuan"
           title={tableMode === "ringkasan" ? "Daftar Temuan dan Rekomendasi Utama" : "Daftar Temuan per Record"}
-          description={
-            tableMode === "ringkasan"
-              ? "Ringkasan per pemeriksa, area dan tema. Jumlah temuan dihitung per record; Jumlah KPwDN = kantor unik terdampak. Klik baris untuk rincian."
-              : "Klik baris untuk detail, bukti dan pembaruan status."
-          }
           actions={
             <>
               <div className="flex rounded-lg border border-line p-0.5" role="group" aria-label="Mode tabel">
@@ -432,7 +433,7 @@ function GroupDrawer({
           <div className="rounded-xl border border-line bg-[#f5f9fe] p-3 text-[14px]">
             <p className="font-semibold text-navy-900">{group.title}</p>
             <p className="mt-1 text-muted">Rekomendasi: {group.recommendation}</p>
-            <p className="mt-1 text-muted">{group.open} temuan belum selesai. Klik salah satu temuan untuk detail, bukti, dan pembaruan status.</p>
+            <p className="mt-1 text-muted">{group.open} temuan belum selesai</p>
           </div>
           <ul className="space-y-2">
             {rows.map((f) => (
@@ -472,7 +473,7 @@ function AssetDrawer({ open, onClose, rows, unitName }: { open: boolean; onClose
     { key: "rate", header: "% sesuai", className: "text-right tabular-nums", render: (a) => formatPercent(reconciliationRate(a), 1), sortValue: (a) => reconciliationRate(a) },
   ];
   return (
-    <Drawer open={open} onClose={onClose} title="Hasil Rekonsiliasi Aset" subtitle="Sumber: asset_reconciliations (simulasi), mengikuti filter tahun/korwil/KPwDN." width="max-w-2xl">
+    <Drawer open={open} onClose={onClose} title="Hasil Rekonsiliasi Aset" subtitle="Rekap per KPwDN sesuai filter aktif" width="max-w-2xl">
       <dl className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
         {[
           ["KPwDN", formatNumber(s.units)],
@@ -495,7 +496,7 @@ function AssetDrawer({ open, onClose, rows, unitName }: { open: boolean; onClose
         dense
         minWidth={520}
         emptyTitle="Tidak ada data rekonsiliasi"
-        emptyDescription="Data rekonsiliasi aset pada dataset simulasi hanya tersedia untuk tahun 2026."
+        emptyDescription="Data rekonsiliasi tersedia untuk tahun 2026."
       />
     </Drawer>
   );
@@ -512,7 +513,7 @@ function GuideDrawer({ open, onClose }: { open: boolean; onClose: () => void }) 
     "Lampirkan bukti penyelesaian lalu perbarui status temuan menjadi Selesai.",
   ];
   return (
-    <Drawer open={open} onClose={onClose} title="Panduan Penyelesaian Temuan Pengelolaan Aset" subtitle={<Badge tone="amber">SIMULASI — panduan langkah demi langkah, tanpa video</Badge>}>
+    <Drawer open={open} onClose={onClose} title="Panduan Penyelesaian Temuan Pengelolaan Aset" subtitle="Panduan langkah demi langkah">
       <ol className="space-y-3">
         {steps.map((s, i) => (
           <li key={s} className="flex gap-3">
@@ -541,7 +542,7 @@ function GuideDrawer({ open, onClose }: { open: boolean; onClose: () => void }) 
         ))}
       </ul>
       <div className="mt-4">
-        <SimulationNote>Materi bukan ketentuan resmi. Tidak ada nomor PDG/PADG/SOP yang dicantumkan.</SimulationNote>
+        <SimulationNote>Materi contoh, bukan ketentuan resmi.</SimulationNote>
       </div>
     </Drawer>
   );

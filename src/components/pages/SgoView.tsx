@@ -4,9 +4,9 @@ import { useMemo, useState } from "react";
 import { BookOpen, Download, FileSpreadsheet, GraduationCap, Info, ListChecks, Scale } from "lucide-react";
 import { useReadySekar } from "@/components/providers/SekarProvider";
 import { Drawer } from "@/components/ui/Overlay";
-import { Badge, Button, Card, EmptyState, PageHeader, SearchField, SectionHeader, SelectField, SimulationNote } from "@/components/ui/primitives";
+import { Badge, Button, Card, EmptyState, IconTile, PageHeader, SearchField, SectionHeader, SelectField, SimulationNote } from "@/components/ui/primitives";
 import { ALL, matchesSearch, uniqueSorted } from "@/lib/analytics/common";
-import { REFERENCE_KIND_LABEL } from "@/lib/format";
+import { clean, REFERENCE_KIND_LABEL } from "@/lib/format";
 import { REFERENCE_KINDS, type Reference, type ReferenceKind } from "@/lib/types";
 
 const KIND_ICON = { worksheet: FileSpreadsheet, ketentuan: Scale, tutorial: GraduationCap } as const;
@@ -38,37 +38,34 @@ export function SgoView() {
     <div>
       <PageHeader
         title="SGo dan Ketentuan"
-        description="Worksheet, ketentuan dan tutorial per area pemeriksaan. Seluruh materi berlabel simulasi dan bukan ketentuan resmi."
+        description="Worksheet, ketentuan, dan tutorial per area pemeriksaan."
       />
 
       <div className="mb-5 grid gap-4 lg:grid-cols-2">
-        <Card aria-labelledby="apa-sgo" className="bg-gradient-to-br from-white to-sky-50">
+        <Card aria-labelledby="apa-sgo">
           <SectionHeader id="apa-sgo" icon={<Info />} title="Apa itu SGo?" />
           <p className="text-[15px] text-navy-900">
-            Dalam demo ini, SGo diperlakukan sebagai ruang materi panduan pemeriksaan: kumpulan worksheet, ketentuan dan tutorial yang dikelompokkan per
-            area agar KPw dan DR merujuk materi yang sama saat menindaklanjuti temuan.
+            Ruang materi panduan pemeriksaan berisi worksheet, ketentuan, dan tutorial per area sebagai rujukan bersama KPwDN dan DR.
           </p>
-          <p className="mt-2 text-sm text-muted">Definisi dan rujukan resmi mengikuti ketentuan internal yang berlaku. Tidak ada nomor ketentuan resmi yang dicantumkan di sini.</p>
           <div className="mt-3 flex flex-wrap gap-2">
-            <Badge tone="amber">SIMULASI</Badge>
             <Badge tone="blue">{areas.length} area</Badge>
             <Badge tone="teal">{data.references.length} materi</Badge>
           </div>
         </Card>
         <Card aria-labelledby="tutorial-umum">
-          <SectionHeader id="tutorial-umum" icon={<ListChecks />} iconTone="violet" title="Tutorial: memakai halaman ini" />
+          <SectionHeader id="tutorial-umum" icon={<ListChecks />} iconTone="violet" title="Cara Menggunakan" />
           <ol className="list-decimal space-y-1.5 pl-5 text-[15px] text-navy-900">
-            <li>Cari materi dengan kata kunci atau saring berdasarkan jenis.</li>
-            <li>Pilih kartu area, lalu klik Worksheet atau Ketentuan untuk pratinjau.</li>
-            <li>Klik Tutorial untuk panduan langkah demi langkah (tanpa video).</li>
-            <li>Unduh materi sebagai berkas .txt simulasi dari panel pratinjau.</li>
+            <li>Cari materi atau saring berdasarkan jenis.</li>
+            <li>Pilih area, lalu buka Worksheet atau Ketentuan.</li>
+            <li>Buka Tutorial untuk panduan langkah demi langkah.</li>
+            <li>Unduh materi dari panel pratinjau.</li>
           </ol>
         </Card>
       </div>
 
       <Card className="mb-5">
         <div className="grid gap-3 sm:grid-cols-[1fr_220px]">
-          <SearchField id="sgo-search" label="Cari materi" value={search} onChange={setSearch} placeholder="Contoh: Pengadaan, worksheet…" />
+          <SearchField id="sgo-search" label="Cari materi" value={search} onChange={setSearch} placeholder="Cari area atau jenis materi..." />
           <SelectField
             id="sgo-kind"
             label="Jenis materi"
@@ -91,7 +88,7 @@ export function SgoView() {
                     <span className="flex min-w-0 items-center gap-2">
                       <Icon className="h-5 w-5 shrink-0 text-navy-600" aria-hidden />
                       <span className="min-w-0">
-                        <span className="block truncate font-semibold">{r.title}</span>
+                        <span className="block truncate font-semibold">{clean(r.title)}</span>
                         <span className="text-xs text-muted">{r.area}</span>
                       </span>
                     </span>
@@ -103,7 +100,7 @@ export function SgoView() {
               })}
             </ul>
           ) : (
-            <EmptyState title="Materi tidak ditemukan" description="Coba kata kunci lain atau hapus filter jenis." />
+            <EmptyState title="Materi tidak ditemukan" description="Coba kata kunci lain." />
           )}
         </Card>
       ) : (
@@ -115,15 +112,15 @@ export function SgoView() {
             {areas.map((area, i) => {
               const refs = data.references.filter((r) => r.area === area);
               return (
-                <article key={area} className="panel relative flex flex-col overflow-hidden p-4 pl-5 transition hover:border-sky-300 hover:shadow-md">
+                <article key={area} className="panel relative flex flex-col overflow-hidden p-4 pl-5 transition hover:-translate-y-0.5 hover:shadow-lg">
                   <span aria-hidden className="absolute inset-y-0 left-0 w-[4px]" style={{ background: ["#2f7fe0", "#1fbfa5", "#f0b429", "#6c5fd3"][i % 4] }} />
                   <div className="flex items-center gap-3">
-                    <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#e6f0ff] font-bold text-brand" aria-hidden>
-                      {i + 1}
-                    </span>
+                    <IconTile tone={(["blue", "teal", "amber", "violet"] as const)[i % 4]}>
+                      <span className="text-[15px] font-bold">{i + 1}</span>
+                    </IconTile>
                     <h3 className="font-bold text-navy-900">{area}</h3>
                   </div>
-                  <p className="mt-2 flex-1 text-sm text-muted">{refs[0]?.description ?? "Materi simulasi."}</p>
+                  <p className="mt-2 flex-1 text-sm text-muted">{refs.length} materi tersedia</p>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {REFERENCE_KINDS.map((k) => {
                       const ref = refs.find((r) => r.kind === k);

@@ -7,7 +7,7 @@ import { receiptText, RequestDrawer } from "@/components/domain/RequestDrawer";
 import { useReadySekar } from "@/components/providers/SekarProvider";
 import { DataTable, type Column } from "@/components/ui/DataTable";
 import { Drawer } from "@/components/ui/Overlay";
-import { Badge, Button, Card, cx, EmptyState, FilterChips, IconTile, PageHeader, SearchField, SectionHeader, SelectField, SimulationNote, type TileTone } from "@/components/ui/primitives";
+import { Button, Card, cx, EmptyState, FilterChips, IconTile, PageHeader, SearchField, SectionHeader, SelectField, SimulationNote, type TileTone } from "@/components/ui/primitives";
 import { RequestStatusBadge, RequestTimelinessBadge } from "@/components/ui/StatusBadges";
 import { ALL, uniqueSorted, unitIndex } from "@/lib/analytics/common";
 import {
@@ -98,7 +98,6 @@ export function PermindokView() {
       render: (r) => (
         <span>
           <span className="block">{clean(r.title)}</span>
-          <span className="text-[12px] text-muted">{r.id}</span>
         </span>
       ),
       sortValue: (r) => r.title,
@@ -197,7 +196,7 @@ export function PermindokView() {
       />
 
       <div className="mb-4 grid gap-4 lg:grid-cols-2 xl:grid-cols-[1fr_1fr_1.2fr]">
-        <section aria-labelledby="catatan" className="flex min-w-0 flex-col rounded-[14px] border border-[#f6d5d5] bg-[#fdf0f0] p-4">
+        <section aria-labelledby="catatan" className="flex min-w-0 flex-col rounded-[16px] border border-[#f6d0d0] bg-gradient-to-br from-[#fff3f3] via-[#fdecec] to-[#fbdcdc] p-4 shadow-[0_8px_24px_-14px_rgba(200,40,50,0.35)]">
           <h2 id="catatan" className="mb-3 flex items-center gap-2 text-[16px] font-bold text-[#c62f35]">
             <AlertTriangle className="h-5 w-5" aria-hidden />
             Catatan Pemenuhan Permindok
@@ -220,24 +219,24 @@ export function PermindokView() {
             onClick={() => setGuide("catatan")}
             className="mt-auto flex items-center justify-between gap-2 rounded-lg border border-[#f3caca] bg-white/70 px-3 py-2 pt-2 text-left text-[13px] font-semibold text-[#a3262b] hover:bg-white"
           >
-            {openNotes.length} permintaan belum lengkap · {summary.byTimeliness.lewat_tenggat} lewat tenggat — lihat masukan DR
+            {openNotes.length} belum lengkap · {summary.byTimeliness.lewat_tenggat} lewat tenggat
             <ChevronRight className="h-4 w-4 shrink-0" aria-hidden />
           </button>
         </section>
 
         <Card aria-labelledby="panduan">
-          <SectionHeader id="panduan" title="Panduan dan Template" description="Materi simulasi" />
+          <SectionHeader id="panduan" title="Panduan dan Template" />
           <ul className="space-y-2">
-            <GuideRow tone="rose" icon={<ListChecks />} title="Panduan: Tata cara melakukan watermark dokumen" sub="Langkah demi langkah · tanpa video" onClick={() => setGuide("watermark")} />
-            <GuideRow tone="rose" icon={<FileText />} title="Template watermark" sub="Berkas TXT simulasi" onClick={templateWatermark} />
-            <GuideRow tone="blue" icon={<ScrollText />} title="Template tanda terima" sub="Berkas TXT simulasi" onClick={templateReceipt} />
-            <GuideRow tone="amber" icon={<FileSpreadsheet />} title="Tata cara penyampaian dokumen" sub="Panduan lengkap (simulasi)" onClick={() => setGuide("penyampaian")} />
+            <GuideRow tone="rose" icon={<ListChecks />} title="Panduan: Tata cara melakukan watermark dokumen" sub="Panduan langkah demi langkah" onClick={() => setGuide("watermark")} />
+            <GuideRow tone="rose" icon={<FileText />} title="Template watermark" sub="Berkas TXT" onClick={templateWatermark} />
+            <GuideRow tone="blue" icon={<ScrollText />} title="Template tanda terima" sub="Berkas TXT" onClick={templateReceipt} />
+            <GuideRow tone="amber" icon={<FileSpreadsheet />} title="Tata cara penyampaian dokumen" sub="Panduan lengkap" onClick={() => setGuide("penyampaian")} />
           </ul>
         </Card>
 
         <ChartCard
           title="Jumlah Permindok per Kategori"
-          description={`${summary.total} permintaan · ${formatPercent(summary.pctLengkap)} lengkap · ${formatPercent(summary.pctTepatWaktu)} tepat waktu dari yang disampaikan`}
+          description={`${summary.total} permintaan · ${formatPercent(summary.pctLengkap)} lengkap · ${formatPercent(summary.pctTepatWaktu)} tepat waktu`}
           summary={byCategory.map((c) => `${c.category}: ${c.total} permintaan, ${c.lengkap} lengkap`).join("; ") || "Tidak ada data."}
           selectedLabel={filters.category !== ALL ? filters.category : null}
           onReset={() => set("category", ALL)}
@@ -272,8 +271,7 @@ export function PermindokView() {
           id="tabel-permindok"
           icon={<FileStack />}
           title="Daftar Permintaan Dokumen"
-          description="Status penyampaian (kelengkapan) dibedakan dari ketepatan waktu. Klik baris untuk mengedit (tersimpan lokal)."
-          actions={
+                    actions={
             <>
               <SelectField
                 id="p-unit"
@@ -297,7 +295,7 @@ export function PermindokView() {
                 id="p-time"
                 label="Ketepatan waktu"
                 hideLabel
-                className="w-[200px]"
+                className="w-[230px]"
                 value={filters.timeliness}
                 onChange={(v) => set("timeliness", v as RequestTimeliness | typeof ALL)}
                 options={[{ value: ALL, label: "Semua ketepatan waktu" }, ...(Object.keys(REQUEST_TIMELINESS_LABEL) as RequestTimeliness[]).map((t) => ({ value: t, label: REQUEST_TIMELINESS_LABEL[t] }))]}
@@ -329,7 +327,7 @@ export function PermindokView() {
         open={guide === "watermark" || guide === "penyampaian"}
         onClose={() => setGuide(null)}
         title={guide === "watermark" ? "Tata cara melakukan watermark dokumen" : "Tata cara penyampaian dokumen"}
-        subtitle={<Badge tone="amber">SIMULASI — panduan langkah demi langkah</Badge>}
+        subtitle="Panduan langkah demi langkah"
       >
         <ol className="space-y-3">
           {(guide === "watermark" ? WATERMARK_STEPS : DELIVERY_STEPS).map((s, i) => (
@@ -345,11 +343,11 @@ export function PermindokView() {
           ))}
         </ol>
         <div className="mt-4">
-          <SimulationNote>Format watermark dan tanda terima adalah contoh demonstrasi, bukan ketentuan resmi.</SimulationNote>
+          <SimulationNote>Format contoh, bukan ketentuan resmi.</SimulationNote>
         </div>
       </Drawer>
 
-      <Drawer open={guide === "catatan"} onClose={() => setGuide(null)} title="Masukan DR untuk permintaan belum lengkap" subtitle={`${openNotes.length} permintaan, urut tenggat terdekat`}>
+      <Drawer open={guide === "catatan"} onClose={() => setGuide(null)} title="Masukan DR" subtitle={`${openNotes.length} permintaan belum lengkap`}>
         {openNotes.length ? (
           <ul className="space-y-2">
             {openNotes.map((r) => (

@@ -59,7 +59,7 @@ export function AdminView() {
     <div>
       <PageHeader
         title="Admin Dataset"
-        description="Kelola dataset simulasi: import JSON dengan validasi, export, dan reset ke seed awal. Semua proses berjalan di browser; tidak ada upload ke server."
+        description="Kelola dataset: import, export, dan reset."
       />
 
       <div className="mb-5 grid gap-4 lg:grid-cols-2">
@@ -122,9 +122,9 @@ export function AdminView() {
           id="import"
           icon={<FileJson className="h-5 w-5 text-violet-700" aria-hidden />}
           title="Import dataset JSON"
-          description="Struktur, tipe, ID unik, foreign key, nilai status, format tanggal, dan aturan bisnis divalidasi sebelum dataset dapat diterapkan."
+          description="Dataset divalidasi sebelum diterapkan."
         />
-        {!isDummy && <SimulationNote>Import lewat browser hanya tersedia di mode dummy. Di mode Supabase gunakan migration dan seed SQL.</SimulationNote>}
+        {!isDummy && <SimulationNote>Import hanya tersedia di mode demo.</SimulationNote>}
         <div className="grid gap-4 lg:grid-cols-2">
           <div>
             <label htmlFor="import-file" className="text-xs font-bold uppercase tracking-wide text-muted">

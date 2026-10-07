@@ -1,6 +1,8 @@
 import Link from "next/link";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { ChevronDown, ChevronRight, Inbox, Search, X } from "lucide-react";
+import { NumberTicker } from "@/components/magicui/NumberTicker";
+import { ShineBorder } from "@/components/magicui/ShineBorder";
 
 export function cx(...classes: (string | false | null | undefined)[]) {
   return classes.filter(Boolean).join(" ");
@@ -34,19 +36,19 @@ export function Button({
 /** Kartu putih bergaya referensi (sudut 14px, garis tipis, bayangan lembut). */
 export function Card({ children, className, as: Tag = "section", ...rest }: { children: ReactNode; className?: string; as?: "section" | "div" | "article"; "aria-labelledby"?: string }) {
   return (
-    <Tag {...rest} className={cx("panel min-w-0 p-4 sm:p-5", className)}>
+    <Tag {...rest} className={cx("panel panel-accent min-w-0 p-4 sm:p-5", className)}>
       {children}
     </Tag>
   );
 }
 
 const TILE = {
-  blue: "bg-[#e6f0ff] text-[#1d58b5]",
-  teal: "bg-[#dff7ef] text-[#0f9b6e]",
-  amber: "bg-[#fff3d6] text-[#c98a0b]",
-  rose: "bg-[#fde8e8] text-[#d93a3f]",
-  violet: "bg-[#efe9fd] text-[#6d4fd1]",
-  sky: "bg-[#e3f4fd] text-[#1f8fd6]",
+  blue: "bg-gradient-to-br from-[#5aa2ff] to-[#1d58b5] text-white shadow-[0_6px_14px_-6px_rgba(29,88,181,0.7)]",
+  teal: "bg-gradient-to-br from-[#34d8b4] to-[#0f9b6e] text-white shadow-[0_6px_14px_-6px_rgba(15,155,110,0.7)]",
+  amber: "bg-gradient-to-br from-[#fcc94a] to-[#e08b0b] text-white shadow-[0_6px_14px_-6px_rgba(224,139,11,0.7)]",
+  rose: "bg-gradient-to-br from-[#ff8a96] to-[#e0313f] text-white shadow-[0_6px_14px_-6px_rgba(224,49,63,0.7)]",
+  violet: "bg-gradient-to-br from-[#b49cff] to-[#6d4fd1] text-white shadow-[0_6px_14px_-6px_rgba(109,79,209,0.7)]",
+  sky: "bg-gradient-to-br from-[#7fd6ff] to-[#1f8fd6] text-white shadow-[0_6px_14px_-6px_rgba(31,143,214,0.7)]",
 } as const;
 export type TileTone = keyof typeof TILE;
 
@@ -177,15 +179,18 @@ export function KpiCard({
   tinted?: boolean;
 }) {
   const bg = {
-    blue: "bg-[#eaf3fe] border-[#d6e7fb]",
-    teal: "bg-[#e6f7ee] border-[#cdeedb]",
-    amber: "bg-[#fff5dc] border-[#f6e4b3]",
-    rose: "bg-[#fdecec] border-[#f8d3d3]",
-    violet: "bg-[#f1ecfd] border-[#e0d6fa]",
-    sky: "bg-[#e9f6fd] border-[#d2ecfa]",
+    blue: "bg-gradient-to-br from-[#e4f0ff] via-[#f2f8ff] to-[#d8e9fd] border-[#cfe2fa]",
+    teal: "bg-gradient-to-br from-[#dcf7ea] via-[#f1fcf6] to-[#cdf1df] border-[#c4ecd5]",
+    amber: "bg-gradient-to-br from-[#fff1cf] via-[#fff9ea] to-[#ffe7b3] border-[#f6e0a8]",
+    rose: "bg-gradient-to-br from-[#ffe3e3] via-[#fff4f4] to-[#fdd5d6] border-[#f8cccc]",
+    violet: "bg-gradient-to-br from-[#ece5ff] via-[#f7f3ff] to-[#e0d6fd] border-[#ddd2fa]",
+    sky: "bg-gradient-to-br from-[#def2fd] via-[#f1faff] to-[#cdebfb] border-[#c9e6f8]",
   }[tone];
+  const glow = { blue: "#449efe", teal: "#22c3a6", amber: "#f5b324", rose: "#f25c68", violet: "#a98ce8", sky: "#38bdf8" }[tone];
   return (
-    <div className={cx("flex items-center gap-4 rounded-[14px] border p-4", tinted ? bg : "panel")}>
+    <div className={cx("relative flex items-center gap-4 overflow-hidden rounded-[16px] border p-4 shadow-[0_8px_24px_-14px_rgba(20,42,110,0.35)]", tinted ? bg : "panel")}>
+      <span aria-hidden className="pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full opacity-30 blur-2xl" style={{ background: glow }} />
+      <ShineBorder shineColor={[glow, "#ffffff", glow]} duration={14} />
       {icon && (
         <IconTile tone={tone} size="lg">
           {icon}
@@ -194,9 +199,13 @@ export function KpiCard({
       <div className="min-w-0">
         <p className="text-[14px] font-semibold text-navy-900">{label}</p>
         <p className="flex flex-wrap items-baseline gap-x-2">
-          <span data-kpi={label} className="text-[30px] font-extrabold leading-tight text-navy-900 tabular-nums">
-            {value}
-          </span>
+          {typeof value === "number" ? (
+            <NumberTicker data-kpi={label} value={value} className="text-[30px] font-extrabold leading-tight text-navy-900" />
+          ) : (
+            <span data-kpi={label} className="text-[30px] font-extrabold leading-tight text-navy-900 tabular-nums">
+              {value}
+            </span>
+          )}
           {hint && <span className="text-[13px] font-semibold text-muted">{hint}</span>}
         </p>
       </div>
