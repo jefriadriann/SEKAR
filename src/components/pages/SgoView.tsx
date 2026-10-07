@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { BookOpen, Download, FileSpreadsheet, GraduationCap, Info, ListChecks, Scale } from "lucide-react";
+import { VideoGuidePlayer } from "@/components/domain/VideoGuidePlayer";
 import { useReadySekar } from "@/components/providers/SekarProvider";
 import { Drawer } from "@/components/ui/Overlay";
 import { Badge, Button, Card, EmptyState, IconTile, PageHeader, SearchField, SectionHeader, SelectField, SimulationNote } from "@/components/ui/primitives";
@@ -145,9 +146,10 @@ export function SgoView() {
         open={!!tutorial}
         onClose={() => setTutorial(null)}
         title={tutorial?.title ?? "Tutorial"}
+        width="max-w-2xl"
         subtitle={
           <span className="flex items-center gap-2">
-            <Badge tone="amber">SIMULASI</Badge> Panduan langkah demi langkah (tanpa video)
+            <Badge tone="amber">SIMULASI</Badge> Panduan visual langkah demi langkah (bukan rekaman video)
           </span>
         }
         footer={
@@ -164,11 +166,12 @@ export function SgoView() {
       >
         {tutorial && (
           <div className="space-y-4">
+            <VideoGuidePlayer title={`Tutorial ${tutorial.area}`} steps={tutorialSteps(tutorial.area)} accent="#6c4fe0" />
             <SimulationNote>{data.documents.find((d) => d.id === tutorial.document_id)?.content_text ?? "Materi simulasi."}</SimulationNote>
             <ol className="space-y-3">
               {tutorialSteps(tutorial.area).map((s, i) => (
                 <li key={s} className="flex gap-3">
-                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-violet-100 text-sm font-bold text-violet-800" aria-hidden>
+                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 text-sm font-bold text-white shadow-sm" aria-hidden>
                     {i + 1}
                   </span>
                   <span className="pt-0.5 text-[15px] text-navy-900">

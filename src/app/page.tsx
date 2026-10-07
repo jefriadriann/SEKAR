@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { BarChart3, CalendarDays, CheckCircle2, Clock, FileText, FolderOpen, Search, Settings, Files, type LucideIcon } from "lucide-react";
+import { AuditDocIcon, CalendarClockIcon, FolderCheckIcon, LibraryGearIcon } from "@/components/icons/Illustrations";
 import { ArchipelagoDecor, BuildingIllustration, WaveLines } from "@/components/layout/Decor";
 import { BorderBeam } from "@/components/magicui/BorderBeam";
 import { DotPattern } from "@/components/magicui/DotPattern";
@@ -17,10 +17,7 @@ interface MenuCard {
   desc: string;
   accent: string;
   tileBg: string;
-  main: LucideIcon;
-  mainColor: string;
-  badge: LucideIcon;
-  badgeBg: string;
+  icon: (p: { size?: number }) => React.ReactNode;
 }
 
 const MENU: MenuCard[] = [
@@ -29,56 +26,46 @@ const MENU: MenuCard[] = [
     title: "Hasil Pemeriksaan KPwDN",
     desc: "Temuan dan rekomendasi hasil pemeriksaan BPK, DAI, dan KAA.",
     accent: "#2f7fe0",
-    tileBg: "linear-gradient(135deg,#eaf3ff,#d6e7fd)",
-    main: FileText,
-    mainColor: "#3d8be8",
-    badge: Search,
-    badgeBg: "#1d58b5",
+    tileBg: "linear-gradient(145deg,#f3f8ff 0%,#dceaff 100%)",
+    icon: AuditDocIcon,
   },
   {
     href: "/permindok",
     title: "Tracker Permindok",
     desc: "Monitoring pemenuhan dokumen permintaan pemeriksaan.",
     accent: "#1fbfa5",
-    tileBg: "linear-gradient(135deg,#e3faf5,#cdf1e8)",
-    main: FolderOpen,
-    mainColor: "#2a8fd9",
-    badge: CheckCircle2,
-    badgeBg: "#16a974",
+    tileBg: "linear-gradient(145deg,#f0fdf9 0%,#d3f5ea 100%)",
+    icon: FolderCheckIcon,
   },
   {
     href: "/jadwal-pemeriksaan",
     title: "Jadwal Pemeriksaan",
     desc: "Timeline dan agenda pemeriksaan KPwDN.",
     accent: "#f0b429",
-    tileBg: "linear-gradient(135deg,#fff8e6,#fdecc2)",
-    main: CalendarDays,
-    mainColor: "#3d8be8",
-    badge: Clock,
-    badgeBg: "#d99a12",
+    tileBg: "linear-gradient(145deg,#fffaf0 0%,#ffedc8 100%)",
+    icon: CalendarClockIcon,
   },
   {
     href: "/sgo-ketentuan",
     title: "SGo dan Ketentuan",
     desc: "Materi SGo, pedoman, dan ketentuan per area pemeriksaan.",
     accent: "#6c5fd3",
-    tileBg: "linear-gradient(135deg,#f1edff,#e1d9fb)",
-    main: Files,
-    mainColor: "#5b6fd6",
-    badge: Settings,
-    badgeBg: "#5a48c8",
+    tileBg: "linear-gradient(145deg,#f7f5ff 0%,#e4ddfd 100%)",
+    icon: LibraryGearIcon,
   },
 ];
 
 function Illustration({ card }: { card: MenuCard }) {
-  const Main = card.main;
-  const Badge = card.badge;
+  const Icon = card.icon;
   return (
-    <span className="relative grid h-[76px] w-[76px] shrink-0 place-items-center rounded-2xl" style={{ background: card.tileBg }} aria-hidden>
-      <Main className="h-10 w-10" style={{ color: card.mainColor }} strokeWidth={1.6} />
-      {card.href === "/hasil-pemeriksaan" && <BarChart3 className="absolute bottom-[22px] left-[24px] h-4 w-4 text-[#1d58b5]" strokeWidth={2.4} />}
-      <span className="absolute bottom-2 right-2 grid h-7 w-7 place-items-center rounded-full text-white shadow-md" style={{ background: card.badgeBg }}>
-        <Badge className="h-4 w-4" strokeWidth={2.4} />
+    <span
+      className="relative grid h-[76px] w-[76px] shrink-0 place-items-center overflow-hidden rounded-[20px] shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_8px_18px_-10px_rgba(20,42,110,0.45)] ring-1 ring-white transition-transform duration-300 group-hover:-rotate-3 group-hover:scale-105"
+      style={{ background: card.tileBg }}
+      aria-hidden
+    >
+      <span className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/70 to-transparent" />
+      <span className="relative">
+        <Icon size={54} />
       </span>
     </span>
   );

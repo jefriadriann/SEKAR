@@ -1,13 +1,15 @@
 "use client";
 
 import { useMemo, useState, type ReactNode } from "react";
-import { AlertTriangle, Ban, CalendarDays, CheckCircle2, ChevronRight, ClipboardList, FileSpreadsheet, FileStack, FileText, Layers, ListChecks, RotateCcw, ScrollText } from "lucide-react";
+import { AlertTriangle, Ban, CalendarDays, CheckCircle2, ChevronRight, ClipboardList, FileStack, Layers, RotateCcw } from "lucide-react";
 import { CategoryTable, ChartCard, StackedHBarChart } from "@/components/charts/Charts";
 import { receiptText, RequestDrawer } from "@/components/domain/RequestDrawer";
+import { VideoGuidePlayer } from "@/components/domain/VideoGuidePlayer";
+import { FileTypeIcon, GuideBookIcon, VideoGuideIcon } from "@/components/icons/Illustrations";
 import { useReadySekar } from "@/components/providers/SekarProvider";
 import { DataTable, type Column } from "@/components/ui/DataTable";
 import { Drawer } from "@/components/ui/Overlay";
-import { Button, Card, cx, EmptyState, FilterChips, IconTile, PageHeader, SearchField, SectionHeader, SelectField, SimulationNote, type TileTone } from "@/components/ui/primitives";
+import { Button, Card, EmptyState, FilterChips, PageHeader, SearchField, SectionHeader, SelectField, SimulationNote } from "@/components/ui/primitives";
 import { RequestStatusBadge, RequestTimelinessBadge } from "@/components/ui/StatusBadges";
 import { ALL, uniqueSorted, unitIndex } from "@/lib/analytics/common";
 import {
@@ -227,10 +229,10 @@ export function PermindokView() {
         <Card aria-labelledby="panduan">
           <SectionHeader id="panduan" title="Panduan dan Template" />
           <ul className="space-y-2">
-            <GuideRow tone="rose" icon={<ListChecks />} title="Panduan: Tata cara melakukan watermark dokumen" sub="Panduan langkah demi langkah" onClick={() => setGuide("watermark")} />
-            <GuideRow tone="rose" icon={<FileText />} title="Template watermark" sub="Berkas TXT" onClick={templateWatermark} />
-            <GuideRow tone="blue" icon={<ScrollText />} title="Template tanda terima" sub="Berkas TXT" onClick={templateReceipt} />
-            <GuideRow tone="amber" icon={<FileSpreadsheet />} title="Tata cara penyampaian dokumen" sub="Panduan lengkap" onClick={() => setGuide("penyampaian")} />
+            <GuideRow visual={<VideoGuideIcon size={40} />} title="Video Panduan: Tata cara melakukan watermark dokumen" sub={`Panduan visual · ${WATERMARK_STEPS.length} langkah`} onClick={() => setGuide("watermark")} />
+            <GuideRow visual={<FileTypeIcon label="TXT" color="#e5484d" size={38} />} title="Template watermark" sub="Unduh berkas TXT" onClick={templateWatermark} />
+            <GuideRow visual={<FileTypeIcon label="TXT" color="#2563eb" size={38} />} title="Template tanda terima" sub="Unduh berkas TXT" onClick={templateReceipt} />
+            <GuideRow visual={<GuideBookIcon size={40} />} title="Tata cara penyampaian dokumen" sub={`Panduan lengkap · ${DELIVERY_STEPS.length} langkah`} onClick={() => setGuide("penyampaian")} />
           </ul>
         </Card>
 
@@ -326,13 +328,19 @@ export function PermindokView() {
       <Drawer
         open={guide === "watermark" || guide === "penyampaian"}
         onClose={() => setGuide(null)}
-        title={guide === "watermark" ? "Tata cara melakukan watermark dokumen" : "Tata cara penyampaian dokumen"}
-        subtitle="Panduan langkah demi langkah"
+        title={guide === "watermark" ? "Video Panduan: Tata cara watermark dokumen" : "Tata cara penyampaian dokumen"}
+        subtitle={guide === "watermark" ? "Panduan visual (simulasi), bukan rekaman video" : "Panduan langkah demi langkah"}
+        width={guide === "watermark" ? "max-w-2xl" : undefined}
       >
+        {guide === "watermark" && (
+          <div className="mb-4">
+            <VideoGuidePlayer title="Watermark dokumen" steps={WATERMARK_STEPS} />
+          </div>
+        )}
         <ol className="space-y-3">
           {(guide === "watermark" ? WATERMARK_STEPS : DELIVERY_STEPS).map((s, i) => (
             <li key={s} className="flex gap-3">
-              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#e6efff] text-sm font-bold text-brand" aria-hidden>
+              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-gradient-to-br from-sky-500 to-blue-700 text-sm font-bold text-white shadow-sm" aria-hidden>
                 {i + 1}
               </span>
               <span className="pt-0.5 text-[15px] text-navy-900">
@@ -383,18 +391,20 @@ export function PermindokView() {
   );
 }
 
-function GuideRow({ tone, icon, title, sub, onClick }: { tone: TileTone; icon: ReactNode; title: string; sub: string; onClick: () => void }) {
+function GuideRow({ visual, title, sub, onClick }: { visual: ReactNode; title: string; sub: string; onClick: () => void }) {
   return (
     <li>
-      <button type="button" onClick={onClick} className={cx("group flex w-full items-center gap-3 rounded-xl border border-line bg-white px-3 py-2.5 text-left transition hover:border-sky-300 hover:bg-[#f7fbff]")}>
-        <IconTile tone={tone} size="sm">
-          {icon}
-        </IconTile>
+      <button
+        type="button"
+        onClick={onClick}
+        className="group flex w-full items-center gap-3 rounded-xl border border-line bg-white px-3 py-2.5 text-left transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-0.5 hover:border-sky-300 hover:shadow-[0_10px_24px_-16px_rgba(29,78,216,0.6)]"
+      >
+        <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-white to-sky-50 ring-1 ring-sky-100 transition-transform duration-200 group-hover:scale-105">{visual}</span>
         <span className="min-w-0 flex-1">
           <span className="block text-[14px] font-bold leading-snug text-navy-900">{title}</span>
           <span className="block text-[12px] text-muted">{sub}</span>
         </span>
-        <ChevronRight className="h-4 w-4 shrink-0 text-navy-800" aria-hidden />
+        <ChevronRight className="h-4 w-4 shrink-0 text-navy-800 transition-transform group-hover:translate-x-0.5" aria-hidden />
       </button>
     </li>
   );

@@ -126,6 +126,14 @@ body {
     transform: none;
   }
 }
+@keyframes sekar-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
 @keyframes sekar-beam {
   to {
     offset-distance: 100%;

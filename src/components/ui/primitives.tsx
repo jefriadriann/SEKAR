@@ -57,14 +57,17 @@ export function IconTile({ tone = "blue", children, size = "md" }: { tone?: Tile
     <span
       aria-hidden
       className={cx(
-        "grid shrink-0 place-items-center rounded-xl",
+        "relative grid shrink-0 place-items-center overflow-hidden ring-1 ring-inset ring-white/30",
         TILE[tone],
-        size === "sm" && "h-8 w-8 [&_svg]:h-4 [&_svg]:w-4",
-        size === "md" && "h-10 w-10 [&_svg]:h-5 [&_svg]:w-5",
-        size === "lg" && "h-12 w-12 [&_svg]:h-6 [&_svg]:w-6",
+        size === "sm" && "h-8 w-8 rounded-[10px] [&_svg]:h-4 [&_svg]:w-4",
+        size === "md" && "h-10 w-10 rounded-xl [&_svg]:h-5 [&_svg]:w-5",
+        size === "lg" && "h-12 w-12 rounded-[14px] [&_svg]:h-6 [&_svg]:w-6",
       )}
     >
-      {children}
+      {/* kilau lembut di separuh atas */}
+      <span className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/40 to-transparent" />
+      <span className="pointer-events-none absolute -bottom-2 -right-2 h-6 w-6 rounded-full bg-white/15" />
+      <span className="relative grid place-items-center [&_svg]:drop-shadow-[0_1px_1px_rgba(0,0,0,0.18)]">{children}</span>
     </span>
   );
 }

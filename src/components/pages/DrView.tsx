@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { AlertCircle, BookOpen, CalendarDays, CheckCircle2, Clock, Download, FileSearch, FileText, FolderOpen, ListChecks, Save } from "lucide-react";
 import { FindingDrawer } from "@/components/domain/FindingDrawer";
 import { RequestDrawer } from "@/components/domain/RequestDrawer";
+import { FileTypeIcon } from "@/components/icons/Illustrations";
 import { useReadySekar } from "@/components/providers/SekarProvider";
 import { DataTable, type Column } from "@/components/ui/DataTable";
 import { Drawer } from "@/components/ui/Overlay";
@@ -220,8 +221,8 @@ export function DrView() {
       className: "min-w-[180px]",
       render: (d) => (
         <span className="flex items-center gap-2">
-          <span className="grid h-7 w-6 shrink-0 place-items-center rounded-sm bg-[#e5484d] text-[8px] font-bold text-white" aria-hidden>
-            TXT
+          <span className="shrink-0">
+            <FileTypeIcon label="TXT" color="#e5484d" size={30} />
           </span>
           <span>{d.name}</span>
         </span>
@@ -253,8 +254,8 @@ export function DrView() {
       className: "min-w-[170px]",
       render: (r) => (
         <span className="flex items-center gap-2">
-          <span className="grid h-7 w-6 shrink-0 place-items-center rounded-sm bg-[#e5484d] text-[8px] font-bold text-white" aria-hidden>
-            TXT
+          <span className="shrink-0">
+            <FileTypeIcon label="TXT" color="#e5484d" size={30} />
           </span>
           <span>{clean(r.name)}</span>
         </span>

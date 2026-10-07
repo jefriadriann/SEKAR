@@ -1,14 +1,16 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { BookOpen, CalendarDays, ChevronRight, Database, Download, ListChecks, SlidersHorizontal } from "lucide-react";
+import { BookOpen, CalendarDays, ChevronRight, Download, SlidersHorizontal } from "lucide-react";
 import { CategoryTable, ChartCard, ColumnChart, DonutWithLegend, HorizontalBars, TrendChart } from "@/components/charts/Charts";
 import { FindingDrawer } from "@/components/domain/FindingDrawer";
+import { VideoGuidePlayer } from "@/components/domain/VideoGuidePlayer";
+import { ReconcileIcon, VideoGuideIcon } from "@/components/icons/Illustrations";
 import { IndonesiaMap, MapLegend } from "@/components/map/IndonesiaMap";
 import { useReadySekar } from "@/components/providers/SekarProvider";
 import { DataTable, type Column } from "@/components/ui/DataTable";
 import { Drawer } from "@/components/ui/Overlay";
-import { Badge, Button, Card, cx, EmptyState, FilterChips, IconTile, PageHeader, SearchField, SectionHeader, SelectField, SimulationNote, type Tone } from "@/components/ui/primitives";
+import { Badge, Button, Card, cx, EmptyState, FilterChips, PageHeader, SearchField, SectionHeader, SelectField, SimulationNote, type Tone } from "@/components/ui/primitives";
 import { FindingStatusBadge, TimelinessBadge } from "@/components/ui/StatusBadges";
 import { reconciliationRate, summarizeAssets } from "@/lib/analytics/assets";
 import { ALL, uniqueSorted, unitIndex } from "@/lib/analytics/common";
@@ -319,17 +321,17 @@ export function HasilPemeriksaanView() {
         </ChartCard>
         <div className="grid gap-4 lg:col-span-2 lg:grid-cols-2 xl:col-span-1 xl:grid-cols-1">
           <LinkCard
-            tone="teal"
-            icon={<Database />}
+            glow="#22c3a6"
+            icon={<ReconcileIcon size={50} />}
             title="Hasil Rekonsiliasi Aset"
             desc={`${formatPercent(assetSummary.pctReconciled, 1)} item sesuai · ${formatNumber(assetSummary.discrepancy)} selisih`}
             onClick={() => setPanel("aset")}
           />
           <LinkCard
-            tone="rose"
-            icon={<ListChecks />}
-            title="Panduan Penyelesaian Temuan Pengelolaan Aset"
-            desc="Langkah penyelesaian dan materi pembelajaran"
+            glow="#ee2d48"
+            icon={<VideoGuideIcon size={52} />}
+            title="Video Panduan Penyelesaian Temuan Aset"
+            desc="Panduan visual langkah demi langkah · 5 langkah"
             onClick={() => setPanel("panduan")}
           />
         </div>
@@ -399,17 +401,25 @@ export function HasilPemeriksaanView() {
   );
 }
 
-function LinkCard({ tone, icon, title, desc, onClick }: { tone: "teal" | "rose"; icon: React.ReactNode; title: string; desc: string; onClick: () => void }) {
+function LinkCard({ glow, icon, title, desc, onClick }: { glow: string; icon: React.ReactNode; title: string; desc: string; onClick: () => void }) {
   return (
-    <button type="button" onClick={onClick} className="panel group flex w-full items-center gap-3 p-4 text-left transition hover:border-sky-300 hover:shadow-md">
-      <IconTile tone={tone} size="lg">
+    <button
+      type="button"
+      onClick={onClick}
+      className="panel group relative flex w-full items-center gap-4 overflow-hidden p-4 text-left transition duration-300 hover:-translate-y-0.5 hover:shadow-lg"
+    >
+      <span aria-hidden className="pointer-events-none absolute -left-10 -top-12 h-32 w-32 rounded-full opacity-15 blur-2xl transition-opacity duration-300 group-hover:opacity-30" style={{ background: glow }} />
+      <span
+        aria-hidden
+        className="relative grid h-[60px] w-[60px] shrink-0 place-items-center rounded-[18px] bg-gradient-to-br from-white to-[#eef4fb] shadow-[inset_0_1px_0_#fff,0_8px_18px_-10px_rgba(20,42,110,0.45)] ring-1 ring-[#e3ecf7] transition-transform duration-300 group-hover:scale-105"
+      >
         {icon}
-      </IconTile>
-      <span className="min-w-0 flex-1">
+      </span>
+      <span className="relative min-w-0 flex-1">
         <span className="block text-[15px] font-bold leading-snug text-navy-900">{title}</span>
         <span className="mt-0.5 block text-[13px] text-muted">{desc}</span>
       </span>
-      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#eef4fc] text-navy-800 group-hover:bg-brand group-hover:text-white" aria-hidden>
+      <span className="relative grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#eef4fc] text-navy-800 transition-colors duration-200 group-hover:bg-brand group-hover:text-white" aria-hidden>
         <ChevronRight className="h-4 w-4" />
       </span>
     </button>
@@ -511,31 +521,28 @@ function AssetDrawer({ open, onClose, rows, unitName }: { open: boolean; onClose
   );
 }
 
+export const ASET_GUIDE_STEPS = [
+  "Identifikasi temuan aset yang masih terbuka (filter Area = Aset).",
+  "Lakukan inventarisasi fisik dan cocokkan dengan aplikasi aset.",
+  "Catat selisih beserta penyebabnya pada worksheet area Aset.",
+  "Susun rencana tindak lanjut, tetapkan PIC dan target penyelesaian.",
+  "Lampirkan bukti penyelesaian, lalu ubah status temuan menjadi Selesai.",
+];
+
 function GuideDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { data, openDocument } = useReadySekar();
   const refs = data.references.filter((r) => r.area === "Aset");
-  const steps = [
-    "Identifikasi temuan pengelolaan aset yang masih terbuka melalui tabel di halaman ini (filter Area = Aset).",
-    "Lakukan inventarisasi fisik dan cocokkan dengan catatan pada aplikasi aset.",
-    "Dokumentasikan selisih beserta penyebabnya pada worksheet area Aset (simulasi).",
-    "Susun rencana tindak lanjut sesuai rekomendasi dan tetapkan PIC serta target penyelesaian.",
-    "Lampirkan bukti penyelesaian lalu perbarui status temuan menjadi Selesai.",
-  ];
   return (
-    <Drawer open={open} onClose={onClose} title="Panduan Penyelesaian Temuan Pengelolaan Aset" subtitle="Panduan langkah demi langkah">
-      <ol className="space-y-3">
-        {steps.map((s, i) => (
-          <li key={s} className="flex gap-3">
-            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#e6efff] text-sm font-bold text-brand" aria-hidden>
-              {i + 1}
-            </span>
-            <span className="pt-0.5 text-[15px] text-navy-900">
-              <span className="sr-only">Langkah {i + 1}: </span>
-              {s}
-            </span>
-          </li>
-        ))}
-      </ol>
+    <Drawer open={open} onClose={onClose} title="Video Panduan Penyelesaian Temuan Aset" subtitle="Panduan visual (simulasi), bukan rekaman video" width="max-w-2xl">
+      <VideoGuidePlayer title="Penyelesaian Temuan Aset" steps={ASET_GUIDE_STEPS} />
+      <details className="mt-4 rounded-xl border border-line bg-[#f7fbff] px-4 py-3">
+        <summary className="cursor-pointer text-[14px] font-semibold text-navy-900">Lihat semua langkah</summary>
+        <ol className="mt-2 list-decimal space-y-1 pl-5 text-[14px] text-navy-900">
+          {ASET_GUIDE_STEPS.map((s) => (
+            <li key={s}>{s}</li>
+          ))}
+        </ol>
+      </details>
       <h3 className="mt-6 flex items-center gap-2 font-bold text-navy-900">
         <BookOpen className="h-4 w-4 text-brand" aria-hidden />
         Materi pembelajaran area Aset
@@ -543,9 +550,9 @@ function GuideDrawer({ open, onClose }: { open: boolean; onClose: () => void }) 
       <ul className="mt-2 space-y-2">
         {refs.map((r) => (
           <li key={r.id} className="flex items-center justify-between gap-2 rounded-lg border border-line px-3 py-2">
-            <span className="min-w-0 truncate font-semibold text-navy-900">{r.title}</span>
+            <span className="min-w-0 truncate font-semibold text-navy-900">{clean(r.title)}</span>
             <Button size="sm" onClick={() => openDocument(r.document_id)}>
-              {REFERENCE_KIND_LABEL[r.kind]}
+              {r.id.endsWith("-pedoman") ? "Pedoman" : REFERENCE_KIND_LABEL[r.kind]}
             </Button>
           </li>
         ))}
