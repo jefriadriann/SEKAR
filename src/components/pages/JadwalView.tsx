@@ -47,10 +47,10 @@ function PhasePill({ phase }: { phase: Phase }) {
 }
 
 export function JadwalView() {
-  const { data, asOf, setAsOf, datasetAsOf, resetAsOf, openDocument, notify } = useReadySekar();
+  const { data, asOf, setAsOf, datasetAsOf, resetAsOf, openDocument, notify, viewer } = useReadySekar();
   const kpw = useMemo(() => kpwModuleData(data), [data]);
   const idx = useMemo(() => unitIndex(kpw.units), [kpw.units]);
-  const [view, setView] = useState<TimelineView>("bulan");
+  const [view, setView] = useState<TimelineView>(viewer.role === "kpw" ? "tahun" : "bulan"); // akun KPw: jadwalnya sedikit, tampilkan rentang tahunan
   const [offset, setOffset] = useState(0);
   const [year, setYear] = useState<string>(asOf.slice(0, 4));
   const [examType, setExamType] = useState<string>(ALL);

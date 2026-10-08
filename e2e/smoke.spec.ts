@@ -2,24 +2,60 @@ import { expect, test, type Page } from "@playwright/test";
 
 const ROUTES = ["/", "/hasil-pemeriksaan", "/permindok", "/jadwal-pemeriksaan", "/sgo-ketentuan", "/dr", "/admin"];
 
-async function ready(page: Page, path: string) {
-  await page.goto(path);
-  await expect(page.getByText("Mode Demo — Data Simulasi").first()).toBeAttached();
-  await expect(page.locator("main h1").first()).toBeVisible();
+const ACCOUNTS = {
+  dr: ["dr@sekar.demo", "SekarDR#2026"],
+  kpw: ["kpw01@sekar.demo", "SekarKPw#2026"],
+  admin: ["admin@sekar.demo", "SekarAdmin#2026"],
+} as const;
+type Who = keyof typeof ACCOUNTS;
+
+async function login(page: Page, who: Who) {
+  await page.getByLabel("Email").fill(ACCOUNTS[who][0]);
+  await page.getByLabel("Kata sandi", { exact: true }).fill(ACCOUNTS[who][1]);
+  await page.getByRole("button", { name: "Masuk", exact: true }).click();
+  await expect(page.locator("#konten h1").first()).toBeVisible();
 }
 
-/** Persona demo dipilih dari menu pengguna (ikon kanan atas). */
-async function persona(page: Page, label: RegExp) {
+/** Buka halaman; bila belum masuk, login sebagai DR (default). */
+async function ready(page: Page, path: string, who: Who = "dr") {
+  await page.goto(path);
+  const loginHeading = page.getByRole("heading", { name: "Masuk ke akun Anda" });
+  await expect(loginHeading.or(page.locator("#konten h1")).first()).toBeVisible();
+  if (await loginHeading.isVisible()) await login(page, who);
+  await expect(page.getByText("Mode Demo — Data Simulasi").first()).toBeAttached();
+  await expect(page.locator("#konten h1").first()).toBeVisible();
+}
+
+/** Keluar lalu masuk dengan akun lain. */
+async function switchAccount(page: Page, who: Who) {
   await page.getByRole("button", { name: /Menu pengguna/ }).click();
-  const select = page.getByLabel("Persona demo");
-  const option = (await select.locator("option").allTextContents()).find((t) => label.test(t))!;
-  await select.selectOption({ label: option });
-  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "Keluar" }).click();
+  await expect(page.getByRole("heading", { name: "Masuk ke akun Anda" })).toBeVisible();
+  await login(page, who);
 }
 
 test.beforeEach(async ({ page }) => {
   await page.goto("/");
   await page.evaluate(() => localStorage.clear());
+});
+
+test("login: kata sandi salah ditolak, akun DR dan KPw membedakan tampilan", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "Masuk ke akun Anda" })).toBeVisible();
+  await page.getByLabel("Email").fill("dr@sekar.demo");
+  await page.getByLabel("Kata sandi", { exact: true }).fill("salah");
+  await page.getByRole("button", { name: "Masuk", exact: true }).click();
+  await expect(page.locator("form").getByRole("alert")).toHaveText("Kata sandi salah.");
+  // Akun demo dapat diisi dengan satu klik.
+  await page.getByRole("button", { name: "Isi akun demo Departemen Regional" }).click();
+  await page.getByRole("button", { name: "Masuk", exact: true }).click();
+  await expect(page.getByText("DR · Super Koordinator")).toBeVisible();
+  // Sesi bertahan setelah muat ulang.
+  await page.reload();
+  await expect(page.getByText("DR · Super Koordinator")).toBeVisible();
+  await switchAccount(page, "kpw");
+  await page.goto("/permindok");
+  await expect(page.getByRole("status").filter({ hasText: "Masuk sebagai KPw Simulasi 01" })).toBeVisible();
 });
 
 test("beranda: empat menu dapat dibuka", async ({ page }) => {
@@ -47,7 +83,7 @@ test("semua halaman tampil tanpa error konsol dan tanpa overflow horizontal", as
   });
   page.on("pageerror", (e) => errors.push(`${page.url()}: ${e.message}`));
   await ready(page, "/");
-  await persona(page, /^Admin/);
+  await switchAccount(page, "admin");
   for (const size of [
     { width: 1440, height: 900 },
     { width: 1366, height: 768 },
@@ -175,7 +211,7 @@ test("jadwal: tampilan bulan/kuartal/tahun dan posisi data simulasi", async ({ p
 
 test("persona KPw tidak melihat data/route DR", async ({ page }) => {
   await ready(page, "/");
-  await persona(page, /^KPw/);
+  await switchAccount(page, "kpw");
   await page.getByRole("button", { name: /Menu pengguna/ }).click();
   await expect(page.getByRole("link", { name: /Dashboard Departemen Regional/ })).toHaveCount(0);
   await page.keyboard.press("Escape");
@@ -228,7 +264,7 @@ test("SGo: pencarian, preview materi, tutorial langkah demi langkah", async ({ p
 
 test("admin: import tidak valid ditolak, import valid diterapkan, reset seed", async ({ page }) => {
   await ready(page, "/");
-  await persona(page, /^Admin/);
+  await switchAccount(page, "admin");
   await ready(page, "/admin");
   await page.getByLabel("Atau tempel teks JSON").fill('{"metadata":{}}');
   await page.getByRole("button", { name: "Validasi teks" }).click();

@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AlertTriangle, Bell, CalendarClock, ChevronRight, Download, FlaskConical, Loader2, LogOut, RotateCcw, UserRound, X } from "lucide-react";
 import { useSekar } from "@/components/providers/SekarProvider";
 import { Drawer } from "@/components/ui/Overlay";
@@ -14,15 +14,23 @@ import { startsWithin } from "@/lib/analytics/schedules";
 import { formatDate, formatDateLong } from "@/lib/dates";
 import { ROLE_LABEL } from "@/lib/format";
 import { canAccessRoute, kpwModuleData, type AppRoute } from "@/lib/scope";
+import { LoginPage } from "@/components/auth/LoginPage";
 import { NAV_ITEMS } from "./nav";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { status } = useSekar();
   const pathname = usePathname();
   const isHome = pathname === "/";
-  // Beranda tidak bergantung pada data, jadi langsung tampil saat data masih dimuat.
-  const homeVisible = isHome && (status === "ready" || status === "loading");
+  const homeVisible = isHome && status === "ready";
   const moduleKey = pathname.split("/")[1] || "home";
+  // Sebelum masuk, seluruh layar menampilkan halaman login (tanpa header aplikasi).
+  if (status === "needs_login" || status === "loading")
+    return (
+      <>
+        {status === "loading" ? <SplashScreen /> : <LoginPage />}
+        <Toasts />
+      </>
+    );
   return (
     <div data-module={moduleKey} className={cx("sekar-theme relative isolate flex min-h-screen flex-col", isHome && "lg:h-dvh lg:min-h-0 lg:overflow-hidden")}>
       {/* Latar mesh gradasi (statis) — warna mengikuti modul aktif. */}
@@ -35,7 +43,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </a>
       <Header home={homeVisible} />
       <main id="konten" className={cx("flex-1", homeVisible ? "lg:min-h-0" : "mx-auto w-full max-w-[1440px] px-4 pb-10 pt-4 sm:px-6 lg:px-8")}>
-        {status === "ready" && !isHome && <PersonaNotice />}
+        {status === "ready" && !isHome && <KpwScopeNotice />}
         {status === "ready" || homeVisible ? children : <StatusScreen />}
       </main>
       <div className={cx(isHome && "lg:hidden")}>
@@ -47,23 +55,32 @@ export function AppShell({ children }: { children: ReactNode }) {
   );
 }
 
-/** Pemberitahuan saat persona KPw aktif: data dibatasi pada satu KPw, dengan tombol kembali ke tampilan DR. */
-function PersonaNotice() {
-  const { viewer, data, personas, setPersona } = useSekar();
+/** Penanda cakupan data untuk akun KPw: hanya unit sendiri yang ditampilkan. */
+function KpwScopeNotice() {
+  const { viewer, data } = useSekar();
   if (!viewer || viewer.role !== "kpw") return null;
   const unit = data?.units.find((u) => u.id === viewer.unit_id);
-  const dr = personas.find((p) => p.role === "dr");
   return (
-    <div role="status" className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#d6dfee] bg-white px-4 py-2.5 text-[14px] text-navy-900">
+    <div role="status" className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-[#d6dfee] bg-white px-4 py-2.5 text-[14px] text-navy-900">
+      <span className="rounded-md bg-[#13235a] px-2 py-0.5 text-[12px] font-bold text-white">KPw</span>
       <span>
-        Anda melihat sebagai <strong>{viewer.name}</strong>. Data dibatasi pada <strong>{unit?.name ?? viewer.unit_id}</strong>
-        {unit?.korwil ? ` (Korwil ${unit.korwil})` : ""}.
+        Masuk sebagai <strong>{unit?.name ?? viewer.name}</strong>
+        {unit?.korwil ? ` · Korwil ${unit.korwil}` : ""}. Data yang ditampilkan hanya untuk unit ini.
       </span>
-      {dr && (
-        <Button size="sm" variant="primary" onClick={() => setPersona(dr.id)}>
-          Lihat seluruh KPwDN (persona DR)
-        </Button>
-      )}
+    </div>
+  );
+}
+
+function SplashScreen() {
+  return (
+    <div role="status" aria-live="polite" className="grid min-h-dvh place-items-center bg-[#f5f7fb]">
+      <div className="flex flex-col items-center gap-3 text-navy-800">
+        <Image src="/brand/sekar-emblem.webp" alt="" width={567} height={360} priority className="h-16 w-auto" />
+        <span className="flex items-center gap-2 text-[14px] font-semibold">
+          <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+          Memuat SEKAR…
+        </span>
+      </div>
     </div>
   );
 }
@@ -113,7 +130,7 @@ function SkylineDecor() {
 }
 
 function Header({ home }: { home: boolean }) {
-  const { config, status } = useSekar();
+  const { config, status, viewer } = useSekar();
   return (
     <header
       className={cx(
@@ -149,6 +166,12 @@ function Header({ home }: { home: boolean }) {
             </span>
           ) : (
             <span className="hidden rounded-full border border-teal-300 bg-teal-50 px-2.5 py-1 text-[11.5px] font-bold text-teal-900 sm:inline-flex">Mode Supabase</span>
+          )}
+          {viewer && (
+            <span className="hidden items-center gap-1.5 rounded-full border border-[#c9d4e8] bg-white px-2.5 py-1 text-[11.5px] font-bold text-navy-900 md:inline-flex">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#1d4f9e]" aria-hidden />
+              {viewer.role === "dr" ? "DR · Super Koordinator" : viewer.role === "admin" ? "Admin" : viewer.name}
+            </span>
           )}
           {status === "ready" && (
             <>
@@ -239,7 +262,7 @@ function Notifications() {
 }
 
 function UserMenu() {
-  const { viewer, personas, setPersona, asOf, datasetAsOf, setAsOf, resetAsOf, config, signOut } = useSekar();
+  const { viewer, asOf, datasetAsOf, setAsOf, resetAsOf, signOut, retry, config } = useSekar();
   const { open, setOpen, ref } = usePopover();
   const pathname = usePathname();
   if (!viewer) return null;
@@ -260,30 +283,18 @@ function UserMenu() {
       </button>
       {open && (
         <div className="panel absolute right-0 top-12 z-50 w-[320px] p-3 text-[14px]">
-          <p className="font-bold text-navy-900">{viewer.name}</p>
-          <p className="text-[12px] text-muted">
-            Peran {ROLE_LABEL[viewer.role]}
-            {viewer.simulated && " · persona simulasi, bukan login/keamanan"}
-          </p>
-          {config.mode === "dummy" && (
-            <div className="mt-3">
-              <label htmlFor="persona" className="text-[12px] font-semibold text-muted">
-                Persona demo
-              </label>
-              <select
-                id="persona"
-                value={viewer.id}
-                onChange={(e) => setPersona(e.target.value)}
-                className="mt-1 h-9 w-full rounded-lg border border-line bg-white px-2 font-semibold text-navy-900"
-              >
-                {personas.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {ROLE_LABEL[p.role]} — {p.name}
-                  </option>
-                ))}
-              </select>
+          <div className="flex items-center gap-3">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#13235a] text-[13px] font-bold text-white" aria-hidden>
+              {viewer.role === "kpw" ? "KPw" : viewer.role === "dr" ? "DR" : "ADM"}
+            </span>
+            <div className="min-w-0">
+              <p className="truncate font-bold text-navy-900">{viewer.name}</p>
+              <p className="text-[12px] text-muted">
+                {ROLE_LABEL[viewer.role]}
+                {viewer.simulated && " · akun demo"}
+              </p>
             </div>
-          )}
+          </div>
           <div className="mt-3">
             <label htmlFor="as-of" className="flex items-center gap-1 text-[12px] font-semibold text-muted">
               <CalendarClock className="h-3.5 w-3.5" aria-hidden />
@@ -324,12 +335,18 @@ function UserMenu() {
               ))}
             </ul>
           </nav>
-          {config.mode === "supabase" && (
-            <Button size="sm" className="mt-2 w-full" onClick={() => signOut()}>
-              <LogOut className="h-4 w-4" aria-hidden />
-              Keluar
-            </Button>
-          )}
+          <Button
+            size="sm"
+            className="mt-2 w-full"
+            onClick={async () => {
+              setOpen(false);
+              await signOut();
+              if (config.mode === "supabase") retry();
+            }}
+          >
+            <LogOut className="h-4 w-4" aria-hidden />
+            Keluar
+          </Button>
         </div>
       )}
     </div>
@@ -366,7 +383,6 @@ function StatusScreen() {
       </div>
     );
   }
-  if (status === "needs_login") return <LoginScreen />;
   if (status === "unmapped") {
     return (
       <Card className="mx-auto mt-8 max-w-xl">
@@ -417,57 +433,6 @@ function SignOutButton() {
       <LogOut className="h-4 w-4" aria-hidden />
       Keluar
     </Button>
-  );
-}
-
-function LoginScreen() {
-  const { signIn } = useSekar();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [err, setErr] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-  const submit = async (e: FormEvent) => {
-    e.preventDefault();
-    setBusy(true);
-    setErr(await signIn(email, password));
-    setBusy(false);
-  };
-  return (
-    <Card className="mx-auto mt-8 max-w-md">
-      <h1 className="text-xl font-bold text-navy-900">Masuk ke SEKAR</h1>
-      <p className="mt-1 text-sm text-muted">Autentikasi Supabase. Akses data ditentukan oleh pemetaan peran di database (RLS).</p>
-      <form onSubmit={submit} className="mt-4 space-y-3">
-        <div className="flex flex-col gap-1">
-          <label htmlFor="email" className="text-sm font-semibold">
-            Email
-          </label>
-          <input id="email" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className="h-10 rounded-lg border border-line px-3" />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label htmlFor="password" className="text-sm font-semibold">
-            Kata sandi
-          </label>
-          <input
-            id="password"
-            type="password"
-            required
-            autoComplete="current-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="h-10 rounded-lg border border-line px-3"
-          />
-        </div>
-        {err && (
-          <p role="alert" className="text-sm text-rose-700">
-            {err}
-          </p>
-        )}
-        <Button type="submit" variant="primary" disabled={busy} className="w-full">
-          {busy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
-          Masuk
-        </Button>
-      </form>
-    </Card>
   );
 }
 

@@ -7,8 +7,9 @@ import { downloadText } from "@/lib/download";
 import type { RequestPatch } from "@/lib/mutations";
 import { DummyRepository, PREFS_KEY } from "@/lib/repository/dummy";
 import type { DatasetSource, DocumentContent, LoadResult, SekarRepository } from "@/lib/repository/types";
+import { signInDemo, viewerForDemoEmail } from "@/lib/demo-accounts";
 import { canOpenDocument, scopeDatasetForViewer } from "@/lib/scope";
-import type { ComplianceStatus, Dataset, DemoPersona, FindingStatus, ISODate, SekarDocument, Viewer } from "@/lib/types";
+import type { ComplianceStatus, Dataset, FindingStatus, ISODate, SekarDocument, Viewer } from "@/lib/types";
 
 export type AppStatus = "loading" | "ready" | "error" | "config_error" | "needs_login" | "unmapped";
 
@@ -28,13 +29,11 @@ interface SekarContextValue {
   /** Dataset sesuai scope viewer. Dipakai seluruh halaman. */
   data: Dataset | null;
   viewer: Viewer | null;
-  personas: DemoPersona[];
   source: DatasetSource | null;
   asOf: ISODate;
   datasetAsOf: ISODate | null;
   setAsOf: (d: ISODate) => void;
   resetAsOf: () => void;
-  setPersona: (id: string) => void;
   updateFindingStatus: (id: string, status: FindingStatus) => Promise<boolean>;
   updateRequest: (id: string, patch: RequestPatch) => Promise<string | null>;
   updateCompliance: (id: string, status: ComplianceStatus) => Promise<boolean>;
@@ -55,7 +54,8 @@ interface SekarContextValue {
 const SekarContext = createContext<SekarContextValue | null>(null);
 
 interface Prefs {
-  personaId?: string;
+  /** Email akun demo yang sedang masuk (mode dummy; simulasi, bukan sesi aman). */
+  demoEmail?: string;
   asOf?: ISODate;
 }
 
@@ -84,7 +84,7 @@ export function SekarProvider({ config, children }: { config: AppConfig; childre
   const [error, setError] = useState<string | null>(config.configError ?? null);
   const [warning, setWarning] = useState<string | null>(null);
   const [result, setResult] = useState<LoadResult | null>(null);
-  const [personaId, setPersonaId] = useState<string>("demo-dr");
+  const [demoViewer, setDemoViewer] = useState<Viewer | null>(null);
   const [asOfOverride, setAsOfOverride] = useState<ISODate | null>(null);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [previewDoc, setPreviewDoc] = useState<SekarContextValue["previewDoc"]>(null);
@@ -114,9 +114,10 @@ export function SekarProvider({ config, children }: { config: AppConfig; childre
           if (cancelled) return;
           setWarning(repo.warning);
           setResult(res);
-          if (prefs.personaId && res.dataset.demo_personas.some((p) => p.id === prefs.personaId)) setPersonaId(prefs.personaId);
           if (prefs.asOf && isValidISODate(prefs.asOf)) setAsOfOverride(prefs.asOf);
-          setStatus("ready");
+          const restored = prefs.demoEmail ? viewerForDemoEmail(prefs.demoEmail, res.dataset.units) : null;
+          setDemoViewer(restored);
+          setStatus(restored ? "ready" : "needs_login");
           return;
         }
         // Mode Supabase: tidak ada fallback ke dummy bila gagal.
@@ -161,14 +162,10 @@ export function SekarProvider({ config, children }: { config: AppConfig; childre
   }, [config, reloadKey]);
 
   const fullDataset = result?.dataset ?? null;
-  const personas = useMemo(() => fullDataset?.demo_personas ?? [], [fullDataset]);
-
   const viewer: Viewer | null = useMemo(() => {
     if (!result) return null;
-    if (result.viewer) return result.viewer;
-    const p = personas.find((x) => x.id === personaId) ?? personas[0];
-    return p ? { id: p.id, name: p.name, role: p.role, unit_id: p.unit_id, simulated: true } : null;
-  }, [result, personas, personaId]);
+    return result.viewer ?? demoViewer;
+  }, [result, demoViewer]);
 
   const data = useMemo(() => (fullDataset && viewer ? scopeDatasetForViewer(fullDataset, viewer) : null), [fullDataset, viewer]);
   const datasetAsOf = fullDataset?.metadata.as_of ?? null;
@@ -188,16 +185,6 @@ export function SekarProvider({ config, children }: { config: AppConfig; childre
     setAsOfOverride(null);
     persistPrefs({ asOf: undefined });
   }, [persistPrefs]);
-
-  const setPersona = useCallback(
-    (id: string) => {
-      setPersonaId(id);
-      persistPrefs({ personaId: id });
-      const p = personas.find((x) => x.id === id);
-      if (p) notify(`Persona demo diganti ke ${p.name} (simulasi, bukan login).`, "info");
-    },
-    [personas, persistPrefs, notify],
-  );
 
   const run = useCallback(
     async (fn: (repo: SekarRepository) => Promise<LoadResult>, success: string): Promise<string | null> => {
@@ -294,18 +281,38 @@ export function SekarProvider({ config, children }: { config: AppConfig; childre
     [findDoc, notify],
   );
 
-  const signIn = useCallback(async (email: string, password: string) => {
-    const repo = repoRef.current as SupabaseRepo | null;
-    if (!repo || repo.mode !== "supabase") return "Login hanya tersedia di mode Supabase.";
-    const { error: e } = await repo.client.auth.signInWithPassword({ email, password });
-    return e ? e.message : null;
-  }, []);
+  const signIn = useCallback(
+    async (email: string, password: string) => {
+      if (config.mode === "dummy") {
+        if (!fullDataset) return "Data demo belum siap.";
+        const res = signInDemo(email, password, fullDataset.units);
+        if (typeof res === "string") return res;
+        setDemoViewer(res);
+        persistPrefs({ demoEmail: email.trim().toLowerCase() });
+        setStatus("ready");
+        notify(`Selamat datang, ${res.name}.`, "success");
+        return null;
+      }
+      const repo = repoRef.current as SupabaseRepo | null;
+      if (!repo || repo.mode !== "supabase") return "Layanan login belum siap.";
+      const { error: e } = await repo.client.auth.signInWithPassword({ email, password });
+      return e ? e.message : null;
+    },
+    [config.mode, fullDataset, persistPrefs, notify],
+  );
 
   const signOut = useCallback(async () => {
+    if (config.mode === "dummy") {
+      setDemoViewer(null);
+      persistPrefs({ demoEmail: undefined });
+      setPreviewDoc(null);
+      setStatus("needs_login");
+      return;
+    }
     const repo = repoRef.current as SupabaseRepo | null;
     if (repo?.mode === "supabase") await repo.client.auth.signOut();
     setResult(null);
-  }, []);
+  }, [config.mode, persistPrefs]);
 
   const value: SekarContextValue = {
     config,
@@ -315,13 +322,11 @@ export function SekarProvider({ config, children }: { config: AppConfig; childre
     fullDataset,
     data,
     viewer,
-    personas,
     source: result?.source ?? null,
     asOf,
     datasetAsOf,
     setAsOf,
     resetAsOf,
-    setPersona,
     updateFindingStatus,
     updateRequest,
     updateCompliance,

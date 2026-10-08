@@ -26,6 +26,18 @@ npm run build
 npm run start      # http://localhost:3000
 ```
 
+## Login demo
+
+Mode dummy dibuka dengan halaman login. Akun di bawah ini **simulasi di browser** untuk membedakan tampilan DR dan KPw; ini bukan kontrol keamanan (kredensial sengaja publik). Keamanan sungguhan ada di mode Supabase (Auth + RLS).
+
+| Peran | Email | Kata sandi | Yang terlihat |
+|---|---|---|---|
+| DR (super koordinator) | `dr@sekar.demo` | `SekarDR#2026` | Seluruh KPwDN + Dashboard DR |
+| KPw | `kpw01@sekar.demo` … `kpw46@sekar.demo` | `SekarKPw#2026` | Hanya data KPw tersebut: hasil pemeriksaan, permindok, jadwal BPK/DAI/KAA, rekonsiliasi aset; SGo & ketentuan bersama |
+| Admin | `admin@sekar.demo` | `SekarAdmin#2026` | Seluruh data + halaman Admin dataset |
+
+Halaman login juga punya tombol "Isi" untuk mengisi akun contoh dengan satu klik. Keluar lewat ikon pengguna di kanan atas.
+
 ## Dataset simulasi
 
 `data/sekar-dummy.json` (v1.2) dibangkitkan secara deterministik oleh `node scripts/generate-dummy-data.mjs` dari paket awal `data/base/sekar-dummy-v1.json` (tidak diubah). Isinya: 46 KPw fiktif yang tersebar merata di 6 korwil + unit DR, **1.289 temuan** (1.265 KPw tahun 2022–2026 + 24 DR), **239 jadwal** (2025–2027, 30 tentatif), **872 permintaan dokumen**, **230 rekonsiliasi aset** (2023–2026), **24 kewajiban DR**, **32 materi** (worksheet, ketentuan, pedoman teknis, tutorial) dan 880 dokumen bukti/materi. Semua record bertanda `is_dummy`.
@@ -62,7 +74,7 @@ Untuk `test:e2e` dibutuhkan browser Chromium untuk Playwright (`npx playwright i
 
 Kontrol global di header (kanan atas):
 
-- **Ikon pengguna** — memilih **persona demo** (DR / KPw / Admin; hanya simulasi tampilan, *bukan* login dan *bukan* kontrol keamanan), mengubah **tanggal acuan** (default `metadata.as_of` = 5 Oktober 2026), dan tautan ke semua modul termasuk Dashboard DR dan Admin sesuai peran.
+- **Ikon pengguna** — menampilkan akun yang sedang masuk, tombol **Keluar** (kembali ke halaman login demo), mengubah **tanggal acuan** (default `metadata.as_of` = 5 Oktober 2026), dan tautan ke semua modul termasuk Dashboard DR dan Admin sesuai peran.
 - **Lonceng notifikasi** — jumlah jadwal yang mulai ≤ 7 hari, permindok dan temuan yang lewat tenggat (dihitung dari data).
 - Label **Mode Demo — Data Simulasi** selalu tampil. Di halaman Jadwal, kotak **Posisi Data** juga mengubah tanggal acuan.
 

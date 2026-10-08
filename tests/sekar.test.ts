@@ -7,6 +7,7 @@ import { barPosition, scheduleKpis, scheduleStatus, startsWithin, timelineWindow
 import { readAppConfig } from "@/lib/config";
 import { escapeCsvCell, toCsv } from "@/lib/csv";
 import { isValidISODate } from "@/lib/dates";
+import { DEMO_PASSWORDS, kpwEmail, signInDemo, viewerForDemoEmail } from "@/lib/demo-accounts";
 import { formatPercent, percent } from "@/lib/format";
 import { applyFindingStatus, updateFindingInDataset, updateRequestInDataset, validateRequestPatch } from "@/lib/mutations";
 import { DATASET_KEY, DummyRepository } from "@/lib/repository/dummy";
@@ -294,5 +295,35 @@ describe("CSV & konfigurasi", () => {
 
   it("filter ALL konstan", () => {
     expect(ALL).toBe("all");
+  });
+});
+
+describe("akun demo (login simulasi)", () => {
+  const units = ds().units;
+
+  it("DR, admin dan setiap KPw dapat masuk dengan kata sandi demo", () => {
+    expect(signInDemo("dr@sekar.demo", DEMO_PASSWORDS.dr, units)).toMatchObject({ role: "dr", unit_id: "dr" });
+    expect(signInDemo("ADMIN@sekar.demo ", DEMO_PASSWORDS.admin, units)).toMatchObject({ role: "admin" });
+    for (const u of units.filter((x) => x.id !== "dr")) {
+      expect(signInDemo(kpwEmail(u.id), DEMO_PASSWORDS.kpw, units)).toMatchObject({ role: "kpw", unit_id: u.id, name: u.name });
+    }
+  });
+
+  it("menolak kata sandi salah, email asing, dan kata sandi peran lain", () => {
+    expect(signInDemo("dr@sekar.demo", "salah", units)).toBe("Kata sandi salah.");
+    expect(signInDemo("kpw01@sekar.demo", DEMO_PASSWORDS.dr, units)).toBe("Kata sandi salah.");
+    expect(signInDemo("kpw99@sekar.demo", DEMO_PASSWORDS.kpw, units)).toBe("Email tidak terdaftar sebagai akun demo.");
+    expect(viewerForDemoEmail("orang@lain.id", units)).toBeNull();
+  });
+
+  it("akun KPw hanya melihat data unitnya sendiri", () => {
+    const v = viewerForDemoEmail("kpw07@sekar.demo", units)!;
+    const scoped = scopeDatasetForViewer(ds(), v);
+    for (const coll of [scoped.findings, scoped.document_requests, scoped.audit_schedules, scoped.asset_reconciliations]) {
+      expect(coll.length).toBeGreaterThan(0);
+      expect(new Set(coll.map((r) => r.unit_id))).toEqual(new Set(["kpw-07"]));
+    }
+    expect(scoped.compliance).toHaveLength(0);
+    expect(canAccessRoute("kpw", "/dr")).toBe(false);
   });
 });
