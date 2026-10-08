@@ -21,7 +21,11 @@ async function ready(page: Page, path: string, who: Who = "dr") {
   await page.goto(path);
   const loginHeading = page.getByRole("heading", { name: "Masuk ke akun Anda" });
   await expect(loginHeading.or(page.locator("#konten h1")).first()).toBeVisible();
-  if (await loginHeading.isVisible()) await login(page, who);
+  if (await loginHeading.isVisible()) {
+    await login(page, who);
+    await expect(page).toHaveURL(/\/$/);
+    if (path !== "/") await page.goto(path);
+  }
   await expect(page.getByText("Mode Demo — Data Simulasi").first()).toBeAttached();
   await expect(page.locator("#konten h1").first()).toBeVisible();
 }
@@ -53,7 +57,11 @@ test("login: kata sandi salah ditolak, akun DR dan KPw membedakan tampilan", asy
   // Sesi bertahan setelah muat ulang.
   await page.reload();
   await expect(page.getByText("DR · Super Koordinator")).toBeVisible();
+  // Keluar dari halaman modul lalu masuk sebagai KPw: selalu mendarat di beranda.
+  await page.goto("/permindok");
   await switchAccount(page, "kpw");
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole("navigation", { name: "Menu utama SEKAR" })).toBeVisible();
   await page.goto("/permindok");
   await expect(page.getByRole("status").filter({ hasText: "Masuk sebagai KPw Simulasi 01" })).toBeVisible();
 });

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { usePathname, useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { ArrowRight, Building2, Eye, EyeOff, FlaskConical, Loader2, Lock, Mail, ShieldCheck, UserCog } from "lucide-react";
 import { IndonesiaMap } from "@/components/map/IndonesiaMap";
@@ -16,6 +17,8 @@ const ACCOUNT_ICON = [ShieldCheck, Building2, UserCog];
  */
 export function LoginPage() {
   const { signIn, config } = useSekar();
+  const router = useRouter();
+  const pathname = usePathname();
   const demo = config.mode === "dummy";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -29,6 +32,8 @@ export function LoginPage() {
     setErr(null);
     const res = await signIn(email, password);
     setErr(res);
+    // Setelah masuk selalu mulai dari beranda (landing page), apa pun URL sebelumnya.
+    if (!res && pathname !== "/") router.replace("/");
     setBusy(false);
   };
 

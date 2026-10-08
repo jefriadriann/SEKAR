@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AlertTriangle, Bell, CalendarClock, ChevronRight, Download, FlaskConical, Loader2, LogOut, RotateCcw, UserRound, X } from "lucide-react";
 import { useSekar } from "@/components/providers/SekarProvider";
@@ -265,6 +265,7 @@ function UserMenu() {
   const { viewer, asOf, datasetAsOf, setAsOf, resetAsOf, signOut, retry, config } = useSekar();
   const { open, setOpen, ref } = usePopover();
   const pathname = usePathname();
+  const router = useRouter();
   if (!viewer) return null;
   const links = NAV_ITEMS.filter((n) => canAccessRoute(viewer.role, n.href));
   return (
@@ -341,6 +342,7 @@ function UserMenu() {
             onClick={async () => {
               setOpen(false);
               await signOut();
+              router.replace("/");
               if (config.mode === "supabase") retry();
             }}
           >
