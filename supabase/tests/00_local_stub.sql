@@ -23,3 +23,10 @@ alter table storage.objects enable row level security;
 grant usage on schema public, auth, storage to anon, authenticated;
 grant execute on function auth.uid(), auth.jwt() to anon, authenticated;
 grant select on storage.objects to authenticated;
+-- Seperti Supabase: objek baru di schema public otomatis diberi hak ke anon & authenticated.
+-- (Migration harus mencabut/menyetel ulang hak ini sendiri — diuji di 02_rls_check.sql.)
+alter default privileges in schema public grant all on tables to anon, authenticated;
+alter default privileges in schema public grant all on sequences to anon, authenticated;
+alter default privileges in schema public grant execute on functions to anon, authenticated;
+-- Minimal seperti Supabase Auth: faktor MFA pengguna.
+create table if not exists auth.mfa_factors (id uuid primary key, user_id uuid not null, factor_type text not null, status text not null);

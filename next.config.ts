@@ -1,4 +1,9 @@
 import type { NextConfig } from "next";
+import { resolveDataEnv } from "./config/data-env.cjs";
+
+/** Mode data yang sama dengan readAppConfig (env eksplisit > preview branch keamanan > dummy). */
+const dataEnv = resolveDataEnv(process.env) as Record<string, string | undefined>;
+const BUILD_MODE = (dataEnv.APP_DATA_MODE ?? "dummy").trim().toLowerCase() === "supabase" ? "supabase" : "dummy";
 
 /**
  * Security headers untuk seluruh rute.
@@ -12,7 +17,7 @@ import type { NextConfig } from "next";
  * lintas origin.
  */
 function supabaseOrigins(): string[] {
-  const raw = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  const raw = dataEnv.NEXT_PUBLIC_SUPABASE_URL?.trim();
   if (!raw) return [];
   try {
     const origin = new URL(raw).origin;
@@ -53,6 +58,8 @@ const SECURITY_HEADERS = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // Konstanta build: pada build Supabase, cabang kode demo (akun & dataset dummy) dibuang bundler.
+  env: { NEXT_PUBLIC_SEKAR_BUILD_MODE: BUILD_MODE },
   // Build e2e mode Supabase memakai direktori terpisah agar tidak menimpa build utama.
   distDir: process.env.NEXT_DIST_DIR || ".next",
   async headers() {

@@ -141,3 +141,32 @@ describe("pemindai secret (kontrol positif)", async () => {
     expect(scanText(`a="${anonJwt}" b="sb_publishable_abc123"`)).toEqual([]);
   });
 });
+
+describe("resolusi mode data per deployment (preview branch keamanan)", async () => {
+  const { resolveDataEnv, preview } = (await import("../config/data-env.cjs")) as {
+    resolveDataEnv: (env: Record<string, string | undefined>, cfg?: object) => Record<string, string | undefined>;
+    preview: { branches: string[]; supabaseUrl: string; supabaseAnonKey: string };
+  };
+  const cfg = { branches: ["claude/demo-aset-sgo-q2logj"], supabaseUrl: "https://abcdefghijklmnopqrst.supabase.co", supabaseAnonKey: "sb_publishable_contoh" };
+  const branch = cfg.branches[0];
+
+  it("hanya Preview dari branch terdaftar yang memakai proyek uji", () => {
+    expect(resolveDataEnv({ VERCEL_ENV: "preview", VERCEL_GIT_COMMIT_REF: branch }, cfg).APP_DATA_MODE).toBe("supabase");
+    expect(resolveDataEnv({ VERCEL_ENV: "preview", VERCEL_GIT_COMMIT_REF: "main" }, cfg).APP_DATA_MODE).toBeUndefined();
+    expect(resolveDataEnv({ VERCEL_ENV: "production", VERCEL_GIT_COMMIT_REF: branch }, cfg).APP_DATA_MODE).toBeUndefined();
+    expect(resolveDataEnv({}, cfg).APP_DATA_MODE).toBeUndefined();
+  });
+
+  it("variabel lingkungan eksplisit selalu didahulukan; konfigurasi kosong = dummy", () => {
+    expect(resolveDataEnv({ APP_DATA_MODE: "dummy", VERCEL_ENV: "preview", VERCEL_GIT_COMMIT_REF: branch }, cfg).APP_DATA_MODE).toBe("dummy");
+    expect(resolveDataEnv({ VERCEL_ENV: "preview", VERCEL_GIT_COMMIT_REF: branch }, { ...cfg, supabaseAnonKey: "" }).APP_DATA_MODE).toBeUndefined();
+    const c = readAppConfig({ VERCEL_ENV: "production", VERCEL_GIT_COMMIT_REF: branch });
+    expect(c.mode).toBe("dummy");
+  });
+
+  it("konfigurasi preview di repo hanya berisi nilai publik (bukan secret/service-role)", () => {
+    expect(preview.branches).toEqual(["claude/demo-aset-sgo-q2logj"]);
+    expect(privilegedKeyProblem({ NEXT_PUBLIC_SUPABASE_ANON_KEY: preview.supabaseAnonKey })).toBeNull();
+    if (preview.supabaseUrl) expect(preview.supabaseUrl).toMatch(/^https:\/\/[a-z0-9]{20}\.supabase\.co$/);
+  });
+});

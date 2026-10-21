@@ -1,0 +1,6 @@
+{
+  "$comment": "Konfigurasi Supabase PUBLIK untuk deployment Preview branch keamanan saja (proyek uji sekar-security-test). Hanya URL proyek dan publishable/anon key yang memang dikirim ke browser; JANGAN isi service-role/secret key. Tidak berlaku untuk Production. Variabel lingkungan Vercel (APP_DATA_MODE dkk.) selalu didahulukan.",
+  "branches": ["claude/demo-aset-sgo-q2logj"],
+  "supabaseUrl": "",
+  "supabaseAnonKey": ""
+}

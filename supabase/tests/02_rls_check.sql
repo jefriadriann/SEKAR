@@ -151,6 +151,15 @@ do $$ begin
 exception when check_violation then raise notice 'OK submitted_at < requested_at ditolak';
 end $$;
 
+-- ===================================================================== Hardening 0004
+reset role;
+select pg_temp.expect_bool('fungsi trigger tidak dapat dieksekusi anon', has_function_privilege('anon', 'public.findings_sync_completed()', 'execute'), false);
+select pg_temp.expect_bool('fungsi trigger tidak dapat dieksekusi authenticated', has_function_privilege('authenticated', 'public.guard_followup_columns()', 'execute'), false);
+create table public.uji_default_priv (id int);
+select pg_temp.expect_bool('tabel baru tidak otomatis bisa dibaca anon', has_table_privilege('anon', 'public.uji_default_priv', 'select'), false);
+drop table public.uji_default_priv;
+set role authenticated;
+
 -- ===================================================================== Admin
 select pg_temp.as_user('00000000-0000-0000-0000-00000000000a', 'aal1');
 select pg_temp.expect('admin aal1 user_access (hanya baris sendiri)', (select count(*) from public.user_access), 1);

@@ -5,9 +5,8 @@ import type { AppConfig } from "@/lib/config";
 import { isValidISODate } from "@/lib/dates";
 import { downloadText, downloadUrl } from "@/lib/download";
 import type { RequestPatch } from "@/lib/mutations";
-import { DummyRepository, PREFS_KEY } from "@/lib/repository/dummy";
+import { PREFS_KEY } from "@/lib/repository/storage-keys";
 import type { DatasetSource, DocumentContent, LoadResult, SekarRepository } from "@/lib/repository/types";
-import { signInDemo, viewerForDemoEmail } from "@/lib/demo-accounts";
 import { beginTotpEnrollment, listTotpFactors, removeTotpWithStepUp, verifyTotp, type TotpEnrollment, type TotpFactor } from "@/lib/auth/mfa";
 import { canOpenDocument, scopeDatasetForViewer } from "@/lib/scope";
 import type { ComplianceStatus, Dataset, FindingStatus, ISODate, SekarDocument, Viewer } from "@/lib/types";
@@ -139,8 +138,12 @@ export function SekarProvider({ config, children }: { config: AppConfig; childre
 
     async function init() {
       try {
-        if (config.mode === "dummy") {
-          const repo = (repoRef.current as DummyRepository | null) ?? new DummyRepository();
+        // Build Supabase: cabang demo dibuang saat build (konstanta), sehingga kode,
+        // akun demo, dan dataset dummy tidak ikut terkirim ke browser.
+        if (process.env.NEXT_PUBLIC_SEKAR_BUILD_MODE !== "supabase" && config.mode === "dummy") {
+          const { DummyRepository } = await import("@/lib/repository/dummy");
+          const { viewerForDemoEmail } = await import("@/lib/demo-accounts");
+          const repo = (repoRef.current as InstanceType<typeof DummyRepository> | null) ?? new DummyRepository();
           repoRef.current = repo;
           const res = await repo.load();
           if (cancelled) return;
@@ -152,6 +155,7 @@ export function SekarProvider({ config, children }: { config: AppConfig; childre
           setStatus(restored ? "ready" : "needs_login");
           return;
         }
+        if (config.mode !== "supabase") throw new Error("Build ini khusus mode Supabase; mode demo tidak tersedia.");
         // Mode Supabase: tidak ada fallback ke dummy bila gagal.
         const { SupabaseRepository } = await import("@/lib/repository/supabase");
         const repo = (repoRef.current as SupabaseRepo | null) ?? new SupabaseRepository(config.supabaseUrl, config.supabaseAnonKey);
@@ -242,7 +246,7 @@ export function SekarProvider({ config, children }: { config: AppConfig; childre
       try {
         const res = await fn(repo);
         setResult((prev) => ({ ...res, viewer: res.viewer ?? prev?.viewer }));
-        if (repo instanceof DummyRepository) setWarning(repo.warning);
+        if (repo.mode === "dummy") setWarning((repo as { warning?: string | null }).warning ?? null);
         notify(success, "success");
         return null;
       } catch (e) {
@@ -333,8 +337,9 @@ export function SekarProvider({ config, children }: { config: AppConfig; childre
 
   const signIn = useCallback(
     async (email: string, password: string) => {
-      if (config.mode === "dummy") {
+      if (process.env.NEXT_PUBLIC_SEKAR_BUILD_MODE !== "supabase" && config.mode === "dummy") {
         if (!fullDataset) return "Data demo belum siap.";
+        const { signInDemo } = await import("@/lib/demo-accounts");
         const res = signInDemo(email, password, fullDataset.units);
         if (typeof res === "string") return res;
         setDemoViewer(res);

@@ -9,6 +9,22 @@ Label status:
 - **PERLU PENGATURAN CLOUD** — hanya dapat diatur di dashboard GitHub/Vercel/Supabase/email oleh pemilik akun.
 - **BELUM TERVERIFIKASI** — belum dapat dibuktikan dari lingkungan ini.
 
+## 0. Pembaruan terbaru (integrasi Supabase uji + Preview)
+
+| Kontrol | Status |
+|---|---|
+| **Temuan baru (terbukti):** build mode Supabase masih membawa kata sandi akun demo dan seluruh dataset dummy sebagai berkas JS publik. Diperbaiki: mode data menjadi konstanta build (`NEXT_PUBLIC_SEKAR_BUILD_MODE`), kode/akun/dataset demo dimuat lewat `import()` pada cabang yang dibuang bundler; daftar akun demo dipisah ke `DemoAccountList`. Bundle Supabase 2,0 MB vs demo 4,3 MB | SUDAH DITERAPKAN, SUDAH DIUJI (`npm run security:supabase-bundle`, kontrol positif pada build demo) |
+| Mode Supabase tidak menampilkan akun demo; kredensial demo ditolak Supabase Auth; tidak ada data diminta | SUDAH DIUJI (e2e) |
+| Preview khusus branch `claude/demo-aset-sgo-q2logj`: `config/preview-supabase.json` (URL + publishable key PUBLIK) hanya berlaku bila `VERCEL_ENV=preview` dan branch cocok; Production tidak pernah memakainya; env Vercel eksplisit selalu didahulukan | SUDAH DITERAPKAN, SUDAH DIUJI (unit); nilai proyek BELUM DIISI |
+| Migration **0004**: `search_path` tetap untuk fungsi trigger, fungsi trigger tidak dapat dieksekusi langsung, objek baru di `public` tidak otomatis bisa diakses `anon` | SUDAH DITERAPKAN, SUDAH DIUJI (stub kini meniru grant default Supabase; tanpa 0004 uji gagal) |
+| `supabase/activate-mfa-enforcement.sql` (SQL Editor): penjaga (batal bila belum ada akun dengan TOTP terverifikasi) → 0003 → 0004 → 22 uji keamanan di Supabase sungguhan dalam subtransaksi yang selalu di-rollback | SUDAH DIUJI lokal; BELUM dijalankan di Supabase |
+| `supabase/tests/remote-verify.sql`: uji ulang kapan saja (read-only, rollback) | SUDAH DIUJI lokal |
+| CI kini berjalan di semua branch + menjalankan seluruh suite database | SUDAH DITERAPKAN; hasil di GitHub Actions |
+| Bootstrap MFA tanpa deadlock: pendaftaran faktor memakai Supabase Auth API (bukan tabel); policy 0003 tetap mengizinkan baris `user_access` sendiri pada aal1 | SUDAH DIUJI (uji #3 aktivasi, e2e enrollment) |
+| Gerbang MFA di browser memakai klaim `aal` dari JWT bertanda tangan (bukan flag `localStorage` aplikasi); mengubah sesi lokal hanya mengubah tampilan — data tetap ditolak RLS (setelah 0003) dan API | SUDAH DITERAPKAN |
+
+**Jendela risiko yang diketahui:** sampai 0003 diterapkan, database proyek uji belum menolak sesi aal1 (gerbang MFA baru ada di UI dan API dokumen). Hanya data dummy; tutup dengan menjalankan SQL aktivasi segera setelah MFA terdaftar.
+
 ## 1. Arsitektur & alur data
 
 ```
@@ -129,10 +145,11 @@ Tidak ada database lain, penyedia auth lain, upload pengguna, cookie sesi buatan
 
 | Perintah | Hasil |
 |---|---|
-| `npm run check` (typecheck, lint, 56 unit test, scan secret file, build, scan bundle) | Lulus |
+| `npm run check` (typecheck, lint, 59 unit test, scan secret file, build, scan bundle) | Lulus |
 | `npm run db:test-local` (PostgreSQL 16 + stub `auth`/`storage`) | 61 pemeriksaan RLS/MFA lulus + rollback/re-apply 0003 lulus. **Kontrol negatif:** tanpa 0003, tes gagal (KPw aal1 membaca 37 temuan) |
 | `npm run test:e2e` (mode demo, 15 skenario) | Lulus; header keamanan terverifikasi; 0 pelanggaran CSP |
-| `npm run test:e2e:supabase` (3 skenario MFA, Supabase ditiru di jaringan browser) | Lulus; tidak ada request data sebelum aal2; ganti kata sandi hanya terjadi dengan token aal2 |
+| `npm run test:e2e:supabase` (4 skenario, Supabase ditiru di jaringan browser; termasuk scan bundle tanpa akun/dataset demo) | Lulus; tidak ada request data sebelum aal2; ganti kata sandi hanya dengan token aal2; kredensial demo ditolak |
+| `npm run db:test-all` (RLS/MFA 64 cek, rollback 0003, seed minimal, aktivasi 22 uji, script seed) | Lulus — lokal, stub `auth`/`storage` |
 | Probe HTTP ke build produksi mode Supabase | Tanpa token 401, token palsu 401, `POST` 405, `Cache-Control: private, no-store`, log tanpa token |
 | `npm run security:secrets` / `security:history` / `security:bundle` | Tidak ada secret berhak istimewa (file, seluruh riwayat git, bundle `.next` & `.next-supabase`) |
 | `npm audit --omit=dev` | 0 kerentanan |

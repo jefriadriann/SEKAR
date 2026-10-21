@@ -124,3 +124,20 @@ test("reset kata sandi: tautan pemulihan tetap wajib MFA sebelum kata sandi dapa
   expect(s.passwordUpdates).toEqual([{ aal: "aal2" }]);
   expect(csp).toEqual([]);
 });
+
+test("mode Supabase: tidak ada akun demo dan kredensial demo ditolak tanpa membuka data", async ({ page }) => {
+  const csp = watchCsp(page);
+  const s = await mockSupabase(page, { factors: "one" });
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "Masuk ke akun Anda" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Akun demo" })).toHaveCount(0);
+  await expect(page.getByText("Mode Demo — Data Simulasi")).toHaveCount(0);
+  await page.getByLabel("Email").fill("admin@sekar.demo");
+  await page.getByLabel("Kata sandi", { exact: true }).fill("kata-sandi-akun-demo");
+  await page.getByRole("button", { name: "Masuk", exact: true }).click();
+  await expect(page.locator("form").getByRole("alert")).toContainText("Invalid login credentials");
+  await page.goto("/admin");
+  await expect(page.getByRole("heading", { name: "Masuk ke akun Anda" })).toBeVisible();
+  expect(s.dataRequests).toEqual([]);
+  expect(csp).toEqual([]);
+});

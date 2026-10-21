@@ -1,4 +1,5 @@
 import type { DataMode } from "./repository/types";
+import { resolveDataEnv } from "../../config/data-env.cjs";
 
 export interface AppConfig {
   mode: DataMode;
@@ -40,7 +41,8 @@ export function privilegedKeyProblem(env: Record<string, string | undefined>): s
  * Dibaca di server (root layout). APP_DATA_MODE default "dummy".
  * Hanya URL & anon key publik yang diteruskan ke browser.
  */
-export function readAppConfig(env: Record<string, string | undefined> = process.env): AppConfig {
+export function readAppConfig(rawEnv: Record<string, string | undefined> = process.env): AppConfig {
+  const env = resolveDataEnv(rawEnv) as Record<string, string | undefined>;
   const raw = (env.APP_DATA_MODE ?? "dummy").trim().toLowerCase() || "dummy";
   if (raw === "dummy") return { mode: "dummy" };
   if (raw === "supabase") {

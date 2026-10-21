@@ -58,6 +58,16 @@ Menu yang disembunyikan hanyalah kenyamanan UI; pembatasan data sebenarnya ada d
 
    Lalu build ulang/deploy ulang (variabel dibaca saat build).
 
+## Aktivasi enforcement MFA (setelah akun terpetakan mendaftarkan authenticator)
+
+1. Login ke website (Preview) dengan akun yang sudah dipetakan di `user_access`, daftarkan authenticator.
+2. SQL Editor → jalankan seluruh isi `supabase/activate-mfa-enforcement.sql` (dibangkitkan `npm run db:activation-sql`). Bila belum ada faktor TOTP terverifikasi, skrip berhenti dengan pesan `DIBATALKAN` tanpa perubahan.
+3. Hasil berupa tabel 22 baris; semua harus `LULUS`. Uji ulang kapan saja dengan `supabase/tests/remote-verify.sql` (tidak mengubah data).
+
+## Preview khusus branch keamanan
+
+`config/preview-supabase.json` berisi URL proyek uji dan publishable/anon key (nilai publik) untuk branch `claude/demo-aset-sgo-q2logj`. Hanya berlaku pada deployment Vercel Preview branch tersebut (`VERCEL_ENV=preview`); Production tetap mode dummy. Bila variabel `APP_DATA_MODE` / `NEXT_PUBLIC_SUPABASE_*` diatur di Vercel, nilai itu yang dipakai.
+
 ## Daftar uji yang masih harus dilakukan di Supabase nyata
 
 - Login → wajib daftar authenticator; sebelum MFA, REST `/rest/v1/findings` dengan token aal1 harus mengembalikan `[]`.

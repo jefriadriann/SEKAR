@@ -6,6 +6,8 @@
  *   node scripts/check-secrets.mjs            # file yang dilacak git
  *   node scripts/check-secrets.mjs --bundle   # aset browser hasil build (.next/static, .next-supabase/static)
  *   node scripts/check-secrets.mjs --history  # seluruh riwayat git (git log -p --all)
+ *   node scripts/check-secrets.mjs --supabase-bundle  # build mode Supabase (.next-supabase/static) tidak
+ *                                             # boleh memuat kredensial akun demo maupun dataset dummy
  *
  * Keluar dengan kode 1 bila ada temuan.
  */
@@ -60,7 +62,30 @@ const BINARY = /\.(png|jpe?g|webp|gif|ico|mp4|webm|pdf|xlsx|woff2?|ttf)$/i;
 function main() {
   const mode = process.argv[2] ?? "--tracked";
   const findings = [];
-  if (mode === "--bundle") {
+  if (mode === "--supabase-bundle") {
+    if (!existsSync(".next-supabase/static")) {
+      console.error("Tidak ada build Supabase. Jalankan `npm run build:e2e-supabase` dulu.");
+      process.exit(2);
+    }
+    // Penanda: kata sandi akun demo (dibaca dari sumber, tidak dicetak) + ID khas dataset dummy.
+    const demoSrc = readFileSync("src/lib/demo-accounts.ts", "utf8");
+    const block = demoSrc.slice(demoSrc.indexOf("DEMO_PASSWORDS"), demoSrc.indexOf("} as const", demoSrc.indexOf("DEMO_PASSWORDS")));
+    const markers = [
+      ...[...block.matchAll(/:\s*"([^"]{6,})"/g)].map((m) => ["demo-password", m[1]]),
+      ["dummy-dataset", "TMN-1277"],
+      ["dummy-dataset", "ASI-00578"],
+      ["dummy-dataset", "Departemen Regional — Simulasi"],
+    ];
+    if (markers.filter(([k]) => k === "demo-password").length < 2) {
+      console.error("Penanda kata sandi demo tidak terbaca dari src/lib/demo-accounts.ts.");
+      process.exit(2);
+    }
+    for (const f of walk(".next-supabase/static").filter((f) => !BINARY.test(f))) {
+      const text = readFileSync(f, "utf8");
+      for (const [rule, needle] of markers) if (text.includes(needle)) findings.push({ file: f, rule, line: "-" });
+    }
+    console.log("Dipindai: .next-supabase/static (kredensial demo & dataset dummy).");
+  } else if (mode === "--bundle") {
     const roots = [".next/static", ".next-supabase/static"].filter(existsSync);
     if (!roots.length) {
       console.error("Tidak ada build. Jalankan `npm run build` dulu.");

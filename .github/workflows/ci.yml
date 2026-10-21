@@ -6,8 +6,8 @@
 name: CI
 
 on:
+  # Semua branch (termasuk branch keamanan yang di-deploy sebagai Preview) + PR.
   push:
-    branches: [main]
   pull_request:
 
 permissions:
@@ -37,10 +37,19 @@ jobs:
 
   database-rls:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - name: Migration + seed + uji RLS/MFA (PostgreSQL lokal sementara)
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Migration + seed + uji RLS/MFA, rollback 0003, hardening 0004
         run: bash supabase/tests/run-local.sh
+      - name: Seed minimal (idempoten, isolasi antarunit, kompatibel seed lengkap)
+        run: bash supabase/tests/seed-minimal-local.sh
+      - name: SQL aktivasi MFA (penjaga, 22 uji, idempoten)
+        run: bash supabase/tests/activation-local.sh
+      - name: Script seed remote (target, transaksi, verifikasi)
+        run: bash supabase/tests/seed-script-local.sh

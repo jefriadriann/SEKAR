@@ -8,10 +8,9 @@ import { updateComplianceInDataset, updateFindingInDataset, updateRequestInDatas
 import { validateDataset } from "../validation";
 import { documentFilename, documentText, fileUrlName, type DatasetSource, type DocumentContent, type LoadResult, type SekarRepository } from "./types";
 
-export const STORAGE_NAMESPACE = "sekar-demo";
-export const STORAGE_VERSION = 3;
-export const DATASET_KEY = `${STORAGE_NAMESPACE}:v${STORAGE_VERSION}:dataset`;
-export const PREFS_KEY = `${STORAGE_NAMESPACE}:v${STORAGE_VERSION}:prefs`;
+import { DATASET_KEY, PREFS_KEY, STORAGE_NAMESPACE, STORAGE_VERSION } from "./storage-keys";
+
+export { DATASET_KEY, PREFS_KEY, STORAGE_NAMESPACE, STORAGE_VERSION };
 
 let seedCache: Dataset | null = null;
 
