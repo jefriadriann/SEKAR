@@ -1,0 +1,46 @@
+# CI keamanan & kualitas. Prinsip:
+# - izin token minimum (contents: read), tanpa secret apa pun;
+# - memakai `pull_request` (bukan `pull_request_target`) sehingga kode PR dari
+#   fork tidak pernah berjalan dengan akses secret/token tulis;
+# - checkout tanpa menyimpan kredensial git.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Typecheck, lint, unit test, secret scan, build, bundle scan
+        run: npm run check
+      - name: Audit dependency produksi
+        run: npm audit --omit=dev --audit-level=high
+
+  database-rls:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Migration + seed + uji RLS/MFA (PostgreSQL lokal sementara)
+        run: bash supabase/tests/run-local.sh

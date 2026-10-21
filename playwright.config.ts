@@ -4,6 +4,8 @@ const PORT = Number(process.env.E2E_PORT ?? 3200);
 
 export default defineConfig({
   testDir: "./e2e",
+  // mfa.spec.ts butuh build mode Supabase — lihat playwright.supabase.config.ts.
+  testIgnore: "mfa.spec.ts",
   timeout: 60_000,
   fullyParallel: false,
   workers: 1,

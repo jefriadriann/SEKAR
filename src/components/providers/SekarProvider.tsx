@@ -8,10 +8,37 @@ import type { RequestPatch } from "@/lib/mutations";
 import { DummyRepository, PREFS_KEY } from "@/lib/repository/dummy";
 import type { DatasetSource, DocumentContent, LoadResult, SekarRepository } from "@/lib/repository/types";
 import { signInDemo, viewerForDemoEmail } from "@/lib/demo-accounts";
+import { beginTotpEnrollment, listTotpFactors, removeTotpWithStepUp, verifyTotp, type TotpEnrollment, type TotpFactor } from "@/lib/auth/mfa";
 import { canOpenDocument, scopeDatasetForViewer } from "@/lib/scope";
 import type { ComplianceStatus, Dataset, FindingStatus, ISODate, SekarDocument, Viewer } from "@/lib/types";
 
-export type AppStatus = "loading" | "ready" | "error" | "config_error" | "needs_login" | "unmapped";
+export type AppStatus =
+  | "loading"
+  | "ready"
+  | "error"
+  | "config_error"
+  | "needs_login"
+  | "unmapped"
+  /** Mode Supabase: sudah login password (aal1), wajib mendaftarkan authenticator. */
+  | "needs_mfa_enroll"
+  /** Mode Supabase: sudah login password (aal1), wajib memasukkan kode authenticator. */
+  | "needs_mfa_challenge"
+  /** Mode Supabase: datang dari tautan reset dan sudah aal2 — wajib menetapkan kata sandi baru. */
+  | "password_reset";
+
+/** Kontrol MFA & akun (hanya mode Supabase). Seluruh operasi memakai Supabase Auth. */
+export interface MfaControls {
+  /** Faktor TOTP terverifikasi (untuk layar challenge / halaman keamanan). */
+  factors: TotpFactor[];
+  refreshFactors: () => Promise<TotpFactor[]>;
+  beginEnrollment: () => Promise<TotpEnrollment>;
+  /** Mengembalikan pesan error atau null bila sukses (sesi menjadi aal2). */
+  verify: (factorId: string, code: string) => Promise<string | null>;
+  removeFactor: (input: { factorId: string; stepUpFactorId: string; code: string }) => Promise<string | null>;
+  requestPasswordReset: (email: string) => Promise<void>;
+  updatePassword: (password: string) => Promise<string | null>;
+  signOutOthers: () => Promise<string | null>;
+}
 
 export interface Toast {
   id: number;
@@ -49,6 +76,8 @@ interface SekarContextValue {
   signIn: (email: string, password: string) => Promise<string | null>;
   signOut: () => Promise<void>;
   retry: () => void;
+  /** null pada mode dummy. */
+  mfa: MfaControls | null;
 }
 
 const SekarContext = createContext<SekarContextValue | null>(null);
@@ -89,7 +118,10 @@ export function SekarProvider({ config, children }: { config: AppConfig; childre
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [previewDoc, setPreviewDoc] = useState<SekarContextValue["previewDoc"]>(null);
   const [reloadKey, setReloadKey] = useState(0);
+  const [factors, setFactors] = useState<TotpFactor[]>([]);
   const toastId = useRef(0);
+  /** Sesi berasal dari tautan reset kata sandi (event PASSWORD_RECOVERY). */
+  const recoveryRef = useRef(false);
 
   const notify = useCallback((message: string, tone: Toast["tone"] = "success") => {
     const id = ++toastId.current;
@@ -125,7 +157,9 @@ export function SekarProvider({ config, children }: { config: AppConfig; childre
         const repo = (repoRef.current as SupabaseRepo | null) ?? new SupabaseRepository(config.supabaseUrl, config.supabaseAnonKey);
         repoRef.current = repo;
         const { data: sub } = repo.client.auth.onAuthStateChange((event) => {
-          if (event === "SIGNED_IN" || event === "SIGNED_OUT") {
+          if (event === "PASSWORD_RECOVERY") recoveryRef.current = true;
+          if (event === "SIGNED_OUT") recoveryRef.current = false;
+          if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "MFA_CHALLENGE_VERIFIED" || event === "PASSWORD_RECOVERY") {
             setStatus("loading");
             setReloadKey((k) => k + 1);
           }
@@ -134,7 +168,22 @@ export function SekarProvider({ config, children }: { config: AppConfig; childre
         const { data } = await repo.client.auth.getSession();
         if (cancelled) return;
         if (!data.session) {
+          setResult(null);
           setStatus("needs_login");
+          return;
+        }
+        // MFA wajib sebelum data apa pun dimuat (RLS juga menolak sesi aal1).
+        const gate = await repo.mfaGate();
+        if (cancelled) return;
+        if (gate.kind !== "ok") {
+          setResult(null);
+          setFactors(gate.kind === "challenge" ? gate.factors : []);
+          setStatus(gate.kind === "enroll" ? "needs_mfa_enroll" : "needs_mfa_challenge");
+          return;
+        }
+        if (recoveryRef.current) {
+          setResult(null);
+          setStatus("password_reset");
           return;
         }
         const viewer = await repo.getViewer();
@@ -311,9 +360,69 @@ export function SekarProvider({ config, children }: { config: AppConfig; childre
       return;
     }
     const repo = repoRef.current as SupabaseRepo | null;
-    if (repo?.mode === "supabase") await repo.client.auth.signOut();
+    recoveryRef.current = false;
+    setPreviewDoc(null);
     setResult(null);
+    setFactors([]);
+    if (repo?.mode === "supabase") await repo.client.auth.signOut();
+    setStatus("needs_login");
   }, [config.mode, persistPrefs]);
+
+  const supabaseRepo = useCallback(() => {
+    const repo = repoRef.current as SupabaseRepo | null;
+    if (!repo || repo.mode !== "supabase") throw new Error("Layanan autentikasi belum siap.");
+    return repo;
+  }, []);
+  const reload = useCallback(() => {
+    setStatus("loading");
+    setReloadKey((k) => k + 1);
+  }, []);
+  const mfa: MfaControls | null = useMemo(() => {
+    if (config.mode !== "supabase") return null;
+    const attempt = async (fn: () => Promise<unknown>): Promise<string | null> => {
+      try {
+        await fn();
+        return null;
+      } catch (e) {
+        return (e as Error).message;
+      }
+    };
+    return {
+      factors,
+      refreshFactors: async () => {
+        const { verified } = await listTotpFactors(supabaseRepo().mfa);
+        setFactors(verified);
+        return verified;
+      },
+      beginEnrollment: () => beginTotpEnrollment(supabaseRepo().mfa, "Authenticator SEKAR"),
+      verify: async (factorId, code) => {
+        const err = await attempt(() => verifyTotp(supabaseRepo().mfa, factorId, code));
+        if (!err) reload();
+        return err;
+      },
+      removeFactor: async (input) => {
+        const repo = supabaseRepo();
+        const err = await attempt(async () => {
+          await removeTotpWithStepUp(repo.mfa, input);
+          // Perbarui token agar daftar faktor/aal di sesi segera mutakhir.
+          await repo.client.auth.refreshSession();
+        });
+        if (!err) setFactors((await listTotpFactors(repo.mfa)).verified);
+        return err;
+      },
+      requestPasswordReset: (email) => supabaseRepo().requestPasswordReset(email, `${window.location.origin}/`),
+      updatePassword: async (password) => {
+        const err = await attempt(() => supabaseRepo().updatePassword(password));
+        if (!err) {
+          recoveryRef.current = false;
+          await supabaseRepo().client.auth.signOut();
+          notify("Kata sandi diperbarui. Silakan masuk kembali.", "success");
+        }
+        return err;
+      },
+      signOutOthers: () => attempt(() => supabaseRepo().signOutOthers()),
+    };
+  }, [config.mode, factors, supabaseRepo, reload, notify]);
 
   const value: SekarContextValue = {
     config,
@@ -342,10 +451,8 @@ export function SekarProvider({ config, children }: { config: AppConfig; childre
     dismissToast,
     signIn,
     signOut,
-    retry: () => {
-      setStatus("loading");
-      setReloadKey((k) => k + 1);
-    },
+    retry: reload,
+    mfa,
   };
 
   return <SekarContext.Provider value={value}>{children}</SekarContext.Provider>;

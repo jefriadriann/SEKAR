@@ -7,7 +7,7 @@
  */
 import { DR_UNIT_ID, type Dataset, type Role, type Viewer } from "./types";
 
-export type AppRoute = "/" | "/hasil-pemeriksaan" | "/permindok" | "/jadwal-pemeriksaan" | "/sgo-ketentuan" | "/dr" | "/admin";
+export type AppRoute = "/" | "/hasil-pemeriksaan" | "/permindok" | "/jadwal-pemeriksaan" | "/sgo-ketentuan" | "/dr" | "/admin" | "/keamanan";
 
 const ROUTE_ROLES: Record<AppRoute, Role[]> = {
   "/": ["dr", "kpw", "admin"],
@@ -17,6 +17,7 @@ const ROUTE_ROLES: Record<AppRoute, Role[]> = {
   "/sgo-ketentuan": ["dr", "kpw", "admin"],
   "/dr": ["dr", "admin"],
   "/admin": ["admin"],
+  "/keamanan": ["dr", "kpw", "admin"],
 };
 
 export function canAccessRoute(role: Role, route: AppRoute): boolean {

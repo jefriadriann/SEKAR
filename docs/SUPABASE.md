@@ -8,14 +8,15 @@ Jangan memasukkan data audit riil. Seed hanya berisi data simulasi.
 
 | Aspek | Penerapan |
 |---|---|
-| Autentikasi | Supabase Auth (email + kata sandi) di halaman masuk aplikasi |
+| Autentikasi | Supabase Auth (email + kata sandi) + **MFA TOTP wajib** untuk semua peran (pendaftaran, challenge, kelola faktor di `/keamanan`, reset kata sandi tetap lewat MFA) |
+| AAL2 | Policy RESTRICTIVE `*_require_aal2` (migration 0003) di setiap tabel data & bucket storage: JWT tanpa `aal=aal2` tidak dapat membaca/menulis apa pun, apa pun perannya. Pengecualian: baris `user_access` milik sendiri boleh dibaca pada aal1 |
 | Peran & unit | Tabel `public.user_access` (role `dr`/`kpw`/`admin`, `unit_id`). Hanya admin yang dapat insert/update/delete. Tidak memakai `user_metadata` yang dapat diubah pengguna |
 | Akun baru | Tanpa baris `user_access` ⇒ tidak dapat membaca data apa pun (aplikasi menampilkan "Akun belum memiliki akses") |
 | RLS | Aktif di semua tabel; policy per operasi. KPw hanya unit sendiri + materi `shared`; DR & admin semua unit; `compliance_items` hanya DR/admin; anon tidak memiliki hak |
 | Kolom | Trigger membatasi non-admin hanya mengubah kolom tindak lanjut; KPw tidak dapat mengubah catatan DR |
 | Konsistensi | `completed_at` mengikuti status (trigger); `submitted_at ≥ requested_at`, `total = rekonsiliasi + selisih` (constraint) |
 | Storage | Bucket privat `sekar-documents`, path `<scope>/<file>`; `dr/…` hanya DR/admin; `kpw-xx/…` sesuai unit; `shared/…` semua pengguna yang dipetakan |
-| Signed URL | `GET /api/documents/[id]/signed-url` memvalidasi token sesi, membaca dokumen dengan token pengguna (RLS), lalu membuat signed URL 60 detik memakai token pengguna (policy storage berlaku) |
+| Signed URL | `GET /api/documents/[id]/signed-url`: token diverifikasi dengan `getClaims` (tanda tangan + kedaluwarsa), wajib `aal2`, ID divalidasi, rate limit per pengguna di Postgres (`consume_rate_limit`), dokumen dibaca dengan token pengguna (RLS), signed URL 60 detik dibuat dengan token pengguna (policy storage berlaku). Respons `private, no-store` |
 | Secret | Hanya `NEXT_PUBLIC_SUPABASE_URL` & `NEXT_PUBLIC_SUPABASE_ANON_KEY` (publik). Service-role key tidak dipakai dan tidak boleh ada di browser/`NEXT_PUBLIC_*` |
 | Kegagalan | Jika konfigurasi kurang atau query gagal, aplikasi menampilkan error — **tidak** beralih diam-diam ke dummy |
 
@@ -24,7 +25,7 @@ Menu yang disembunyikan hanyalah kenyamanan UI; pembatasan data sebenarnya ada d
 ## Langkah penyiapan
 
 1. Buat proyek di <https://supabase.com> (gunakan proyek uji terlebih dahulu).
-2. Buka **SQL Editor**, jalankan seluruh isi `supabase/migrations/0001_sekar_schema.sql`.
+2. Buka **SQL Editor**, jalankan berurutan `supabase/migrations/0001_sekar_schema.sql`, `0002_asset_items_materials.sql`, lalu `0003_mfa_aal2_rate_limit.sql` (atau `supabase db push` bila memakai Supabase CLI). Urutan penerapan & rollback 0003: lihat `SECURITY.md`.
 3. (Opsional) perbarui seed: `npm run db:seed-sql`, lalu jalankan isi `supabase/seed.sql` di SQL Editor.
 4. **Authentication → Providers**: aktifkan Email. Disarankan menonaktifkan pendaftaran publik (**Allow new users to sign up** = off) dan mengundang pengguna dari dashboard.
 5. Buat/undang akun pengguna di **Authentication → Users**. Seed tidak membuat akun atau kata sandi.
@@ -49,6 +50,10 @@ Menu yang disembunyikan hanyalah kenyamanan UI; pembatasan data sebenarnya ada d
 
 ## Daftar uji yang masih harus dilakukan di Supabase nyata
 
+- Login → wajib daftar authenticator; sebelum MFA, REST `/rest/v1/findings` dengan token aal1 harus mengembalikan `[]`.
+- Login dengan faktor → challenge; kode salah ditolak; setelah benar data tampil.
+- Hapus faktor memerlukan kode; faktor terakhir tidak dapat dihapus.
+- Reset kata sandi dari tautan email tetap meminta kode MFA sebelum kata sandi baru dapat disimpan.
 - Login dengan akun DR, KPw, admin, dan akun yang belum dipetakan.
 - Pastikan KPw tidak dapat membaca temuan/dokumen DR maupun unit lain lewat REST (`/rest/v1/findings?unit_id=eq.dr`).
 - Pastikan signed URL dokumen DR ditolak untuk KPw.

@@ -9,6 +9,8 @@ const eslintConfig = defineConfig([
   globalIgnores([
     // Default ignores of eslint-config-next:
     ".next/**",
+    // Build e2e mode Supabase (npm run build:e2e-supabase).
+    ".next-supabase/**",
     "out/**",
     "build/**",
     "next-env.d.ts",

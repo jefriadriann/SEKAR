@@ -16,3 +16,10 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Modul KPw selalu memakai `kpwModuleData()` sehingga data unit `dr` tidak pernah masuk.
 - Sebelum commit: `npm run check`; bila UI berubah, `npm run build && npm run test:e2e`.
 - Bila mengubah skema Supabase: perbarui migration, `npm run db:seed-sql`, dan `npm run db:test-local`.
+
+# Keamanan (lihat SECURITY.md)
+
+- Mode `supabase`: MFA (TOTP, aal2) wajib untuk semua peran. Penegakan di database (policy RESTRICTIVE `*_require_aal2`, migration 0003) dan di API (`src/lib/server/signed-url.ts`); UI hanya membantu. Jangan menambah tabel/route data tanpa policy aal2 + RLS peran/unit dan tes di `supabase/tests/02_rls_check.sql`.
+- Jangan memakai service-role key di aplikasi/browser; route server memakai token pengguna agar RLS tetap berlaku.
+- Jangan menambah bypass MFA, akun istimewa tersembunyi, atau logging token/secret/QR MFA.
+- Sebelum commit: `npm run check` (termasuk pemindaian secret file & bundle). Bila auth/DB berubah: `npm run db:test-local` dan `npm run test:e2e:supabase`.

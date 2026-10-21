@@ -16,7 +16,8 @@ const ACCOUNT_ICON = [ShieldCheck, Building2, UserCog];
  * Mode Supabase: Supabase Auth; akses data ditentukan RLS.
  */
 export function LoginPage() {
-  const { signIn, config } = useSekar();
+  const { signIn, config, mfa } = useSekar();
+  const [forgot, setForgot] = useState<"idle" | "form" | "sent">("idle");
   const router = useRouter();
   const pathname = usePathname();
   const demo = config.mode === "dummy";
@@ -134,6 +135,38 @@ export function LoginPage() {
               {!busy && <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden />}
             </button>
           </form>
+
+          {!demo && mfa && (
+            <div className="mt-4 text-[14px]">
+              {forgot === "idle" && (
+                <button type="button" className="font-semibold text-sky-700 underline" onClick={() => setForgot("form")}>
+                  Lupa kata sandi?
+                </button>
+              )}
+              {forgot === "form" && (
+                <form
+                  className="space-y-2 rounded-xl border border-line bg-[#f7f9fd] p-3"
+                  aria-label="Reset kata sandi"
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    // Respons selalu sama agar keberadaan akun tidak terungkap.
+                    await mfa.requestPasswordReset(email).catch(() => undefined);
+                    setForgot("sent");
+                  }}
+                >
+                  <p className="text-navy-900">Tautan reset dikirim ke email di atas. Setelah membuka tautan, Anda tetap wajib memasukkan kode authenticator.</p>
+                  <button type="submit" disabled={!email} className="rounded-lg bg-[#13235a] px-3 py-1.5 font-semibold text-white disabled:opacity-50">
+                    Kirim tautan reset
+                  </button>
+                </form>
+              )}
+              {forgot === "sent" && (
+                <p role="status" className="text-navy-900">
+                  Jika email terdaftar, tautan reset telah dikirim. Periksa kotak masuk Anda.
+                </p>
+              )}
+            </div>
+          )}
 
           {demo && (
             <section aria-labelledby="akun-demo" className="mt-8">

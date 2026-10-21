@@ -38,9 +38,35 @@ async function switchAccount(page: Page, who: Who) {
   await login(page, who);
 }
 
+let cspViolations: string[] = [];
 test.beforeEach(async ({ page }) => {
+  cspViolations = [];
+  page.on("console", (m) => {
+    if (/Content Security Policy/i.test(m.text())) cspViolations.push(m.text());
+  });
   await page.goto("/");
   await page.evaluate(() => localStorage.clear());
+});
+
+test.afterEach(() => {
+  // CSP ditegakkan (bukan report-only): setiap pelanggaran berarti fitur rusak.
+  expect(cspViolations).toEqual([]);
+});
+
+test("security headers terpasang dan tidak ada header X-Powered-By", async ({ request }) => {
+  const res = await request.get("/");
+  const h = res.headers();
+  expect(h["content-security-policy"]).toContain("default-src 'self'");
+  expect(h["content-security-policy"]).toContain("object-src 'none'");
+  expect(h["content-security-policy"]).toContain("frame-ancestors 'self'");
+  expect(h["x-content-type-options"]).toBe("nosniff");
+  expect(h["x-frame-options"]).toBe("SAMEORIGIN");
+  expect(h["referrer-policy"]).toBe("strict-origin-when-cross-origin");
+  expect(h["strict-transport-security"]).toContain("max-age=");
+  expect(h["x-powered-by"]).toBeUndefined();
+  const api = await request.get("/api/documents/DOC-0001/signed-url");
+  expect(api.status()).toBe(404); // mode dummy: endpoint tidak aktif
+  expect(api.headers()["cache-control"]).toContain("no-store");
 });
 
 test("login: kata sandi salah ditolak, akun DR dan KPw membedakan tampilan", async ({ page }) => {

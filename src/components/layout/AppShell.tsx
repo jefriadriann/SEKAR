@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { AlertTriangle, Bell, CalendarClock, ChevronRight, Download, FlaskConical, Loader2, LogOut, RotateCcw, UserRound, X } from "lucide-react";
+import { AlertTriangle, Bell, CalendarClock, ChevronRight, Download, FlaskConical, KeyRound, Loader2, LogOut, RotateCcw, UserRound, X } from "lucide-react";
 import { useSekar } from "@/components/providers/SekarProvider";
 import { Drawer } from "@/components/ui/Overlay";
 import { Badge, Button, Card, cx, SimulationNote, Skeleton } from "@/components/ui/primitives";
@@ -17,6 +17,7 @@ import { fileKind } from "@/lib/materials";
 import { MaterialViewer } from "@/components/domain/MaterialViewer";
 import { canAccessRoute, kpwModuleData, type AppRoute } from "@/lib/scope";
 import { LoginPage } from "@/components/auth/LoginPage";
+import { MfaGateScreen } from "@/components/auth/MfaScreens";
 import { NAV_ITEMS } from "./nav";
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -26,6 +27,14 @@ export function AppShell({ children }: { children: ReactNode }) {
   const homeVisible = isHome && status === "ready";
   const moduleKey = pathname.split("/")[1] || "home";
   // Sebelum masuk, seluruh layar menampilkan halaman login (tanpa header aplikasi).
+  // Sesi belum MFA (aal1) atau sedang reset kata sandi: layar penuh tanpa data dan tanpa menu modul.
+  if (status === "needs_mfa_enroll" || status === "needs_mfa_challenge" || status === "password_reset")
+    return (
+      <>
+        <MfaGateScreen />
+        <Toasts />
+      </>
+    );
   if (status === "needs_login" || status === "loading")
     return (
       <>
@@ -336,6 +345,19 @@ function UserMenu() {
                   </Link>
                 </li>
               ))}
+              {config.mode === "supabase" && (
+                <li>
+                  <Link
+                    href="/keamanan"
+                    onClick={() => setOpen(false)}
+                    aria-current={pathname === "/keamanan" ? "page" : undefined}
+                    className="flex items-center gap-2 rounded-lg px-2 py-1.5 font-semibold text-navy-900 hover:bg-sky-50"
+                  >
+                    <KeyRound className="h-4 w-4 text-[var(--m2)]" aria-hidden />
+                    Keamanan akun (MFA)
+                  </Link>
+                </li>
+              )}
             </ul>
           </nav>
           <Button

@@ -17,3 +17,4 @@ PSQL=("${RUNAS[@]}" "$PGBIN/psql" -h "$WORK" -p "$PORT" -U postgres -d postgres 
 for m in "$ROOT"/supabase/migrations/*.sql; do "${PSQL[@]}" -c "set client_min_messages=warning" -f "$m"; done
 "${PSQL[@]}" -f "$ROOT/supabase/seed.sql"
 "${PSQL[@]}" -f "$ROOT/supabase/tests/02_rls_check.sql" 2>&1 | sed 's/^psql:[^ ]* NOTICE:  /  /'
+(cd "$ROOT" && "${PSQL[@]}" -f "$ROOT/supabase/tests/03_rollback_check.sql" 2>&1 | sed 's/^psql:[^ ]* NOTICE:  /  /')

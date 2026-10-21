@@ -58,7 +58,11 @@ Logo SEKAR berada di `public/brand/` (logo penuh & emblem) serta `src/app/icon.p
 | `npm run build` | Build produksi Next.js |
 | `npm run check` | Menjalankan keempat perintah di atas berurutan |
 | `npm run test:e2e` | Smoke test Playwright pada seluruh halaman (jalankan `npm run build` dulu) |
-| `npm run db:test-local` | Menguji migration + seed + RLS Supabase pada PostgreSQL lokal sementara (butuh `initdb`/`pg_ctl`) |
+| `npm run db:test-local` | Menguji migration + seed + RLS/MFA Supabase pada PostgreSQL lokal sementara (butuh `initdb`/`pg_ctl`) |
+| `npm run test:e2e:supabase` | E2E alur MFA mode Supabase (Supabase ditiru di jaringan browser) |
+| `npm run security:secrets` / `security:bundle` / `security:history` | Pemindaian secret pada file, bundle browser, dan riwayat git (nilai tidak dicetak) |
+
+Keamanan (MFA, RLS, header, rotasi, pengaturan cloud): lihat [SECURITY.md](SECURITY.md).
 
 Untuk `test:e2e` dibutuhkan browser Chromium untuk Playwright (`npx playwright install chromium` bila belum ada).
 
@@ -142,7 +146,7 @@ Mode Supabase **belum diaktifkan dan belum diuji terhadap proyek Supabase nyata*
 
 - `supabase/migrations/0001_sekar_schema.sql` — tabel, constraint, trigger, RLS untuk SELECT/INSERT/UPDATE/DELETE di setiap tabel (termasuk `documents` dan `reference_materials`), bucket storage privat beserta policy.
 - `supabase/seed.sql` — dibuat dari JSON dengan `npm run db:seed-sql`; tidak membuat akun Auth atau kata sandi.
-- `npm run db:test-local` — menjalankan migration + seed + 27 pemeriksaan RLS pada PostgreSQL lokal dengan *stub* skema `auth`/`storage`. Ini memvalidasi SQL dan logika policy, **bukan** pengganti uji integrasi di Supabase sungguhan.
+- `npm run db:test-local` — menjalankan migration + seed + 61 pemeriksaan RLS/MFA (aal1 vs aal2) pada PostgreSQL lokal dengan *stub* skema `auth`/`storage`. Ini memvalidasi SQL dan logika policy, **bukan** pengganti uji integrasi di Supabase sungguhan.
 
 Langkah lengkap ada di [docs/SUPABASE.md](docs/SUPABASE.md).
 

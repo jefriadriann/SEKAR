@@ -10,10 +10,13 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { ComplianceStatus, Dataset, DatasetMetadata, FindingStatus, ISODate, SekarDocument, Viewer } from "../types";
 import { applyFindingStatus, replaceById, validateRequestPatch, type RequestPatch } from "../mutations";
 import { documentFilename, documentText, fileUrlName, type DocumentContent, type LoadResult, type SekarRepository } from "./types";
+import { readMfaGate, type MfaApi, type MfaGate } from "../auth/mfa";
 
 const PAGE = 1000;
 
 export class SupabaseConfigError extends Error {}
+/** Sesi belum aal2: data tidak dimuat (RLS juga akan menolak). */
+export class MfaRequiredError extends Error {}
 
 export class SupabaseRepository implements SekarRepository {
   readonly mode = "supabase" as const;
@@ -39,6 +42,30 @@ export class SupabaseRepository implements SekarRepository {
     }
   }
 
+  get mfa(): MfaApi {
+    return this.client.auth.mfa;
+  }
+
+  mfaGate(): Promise<MfaGate> {
+    return readMfaGate(this.client.auth.mfa);
+  }
+
+  /** Kirim tautan reset. Respons selalu generik (Supabase juga tidak membocorkan keberadaan akun). */
+  async requestPasswordReset(email: string, redirectTo: string): Promise<void> {
+    await this.client.auth.resetPasswordForEmail(email.trim(), { redirectTo });
+  }
+
+  async updatePassword(password: string): Promise<void> {
+    const { error } = await this.client.auth.updateUser({ password });
+    if (error) throw new Error(error.message);
+  }
+
+  /** Keluarkan sesi lain milik pengguna (perangkat lain). */
+  async signOutOthers(): Promise<void> {
+    const { error } = await this.client.auth.signOut({ scope: "others" });
+    if (error) throw new Error(error.message);
+  }
+
   /** Viewer dari tabel user_access (dipetakan admin). null = belum berwenang. */
   async getViewer(): Promise<Viewer | null> {
     const { data: auth } = await this.client.auth.getUser();
@@ -60,6 +87,8 @@ export class SupabaseRepository implements SekarRepository {
   }
 
   async load(): Promise<LoadResult> {
+    const gate = await this.mfaGate();
+    if (gate.kind !== "ok") throw new MfaRequiredError("Verifikasi MFA diperlukan sebelum data dimuat.");
     const viewer = await this.getViewer();
     if (!viewer) throw new Error("Akun belum dipetakan ke peran/unit oleh admin.");
     const [metaRows, units, findings, requests, schedules, references, documents, compliance, assets, assetItems] = await Promise.all([
