@@ -149,7 +149,7 @@ Tidak ada database lain, penyedia auth lain, upload pengguna, cookie sesi buatan
 | `npm run db:test-local` (PostgreSQL 16 + stub `auth`/`storage`) | 61 pemeriksaan RLS/MFA lulus + rollback/re-apply 0003 lulus. **Kontrol negatif:** tanpa 0003, tes gagal (KPw aal1 membaca 37 temuan) |
 | `npm run test:e2e` (mode demo, 15 skenario) | Lulus; header keamanan terverifikasi; 0 pelanggaran CSP |
 | `npm run test:e2e:supabase` (4 skenario, Supabase ditiru di jaringan browser; termasuk scan bundle tanpa akun/dataset demo) | Lulus; tidak ada request data sebelum aal2; ganti kata sandi hanya dengan token aal2; kredensial demo ditolak |
-| `npm run db:test-all` (RLS/MFA 64 cek, rollback 0003, seed minimal, aktivasi 22 uji, script seed) | Lulus — lokal, stub `auth`/`storage` |
+| `npm run db:test-all` (RLS/MFA 66 cek, rollback 0003, seed minimal, aktivasi 22 uji, script seed) | Lulus — lokal, stub `auth`/`storage` |
 | Probe HTTP ke build produksi mode Supabase | Tanpa token 401, token palsu 401, `POST` 405, `Cache-Control: private, no-store`, log tanpa token |
 | `npm run security:secrets` / `security:history` / `security:bundle` | Tidak ada secret berhak istimewa (file, seluruh riwayat git, bundle `.next` & `.next-supabase`) |
 | `npm audit --omit=dev` | 0 kerentanan |
