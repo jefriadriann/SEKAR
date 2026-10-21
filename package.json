@@ -19,9 +19,9 @@
     "security:history": "node scripts/check-secrets.mjs --history",
     "security:bundle": "node scripts/check-secrets.mjs --bundle",
     "db:seed-remote": "node scripts/supabase-seed.mjs",
-    "db:test-seed-script": "bash supabase/tests/seed-script-local.sh",
+    "db:test-seed-script": "bash supabase/tests/seed-script-local.sh && bash supabase/tests/seed-parts-local.sh",
     "security:supabase-bundle": "node scripts/check-secrets.mjs --supabase-bundle",
-    "db:test-all": "bash supabase/tests/run-local.sh && bash supabase/tests/seed-minimal-local.sh && bash supabase/tests/activation-local.sh && bash supabase/tests/seed-script-local.sh",
+    "db:test-all": "bash supabase/tests/run-local.sh && bash supabase/tests/seed-minimal-local.sh && bash supabase/tests/activation-local.sh && bash supabase/tests/seed-script-local.sh && bash supabase/tests/seed-parts-local.sh",
     "db:activation-sql": "node scripts/generate-activation-sql.mjs"
   },
   "dependencies": {

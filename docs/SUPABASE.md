@@ -26,7 +26,7 @@ Menu yang disembunyikan hanyalah kenyamanan UI; pembatasan data sebenarnya ada d
 
 1. Buat proyek di <https://supabase.com> (gunakan proyek uji terlebih dahulu).
 2. Buka **SQL Editor**, jalankan `supabase/migrations/0001_sekar_schema.sql` lalu `0002_asset_items_materials.sql` (masing-masing **sekali**; 0001 tidak idempoten, tetapi bila gagal seluruhnya dibatalkan). **Jangan jalankan 0003/0004/0005 satu per satu** — ketiganya dijalankan sekaligus lewat `supabase/activate-mfa-enforcement.sql` (lihat bagian aktivasi); 0003 mewajibkan MFA dan baru dijalankan setelah akun admin dipetakan dan sudah mendaftarkan authenticator (lihat `SECURITY.md` §7).
-3. Isi data simulasi dengan `supabase/seed.sql` (±1,6 MB — terlalu besar untuk SQL Editor). Jalankan dari komputer Anda (butuh Node 20+ dan `psql`):
+3. Isi data simulasi. **Lewat browser:** jalankan `supabase/seed-parts/seed-part-01-of-06.sql` s.d. `06` berurutan di SQL Editor (isi identik dengan `seed.sql`, dibagi ±300 KB; aman diulang dan tidak bentrok dengan seed minimal). **Atau** `supabase/seed.sql` utuh (±1,6 MB — terlalu besar untuk SQL Editor) dari komputer Anda (butuh Node 20+ dan `psql`):
 
    ```bash
    export SUPABASE_PROJECT_REF=<ref proyek>        # bukan secret; dari URL dashboard

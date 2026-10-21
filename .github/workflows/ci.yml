@@ -49,7 +49,9 @@ jobs:
         run: bash supabase/tests/run-local.sh
       - name: Seed minimal (idempoten, isolasi antarunit, kompatibel seed lengkap)
         run: bash supabase/tests/seed-minimal-local.sh
-      - name: SQL aktivasi MFA (penjaga, 22 uji, idempoten)
+      - name: SQL aktivasi MFA (penjaga, 28 uji, sinkron korwil, idempoten)
         run: bash supabase/tests/activation-local.sh
       - name: Script seed remote (target, transaksi, verifikasi)
         run: bash supabase/tests/seed-script-local.sh
+      - name: Seed bertahap untuk SQL Editor (identik dengan seed.sql, aman diulang)
+        run: bash supabase/tests/seed-parts-local.sh
