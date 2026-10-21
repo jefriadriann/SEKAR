@@ -73,7 +73,8 @@ sql += insert("asset_reconciliations", recs, ["id", "unit_id", "year", "total_it
 sql += insert("asset_items", items, ["id", "reconciliation_id", "unit_id", "asset_number", "asset_name", "category", "location", "acquisition_date", "acquisition_cost", "useful_life", "aspect", "recorded_value", "expected_value", "note", "action", "status", "is_dummy"]);
 sql += `commit;
 
--- Ringkasan per unit (hasil yang diharapkan tercantum di docs/SUPABASE.md).
+-- Ringkasan per unit. Hasil yang diharapkan (temuan, jadwal, permindok, dokumen_unit, kepatuhan, rekon_aset, asesmen_aset):
+--   dr 4,1,2,1,2,1,3 · kpw-01 4,1,2,1,0,1,3 · kpw-02 4,1,2,1,0,1,3
 select u.id as unit,
   (select count(*) from public.findings f where f.unit_id = u.id) as temuan,
   (select count(*) from public.audit_schedules s where s.unit_id = u.id) as jadwal,
