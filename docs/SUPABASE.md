@@ -25,8 +25,18 @@ Menu yang disembunyikan hanyalah kenyamanan UI; pembatasan data sebenarnya ada d
 ## Langkah penyiapan
 
 1. Buat proyek di <https://supabase.com> (gunakan proyek uji terlebih dahulu).
-2. Buka **SQL Editor**, jalankan berurutan `supabase/migrations/0001_sekar_schema.sql`, `0002_asset_items_materials.sql`, lalu `0003_mfa_aal2_rate_limit.sql` (atau `supabase db push` bila memakai Supabase CLI). Urutan penerapan & rollback 0003: lihat `SECURITY.md`.
-3. (Opsional) perbarui seed: `npm run db:seed-sql`, lalu jalankan isi `supabase/seed.sql` di SQL Editor.
+2. Buka **SQL Editor**, jalankan `supabase/migrations/0001_sekar_schema.sql` lalu `0002_asset_items_materials.sql` (masing-masing **sekali**; 0001 tidak idempoten, tetapi bila gagal seluruhnya dibatalkan). **Jangan jalankan 0003 dulu** — 0003 mewajibkan MFA dan baru dijalankan setelah akun admin dipetakan dan sudah mendaftarkan authenticator (lihat `SECURITY.md` §7).
+3. Isi data simulasi dengan `supabase/seed.sql` (±1,6 MB — terlalu besar untuk SQL Editor). Jalankan dari komputer Anda (butuh Node 20+ dan `psql`):
+
+   ```bash
+   export SUPABASE_PROJECT_REF=<ref proyek>        # bukan secret; dari URL dashboard
+   read -rs SUPABASE_DB_URL && export SUPABASE_DB_URL  # tempel connection string "Session pooler" (tidak tampil)
+   npm run db:seed-remote -- --check   # hanya baca: target + isi tabel
+   npm run db:seed-remote -- --apply   # seed utuh dalam satu transaksi + verifikasi ID & jumlah
+   unset SUPABASE_DB_URL
+   ```
+
+   Script menolak berjalan bila connection string tidak menunjuk ke `SUPABASE_PROJECT_REF`, bila 0001/0002 belum ada, dan tidak pernah mencetak password. Seed memakai `on conflict do nothing` (data yang ada dipertahankan); error = rollback penuh. Uji lokal script: `npm run db:test-seed-script`.
 4. **Authentication → Providers**: aktifkan Email. Disarankan menonaktifkan pendaftaran publik (**Allow new users to sign up** = off) dan mengundang pengguna dari dashboard.
 5. Buat/undang akun pengguna di **Authentication → Users**. Seed tidak membuat akun atau kata sandi.
 6. Petakan akun ke peran & unit (jalankan sebagai pemilik proyek di SQL Editor):

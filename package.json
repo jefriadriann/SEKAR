@@ -17,7 +17,9 @@
     "test:e2e:supabase": "npm run build:e2e-supabase && playwright test -c playwright.supabase.config.ts",
     "security:secrets": "node scripts/check-secrets.mjs",
     "security:history": "node scripts/check-secrets.mjs --history",
-    "security:bundle": "node scripts/check-secrets.mjs --bundle"
+    "security:bundle": "node scripts/check-secrets.mjs --bundle",
+    "db:seed-remote": "node scripts/supabase-seed.mjs",
+    "db:test-seed-script": "bash supabase/tests/seed-script-local.sh"
   },
   "dependencies": {
     "@fontsource-variable/plus-jakarta-sans": "^5.3.0",
