@@ -66,9 +66,21 @@ export interface MockState {
   dataRequests: { table: string; aal: string | undefined }[];
   passwordUpdates: { aal: string | undefined }[];
   aal: "aal1" | "aal2";
+  invites: MockInvite[];
 }
 
-export async function mockSupabase(page: Page, opts: { factors?: "none" | "one" } = {}): Promise<MockState> {
+export interface MockInvite {
+  email: string;
+  role: string;
+  unit_id: string;
+  display_name: string | null;
+  created_at: string;
+  expires_at: string;
+  claimed_at: string | null;
+}
+
+export async function mockSupabase(page: Page, opts: { factors?: "none" | "one"; role?: "kpw" | "dr" } = {}): Promise<MockState> {
+  const role = opts.role ?? "kpw";
   const ts = new Date().toISOString();
   const state: MockState = {
     password: "KataSandiUji#2026",
@@ -76,6 +88,7 @@ export async function mockSupabase(page: Page, opts: { factors?: "none" | "one" 
     dataRequests: [],
     passwordUpdates: [],
     aal: "aal1",
+    invites: [],
   };
   let nextId = 1;
   const user = () => ({
@@ -151,7 +164,27 @@ export async function mockSupabase(page: Page, opts: { factors?: "none" | "one" 
 
     // ---------------------------------------------------------------- PostgREST (meniru RLS)
     const t = path.match(/^\/rest\/v1\/([a-z_]+)$/)?.[1];
-    if (t === "user_access") return json(route, [{ user_id: USER_ID, role: "kpw", unit_id: UNIT, display_name: "KPw Uji MFA" }]);
+    if (t === "user_access")
+      return json(route, [{ user_id: USER_ID, role, unit_id: role === "dr" ? "dr" : UNIT, display_name: role === "dr" ? "DR Uji MFA" : "KPw Uji MFA" }]);
+    // Meniru RLS 0005: hanya DR/admin dengan aal2; DR hanya boleh mengundang KPw.
+    if (t === "pending_invites") {
+      const allowed = role === "dr" && aalOf(auth) === "aal2";
+      if (method === "GET") return json(route, allowed ? state.invites : []);
+      if (!allowed) return json(route, { code: "42501", message: "new row violates row-level security policy" }, 403);
+      if (method === "POST") {
+        const body = req.postDataJSON();
+        const row = Array.isArray(body) ? body[0] : body;
+        if (row.role !== "kpw") return json(route, { code: "42501", message: "new row violates row-level security policy" }, 403);
+        if (state.invites.some((i) => i.email === row.email)) return json(route, { code: "23505", message: "duplicate key value" }, 409);
+        state.invites.unshift({ ...row, created_at: ts, expires_at: new Date(Date.now() + 14 * 864e5).toISOString(), claimed_at: null });
+        return route.fulfill({ status: 201, headers: { "access-control-allow-origin": "*" }, body: "" });
+      }
+      if (method === "DELETE") {
+        const email = url.searchParams.get("email")?.replace(/^eq\./, "");
+        state.invites = state.invites.filter((i) => i.email !== email);
+        return route.fulfill({ status: 204, headers: { "access-control-allow-origin": "*" } });
+      }
+    }
     if (t && t in TABLES) {
       const aal = aalOf(auth);
       state.dataRequests.push({ table: t, aal });

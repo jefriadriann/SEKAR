@@ -90,12 +90,12 @@ function centroid(ring) {
 
 /** Korwil berdasarkan titik tengah pulau (lon, lat). */
 function korwilOf([lon, lat]) {
-  if (lat < -7.9 && lon >= 114.4 && lon < 125.6) return "Bali dan Nusa Tenggara";
+  if (lat < -7.9 && lon >= 114.4 && lon < 125.6) return "Balinusra";
   if (lon >= 105 && lon <= 116.6 && lat <= -5.4 && lat >= -7.95) return "Jawa";
   if (lon < 108.6) return "Sumatera";
   if (lon < 119.6 && lat > -4.8) return "Kalimantan";
-  if (lon >= 127 || (lon >= 124.5 && lat < 0.5) || (lon >= 125.9 && lat < 2.5)) return "Maluku dan Papua";
-  return "Sulawesi";
+  // Sulawesi, Maluku, dan Papua = korwil Sulampua.
+  return "Sulampua";
 }
 
 function ringToPath(ring) {

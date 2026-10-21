@@ -10,6 +10,9 @@ declare
   t text[] := '{}'; e text[] := '{}'; a text[] := '{}';
   n_all int; n_units int; n_comp int; n_k1 int;
   procedure_dummy int; -- penampung hasil UPDATE ... RETURNING
+  has_inv boolean := to_regclass('public.pending_invites') is not null;
+  inv_email text := 'verifikasi-' || substr(md5(random()::text), 1, 12) || '@contoh.test';
+  r text;
 begin
   if not exists (select 1 from public.user_access where user_id = dr_user) then
     raise exception 'Akun uji % tidak ada di public.user_access', dr_user;
@@ -35,6 +38,27 @@ begin
     with u as (update public.user_access set role = 'admin' where user_id = dr_user returning 1)
       select count(*) into procedure_dummy from u;
     t := t || text 'DR menaikkan peran sendiri menjadi admin'; e := e || text '0'; a := a || procedure_dummy::text;
+    -- Undangan (0005): DR hanya boleh mengundang KPw; tanpa MFA undangan tidak terlihat.
+    r := 'tabel tidak ada';
+    if has_inv then
+      begin
+        execute format('insert into public.pending_invites (email, role, unit_id) values (%L, %L, %L)', inv_email, 'kpw', 'kpw-01');
+        r := 'diizinkan';
+      exception when others then r := 'ditolak'; end;
+    end if;
+    t := t || text 'DR dengan MFA: mencatat undangan KPw'; e := e || text 'diizinkan'; a := a || r;
+    r := 'tabel tidak ada';
+    if has_inv then
+      begin
+        execute format('insert into public.pending_invites (email, role, unit_id) values (%L, %L, %L)', 'x' || inv_email, 'admin', 'dr');
+        r := 'diizinkan';
+      exception when others then r := 'ditolak'; end;
+    end if;
+    t := t || text 'DR: mengundang peran admin'; e := e || text 'ditolak'; a := a || r;
+    perform set_config('request.jwt.claims', json_build_object('sub', dr_user, 'role', 'authenticated', 'aal', 'aal1')::text, true);
+    r := 'tabel tidak ada';
+    if has_inv then execute 'select count(*)::text from public.pending_invites' into r; end if;
+    t := t || text 'DR tanpa MFA: undangan terbaca'; e := e || text '0'; a := a || r;
     -- ---------------------------------------------------------- simulasi KPw kpw-01
     reset role;
     update public.user_access set role = 'kpw', unit_id = 'kpw-01' where user_id = dr_user;
@@ -43,6 +67,9 @@ begin
     t := t || text 'KPw dengan MFA: temuan unit sendiri'; e := e || n_k1::text; a := a || (select count(*) from public.findings where unit_id = 'kpw-01')::text;
     t := t || text 'KPw: temuan unit lain (kpw-02 / DR)'; e := e || text '0'; a := a || (select count(*) from public.findings where unit_id <> 'kpw-01')::text;
     t := t || text 'KPw: kepatuhan DR'; e := e || text '0'; a := a || (select count(*) from public.compliance_items)::text;
+    r := 'tabel tidak ada';
+    if has_inv then execute 'select count(*)::text from public.pending_invites' into r; end if;
+    t := t || text 'KPw: undangan terbaca'; e := e || text '0'; a := a || r;
     t := t || text 'KPw: dokumen di luar shared/kpw-01'; e := e || text '0'; a := a || (select count(*) from public.documents where scope not in ('shared', 'kpw-01'))::text;
     t := t || text 'KPw: rekonsiliasi & asesmen aset unit lain'; e := e || text '0';
       a := a || ((select count(*) from public.asset_reconciliations where unit_id <> 'kpw-01') + (select count(*) from public.asset_items where unit_id <> 'kpw-01'))::text;
@@ -66,7 +93,12 @@ begin
   t := t || text 'Anon: eksekusi fungsi rate limit'; e := e || text 'false';
     a := a || case when to_regprocedure('public.consume_rate_limit(text,integer,integer)') is null then 'tidak ada'
                    else has_function_privilege('anon', 'public.consume_rate_limit(text,integer,integer)', 'execute')::text end;
-  t := t || text 'Policy RESTRICTIVE aal2 terpasang'; e := e || text '15'; a := a || (select count(*) from pg_policies where policyname like '%require_aal2%' and permissive = 'RESTRICTIVE')::text;
+  t := t || text 'Policy RESTRICTIVE aal2 terpasang'; e := e || text '16'; a := a || (select count(*) from pg_policies where policyname like '%require_aal2%' and permissive = 'RESTRICTIVE')::text;
+  t := t || text 'Trigger pemetaan undangan di auth.users'; e := e || text '1';
+    a := a || (select count(*) from pg_trigger where tgname = 'sekar_apply_pending_invite' and not tgisinternal)::text;
+  t := t || text 'Authenticated: eksekusi langsung fungsi trigger undangan'; e := e || text 'false';
+    a := a || case when to_regprocedure('public.apply_pending_invite()') is null then 'tidak ada'
+                   else has_function_privilege('authenticated', 'public.apply_pending_invite()', 'execute')::text end;
   t := t || text 'RLS aktif di semua tabel public'; e := e || text '0';
     a := a || (select count(*) from pg_tables where schemaname = 'public' and not rowsecurity)::text;
   t := t || text 'Akun terpetakan dengan TOTP terverifikasi'; e := e || text 'ya';

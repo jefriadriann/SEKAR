@@ -1,0 +1,373 @@
+{
+  "$comment": "Ilustrasi wilayah untuk 46 KPw SIMULASI (urutan Aceh → Papua Barat). Hanya visual & pengelompokan korwil; data audit tetap fiktif.",
+  "regions": [
+    {
+      "unit_id": "kpw-01",
+      "region": "Aceh",
+      "city": "Banda Aceh",
+      "korwil": "Sumatera",
+      "landmark": "Masjid Raya Baiturrahman",
+      "key": "masjid-baiturrahman"
+    },
+    {
+      "unit_id": "kpw-02",
+      "region": "Lhokseumawe",
+      "city": "Lhokseumawe",
+      "korwil": "Sumatera",
+      "landmark": "Masjid Islamic Center Lhokseumawe",
+      "key": "masjid-islamic-center-lhokseumawe"
+    },
+    {
+      "unit_id": "kpw-03",
+      "region": "Sumatera Utara",
+      "city": "Medan",
+      "korwil": "Sumatera",
+      "landmark": "Istana Maimun",
+      "key": "istana-maimun"
+    },
+    {
+      "unit_id": "kpw-04",
+      "region": "Pematangsiantar",
+      "city": "Pematangsiantar",
+      "korwil": "Sumatera",
+      "landmark": "Danau Toba & Rumah Bolon",
+      "key": "danau-toba"
+    },
+    {
+      "unit_id": "kpw-05",
+      "region": "Sibolga",
+      "city": "Sibolga",
+      "korwil": "Sumatera",
+      "landmark": "Teluk Tapian Nauli",
+      "key": "teluk-sibolga"
+    },
+    {
+      "unit_id": "kpw-06",
+      "region": "Sumatera Barat",
+      "city": "Padang",
+      "korwil": "Sumatera",
+      "landmark": "Jam Gadang",
+      "key": "jam-gadang"
+    },
+    {
+      "unit_id": "kpw-07",
+      "region": "Riau",
+      "city": "Pekanbaru",
+      "korwil": "Sumatera",
+      "landmark": "Masjid Raya An-Nur",
+      "key": "masjid-annur"
+    },
+    {
+      "unit_id": "kpw-08",
+      "region": "Kepulauan Riau",
+      "city": "Batam",
+      "korwil": "Sumatera",
+      "landmark": "Jembatan Barelang",
+      "key": "jembatan-barelang"
+    },
+    {
+      "unit_id": "kpw-09",
+      "region": "Jambi",
+      "city": "Jambi",
+      "korwil": "Sumatera",
+      "landmark": "Menara Gentala Arasy",
+      "key": "gentala-arasy"
+    },
+    {
+      "unit_id": "kpw-10",
+      "region": "Sumatera Selatan",
+      "city": "Palembang",
+      "korwil": "Sumatera",
+      "landmark": "Jembatan Ampera",
+      "key": "jembatan-ampera"
+    },
+    {
+      "unit_id": "kpw-11",
+      "region": "Bengkulu",
+      "city": "Bengkulu",
+      "korwil": "Sumatera",
+      "landmark": "Benteng Marlborough",
+      "key": "benteng-marlborough"
+    },
+    {
+      "unit_id": "kpw-12",
+      "region": "Lampung",
+      "city": "Bandar Lampung",
+      "korwil": "Sumatera",
+      "landmark": "Menara Siger",
+      "key": "menara-siger"
+    },
+    {
+      "unit_id": "kpw-13",
+      "region": "Kepulauan Bangka Belitung",
+      "city": "Pangkalpinang",
+      "korwil": "Sumatera",
+      "landmark": "Mercusuar & batu granit Tanjung Kelayang",
+      "key": "mercusuar-belitung"
+    },
+    {
+      "unit_id": "kpw-14",
+      "region": "Banten",
+      "city": "Serang",
+      "korwil": "Jawa",
+      "landmark": "Menara Masjid Agung Banten",
+      "key": "masjid-banten"
+    },
+    {
+      "unit_id": "kpw-15",
+      "region": "DKI Jakarta",
+      "city": "Jakarta",
+      "korwil": "Jawa",
+      "landmark": "Monumen Nasional",
+      "key": "monas"
+    },
+    {
+      "unit_id": "kpw-16",
+      "region": "Jawa Barat",
+      "city": "Bandung",
+      "korwil": "Jawa",
+      "landmark": "Gedung Sate",
+      "key": "gedung-sate"
+    },
+    {
+      "unit_id": "kpw-17",
+      "region": "Cirebon",
+      "city": "Cirebon",
+      "korwil": "Jawa",
+      "landmark": "Gapura Keraton Kasepuhan",
+      "key": "keraton-kasepuhan"
+    },
+    {
+      "unit_id": "kpw-18",
+      "region": "Tasikmalaya",
+      "city": "Tasikmalaya",
+      "korwil": "Jawa",
+      "landmark": "Payung Geulis",
+      "key": "payung-geulis"
+    },
+    {
+      "unit_id": "kpw-19",
+      "region": "Jawa Tengah",
+      "city": "Semarang",
+      "korwil": "Jawa",
+      "landmark": "Lawang Sewu",
+      "key": "lawang-sewu"
+    },
+    {
+      "unit_id": "kpw-20",
+      "region": "Solo",
+      "city": "Surakarta",
+      "korwil": "Jawa",
+      "landmark": "Panggung Sangga Buwana Keraton Surakarta",
+      "key": "sangga-buwana"
+    },
+    {
+      "unit_id": "kpw-21",
+      "region": "Purwokerto",
+      "city": "Purwokerto",
+      "korwil": "Jawa",
+      "landmark": "Menara Teratai",
+      "key": "menara-teratai"
+    },
+    {
+      "unit_id": "kpw-22",
+      "region": "Tegal",
+      "city": "Tegal",
+      "korwil": "Jawa",
+      "landmark": "Teh Poci",
+      "key": "teh-poci"
+    },
+    {
+      "unit_id": "kpw-23",
+      "region": "DI Yogyakarta",
+      "city": "Yogyakarta",
+      "korwil": "Jawa",
+      "landmark": "Tugu Yogyakarta",
+      "key": "tugu-jogja"
+    },
+    {
+      "unit_id": "kpw-24",
+      "region": "Jawa Timur",
+      "city": "Surabaya",
+      "korwil": "Jawa",
+      "landmark": "Tugu Pahlawan",
+      "key": "tugu-pahlawan"
+    },
+    {
+      "unit_id": "kpw-25",
+      "region": "Malang",
+      "city": "Malang",
+      "korwil": "Jawa",
+      "landmark": "Tugu Malang",
+      "key": "tugu-malang"
+    },
+    {
+      "unit_id": "kpw-26",
+      "region": "Kediri",
+      "city": "Kediri",
+      "korwil": "Jawa",
+      "landmark": "Monumen Simpang Lima Gumul",
+      "key": "simpang-lima-gumul"
+    },
+    {
+      "unit_id": "kpw-27",
+      "region": "Jember",
+      "city": "Jember",
+      "korwil": "Jawa",
+      "landmark": "Tanjung Papuma",
+      "key": "tanjung-papuma"
+    },
+    {
+      "unit_id": "kpw-28",
+      "region": "Bali",
+      "city": "Denpasar",
+      "korwil": "Balinusra",
+      "landmark": "Candi Bentar & Meru Pura",
+      "key": "pura-bali"
+    },
+    {
+      "unit_id": "kpw-29",
+      "region": "Nusa Tenggara Barat",
+      "city": "Mataram",
+      "korwil": "Balinusra",
+      "landmark": "Masjid Hubbul Wathan Islamic Center",
+      "key": "islamic-center-ntb"
+    },
+    {
+      "unit_id": "kpw-30",
+      "region": "Nusa Tenggara Timur",
+      "city": "Kupang",
+      "korwil": "Balinusra",
+      "landmark": "Komodo",
+      "key": "komodo"
+    },
+    {
+      "unit_id": "kpw-31",
+      "region": "Kalimantan Barat",
+      "city": "Pontianak",
+      "korwil": "Kalimantan",
+      "landmark": "Tugu Khatulistiwa",
+      "key": "tugu-khatulistiwa"
+    },
+    {
+      "unit_id": "kpw-32",
+      "region": "Kalimantan Tengah",
+      "city": "Palangka Raya",
+      "korwil": "Kalimantan",
+      "landmark": "Jembatan Kahayan",
+      "key": "jembatan-kahayan"
+    },
+    {
+      "unit_id": "kpw-33",
+      "region": "Kalimantan Selatan",
+      "city": "Banjarmasin",
+      "korwil": "Kalimantan",
+      "landmark": "Pasar Terapung",
+      "key": "pasar-terapung"
+    },
+    {
+      "unit_id": "kpw-34",
+      "region": "Kalimantan Timur",
+      "city": "Samarinda",
+      "korwil": "Kalimantan",
+      "landmark": "Masjid Islamic Center Samarinda",
+      "key": "islamic-center-samarinda"
+    },
+    {
+      "unit_id": "kpw-35",
+      "region": "Balikpapan",
+      "city": "Balikpapan",
+      "korwil": "Kalimantan",
+      "landmark": "Beruang Madu",
+      "key": "beruang-madu"
+    },
+    {
+      "unit_id": "kpw-36",
+      "region": "Kalimantan Utara",
+      "city": "Tarakan",
+      "korwil": "Kalimantan",
+      "landmark": "Bekantan",
+      "key": "bekantan"
+    },
+    {
+      "unit_id": "kpw-37",
+      "region": "Sulawesi Utara",
+      "city": "Manado",
+      "korwil": "Sulampua",
+      "landmark": "Patung Yesus Memberkati",
+      "key": "yesus-memberkati"
+    },
+    {
+      "unit_id": "kpw-38",
+      "region": "Gorontalo",
+      "city": "Gorontalo",
+      "korwil": "Sulampua",
+      "landmark": "Menara Keagungan Limboto",
+      "key": "menara-limboto"
+    },
+    {
+      "unit_id": "kpw-39",
+      "region": "Sulawesi Tengah",
+      "city": "Palu",
+      "korwil": "Sulampua",
+      "landmark": "Jembatan Ponulele",
+      "key": "jembatan-ponulele"
+    },
+    {
+      "unit_id": "kpw-40",
+      "region": "Sulawesi Selatan",
+      "city": "Makassar",
+      "korwil": "Sulampua",
+      "landmark": "Kapal Pinisi Pantai Losari",
+      "key": "pinisi-losari"
+    },
+    {
+      "unit_id": "kpw-41",
+      "region": "Sulawesi Barat",
+      "city": "Mamuju",
+      "korwil": "Sulampua",
+      "landmark": "Perahu Sandeq",
+      "key": "perahu-sandeq"
+    },
+    {
+      "unit_id": "kpw-42",
+      "region": "Sulawesi Tenggara",
+      "city": "Kendari",
+      "korwil": "Sulampua",
+      "landmark": "Tugu Persatuan",
+      "key": "tugu-persatuan-kendari"
+    },
+    {
+      "unit_id": "kpw-43",
+      "region": "Maluku",
+      "city": "Ambon",
+      "korwil": "Sulampua",
+      "landmark": "Gong Perdamaian Dunia",
+      "key": "gong-perdamaian"
+    },
+    {
+      "unit_id": "kpw-44",
+      "region": "Maluku Utara",
+      "city": "Ternate",
+      "korwil": "Sulampua",
+      "landmark": "Gunung Gamalama & Masjid Sultan",
+      "key": "gamalama"
+    },
+    {
+      "unit_id": "kpw-45",
+      "region": "Papua",
+      "city": "Jayapura",
+      "korwil": "Sulampua",
+      "landmark": "Jembatan Youtefa",
+      "key": "jembatan-youtefa"
+    },
+    {
+      "unit_id": "kpw-46",
+      "region": "Papua Barat",
+      "city": "Manokwari",
+      "korwil": "Sulampua",
+      "landmark": "Gugusan Pulau Raja Ampat",
+      "key": "raja-ampat"
+    }
+  ]
+}

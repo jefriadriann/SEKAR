@@ -245,7 +245,7 @@ export function NewPasswordPanel() {
 
 /** Layar penuh saat sesi belum memenuhi syarat (aal1) atau sedang reset kata sandi. */
 export function MfaGateScreen() {
-  const { status, signOut } = useSekar();
+  const { status, signOut, passwordMode } = useSekar();
   const view =
     status === "needs_mfa_enroll"
       ? {
@@ -261,7 +261,14 @@ export function MfaGateScreen() {
             desc: "Masukkan kode dari aplikasi authenticator Anda.",
             body: <MfaChallengePanel />,
           }
-        : {
+        : passwordMode === "invite"
+          ? {
+              icon: <KeyRound className="h-6 w-6" aria-hidden />,
+              title: "Buat kata sandi Anda",
+              desc: "Undangan diterima dan authenticator sudah aktif. Buat kata sandi untuk login berikutnya; setelah disimpan Anda diminta masuk kembali.",
+              body: <NewPasswordPanel />,
+            }
+          : {
             icon: <KeyRound className="h-6 w-6" aria-hidden />,
             title: "Tetapkan kata sandi baru",
             desc: "Identitas Anda sudah diverifikasi dengan MFA. Setelah disimpan, Anda akan diminta masuk kembali.",

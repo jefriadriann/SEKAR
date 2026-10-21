@@ -44,6 +44,12 @@ const addDays = (s, n) => {
 };
 const minDate = (a, b) => (a < b ? a : b);
 
+// Korwil mengikuti urutan geografis 46 wilayah (Aceh → Papua Barat), selaras dengan ilustrasi landmark.
+const REGIONS = JSON.parse(readFileSync(join(root, "data/base/kpw-regions.json"), "utf8")).regions;
+for (const u of ds.units) {
+  const r = REGIONS.find((x) => x.unit_id === u.id);
+  if (r) u.korwil = r.korwil;
+}
 const KPW = ds.units.filter((u) => u.id !== "dr");
 const AREAS = ["Aset", "Keuangan Intern", "PI-KEKDA", "PSBI / EPML", "PUR", "Pengadaan", "Pengamanan", "Perizinan dan Pengawasan SP"];
 const THEMES = ["Dokumentasi", "Kepatuhan prosedur", "Pemantauan tindak lanjut", "Rekonsiliasi"];

@@ -25,7 +25,7 @@ Menu yang disembunyikan hanyalah kenyamanan UI; pembatasan data sebenarnya ada d
 ## Langkah penyiapan
 
 1. Buat proyek di <https://supabase.com> (gunakan proyek uji terlebih dahulu).
-2. Buka **SQL Editor**, jalankan `supabase/migrations/0001_sekar_schema.sql` lalu `0002_asset_items_materials.sql` (masing-masing **sekali**; 0001 tidak idempoten, tetapi bila gagal seluruhnya dibatalkan). **Jangan jalankan 0003 dulu** — 0003 mewajibkan MFA dan baru dijalankan setelah akun admin dipetakan dan sudah mendaftarkan authenticator (lihat `SECURITY.md` §7).
+2. Buka **SQL Editor**, jalankan `supabase/migrations/0001_sekar_schema.sql` lalu `0002_asset_items_materials.sql` (masing-masing **sekali**; 0001 tidak idempoten, tetapi bila gagal seluruhnya dibatalkan). **Jangan jalankan 0003/0004/0005 satu per satu** — ketiganya dijalankan sekaligus lewat `supabase/activate-mfa-enforcement.sql` (lihat bagian aktivasi); 0003 mewajibkan MFA dan baru dijalankan setelah akun admin dipetakan dan sudah mendaftarkan authenticator (lihat `SECURITY.md` §7).
 3. Isi data simulasi dengan `supabase/seed.sql` (±1,6 MB — terlalu besar untuk SQL Editor). Jalankan dari komputer Anda (butuh Node 20+ dan `psql`):
 
    ```bash
@@ -62,7 +62,19 @@ Menu yang disembunyikan hanyalah kenyamanan UI; pembatasan data sebenarnya ada d
 
 1. Login ke website (Preview) dengan akun yang sudah dipetakan di `user_access`, daftarkan authenticator.
 2. SQL Editor → jalankan seluruh isi `supabase/activate-mfa-enforcement.sql` (dibangkitkan `npm run db:activation-sql`). Bila belum ada faktor TOTP terverifikasi, skrip berhenti dengan pesan `DIBATALKAN` tanpa perubahan.
-3. Hasil berupa tabel 22 baris; semua harus `LULUS`. Uji ulang kapan saja dengan `supabase/tests/remote-verify.sql` (tidak mengubah data).
+   Skrip ini juga menerapkan 0004 (pengerasan default), 0005 (undangan pengguna) dan menyelaraskan nama korwil unit yang sudah ada (Sumatera, Jawa, Balinusra, Kalimantan, Sulampua) tanpa menyentuh data audit.
+3. Hasil berupa tabel 28 baris; semua harus `LULUS`. Uji ulang kapan saja dengan `supabase/tests/remote-verify.sql` (tidak mengubah data).
+
+## Mengundang pengguna (46 KPw)
+
+Peran dan unit **ditetapkan pengundang**, bukan dipilih pengguna (bila pengguna bisa memilih kantornya sendiri, siapa pun yang diundang dapat membuka data kantor lain).
+
+1. Login sebagai DR/admin → menu pengguna → **Kelola pengguna** (`/pengguna`). Isi email, nama, peran (DR hanya dapat mengundang KPw) dan kantor (mis. *KPw Simulasi 01 · Aceh*). Tersimpan di `pending_invites`, berlaku 14 hari.
+2. Supabase Dashboard → **Authentication → Users → Invite user** → email yang sama. Saat akun dibuat, trigger `sekar_apply_pending_invite` memetakan `user_access` (peran + unit dari undangan) dan menandai undangan terpakai.
+3. Pengguna membuka tautan email → wajib mendaftarkan authenticator (MFA) → membuat kata sandi sendiri → masuk ke tampilan KPw-nya. Login berikutnya: email + kata sandi + kode authenticator.
+4. Prasyarat: *Authentication → URL Configuration* → **Site URL** dan **Redirect URLs** berisi alamat Preview/aplikasi; *Allow new users to sign up* = off. Bila Vercel Deployment Protection aktif untuk Preview, pengguna di luar tim Vercel tidak dapat membuka tautan.
+
+Akun yang dibuat tanpa undangan tidak memperoleh akses (tidak ada baris `user_access`) sampai dipetakan pemilik proyek.
 
 ## Preview khusus branch keamanan
 
@@ -78,4 +90,5 @@ Menu yang disembunyikan hanyalah kenyamanan UI; pembatasan data sebenarnya ada d
 - Pastikan KPw tidak dapat membaca temuan/dokumen DR maupun unit lain lewat REST (`/rest/v1/findings?unit_id=eq.dr`).
 - Pastikan signed URL dokumen DR ditolak untuk KPw.
 - Pastikan pengguna tidak dapat mengubah `user_access` miliknya sendiri.
+- Undang satu akun KPw uji (alur di atas): tautan → MFA → buat kata sandi → hanya data unitnya yang tampil; `pending_invites` tidak terbaca oleh KPw.
 - Fitur import/reset dataset di `/admin` hanya tersedia di mode dummy.

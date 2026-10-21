@@ -17,31 +17,31 @@
     {
       "id": "kpw-02",
       "name": "KPw Simulasi 02",
-      "korwil": "Jawa",
+      "korwil": "Sumatera",
       "is_dummy": true
     },
     {
       "id": "kpw-03",
       "name": "KPw Simulasi 03",
-      "korwil": "Kalimantan",
+      "korwil": "Sumatera",
       "is_dummy": true
     },
     {
       "id": "kpw-04",
       "name": "KPw Simulasi 04",
-      "korwil": "Sulawesi",
+      "korwil": "Sumatera",
       "is_dummy": true
     },
     {
       "id": "kpw-05",
       "name": "KPw Simulasi 05",
-      "korwil": "Bali dan Nusa Tenggara",
+      "korwil": "Sumatera",
       "is_dummy": true
     },
     {
       "id": "kpw-06",
       "name": "KPw Simulasi 06",
-      "korwil": "Maluku dan Papua",
+      "korwil": "Sumatera",
       "is_dummy": true
     },
     {
@@ -53,31 +53,31 @@
     {
       "id": "kpw-08",
       "name": "KPw Simulasi 08",
-      "korwil": "Jawa",
+      "korwil": "Sumatera",
       "is_dummy": true
     },
     {
       "id": "kpw-09",
       "name": "KPw Simulasi 09",
-      "korwil": "Kalimantan",
+      "korwil": "Sumatera",
       "is_dummy": true
     },
     {
       "id": "kpw-10",
       "name": "KPw Simulasi 10",
-      "korwil": "Sulawesi",
+      "korwil": "Sumatera",
       "is_dummy": true
     },
     {
       "id": "kpw-11",
       "name": "KPw Simulasi 11",
-      "korwil": "Bali dan Nusa Tenggara",
+      "korwil": "Sumatera",
       "is_dummy": true
     },
     {
       "id": "kpw-12",
       "name": "KPw Simulasi 12",
-      "korwil": "Maluku dan Papua",
+      "korwil": "Sumatera",
       "is_dummy": true
     },
     {
@@ -95,31 +95,31 @@
     {
       "id": "kpw-15",
       "name": "KPw Simulasi 15",
-      "korwil": "Kalimantan",
+      "korwil": "Jawa",
       "is_dummy": true
     },
     {
       "id": "kpw-16",
       "name": "KPw Simulasi 16",
-      "korwil": "Sulawesi",
+      "korwil": "Jawa",
       "is_dummy": true
     },
     {
       "id": "kpw-17",
       "name": "KPw Simulasi 17",
-      "korwil": "Bali dan Nusa Tenggara",
+      "korwil": "Jawa",
       "is_dummy": true
     },
     {
       "id": "kpw-18",
       "name": "KPw Simulasi 18",
-      "korwil": "Maluku dan Papua",
+      "korwil": "Jawa",
       "is_dummy": true
     },
     {
       "id": "kpw-19",
       "name": "KPw Simulasi 19",
-      "korwil": "Sumatera",
+      "korwil": "Jawa",
       "is_dummy": true
     },
     {
@@ -131,31 +131,31 @@
     {
       "id": "kpw-21",
       "name": "KPw Simulasi 21",
-      "korwil": "Kalimantan",
+      "korwil": "Jawa",
       "is_dummy": true
     },
     {
       "id": "kpw-22",
       "name": "KPw Simulasi 22",
-      "korwil": "Sulawesi",
+      "korwil": "Jawa",
       "is_dummy": true
     },
     {
       "id": "kpw-23",
       "name": "KPw Simulasi 23",
-      "korwil": "Bali dan Nusa Tenggara",
+      "korwil": "Jawa",
       "is_dummy": true
     },
     {
       "id": "kpw-24",
       "name": "KPw Simulasi 24",
-      "korwil": "Maluku dan Papua",
+      "korwil": "Jawa",
       "is_dummy": true
     },
     {
       "id": "kpw-25",
       "name": "KPw Simulasi 25",
-      "korwil": "Sumatera",
+      "korwil": "Jawa",
       "is_dummy": true
     },
     {
@@ -167,37 +167,37 @@
     {
       "id": "kpw-27",
       "name": "KPw Simulasi 27",
-      "korwil": "Kalimantan",
+      "korwil": "Jawa",
       "is_dummy": true
     },
     {
       "id": "kpw-28",
       "name": "KPw Simulasi 28",
-      "korwil": "Sulawesi",
+      "korwil": "Balinusra",
       "is_dummy": true
     },
     {
       "id": "kpw-29",
       "name": "KPw Simulasi 29",
-      "korwil": "Bali dan Nusa Tenggara",
+      "korwil": "Balinusra",
       "is_dummy": true
     },
     {
       "id": "kpw-30",
       "name": "KPw Simulasi 30",
-      "korwil": "Maluku dan Papua",
+      "korwil": "Balinusra",
       "is_dummy": true
     },
     {
       "id": "kpw-31",
       "name": "KPw Simulasi 31",
-      "korwil": "Sumatera",
+      "korwil": "Kalimantan",
       "is_dummy": true
     },
     {
       "id": "kpw-32",
       "name": "KPw Simulasi 32",
-      "korwil": "Jawa",
+      "korwil": "Kalimantan",
       "is_dummy": true
     },
     {
@@ -209,79 +209,79 @@
     {
       "id": "kpw-34",
       "name": "KPw Simulasi 34",
-      "korwil": "Sulawesi",
+      "korwil": "Kalimantan",
       "is_dummy": true
     },
     {
       "id": "kpw-35",
       "name": "KPw Simulasi 35",
-      "korwil": "Bali dan Nusa Tenggara",
+      "korwil": "Kalimantan",
       "is_dummy": true
     },
     {
       "id": "kpw-36",
       "name": "KPw Simulasi 36",
-      "korwil": "Maluku dan Papua",
+      "korwil": "Kalimantan",
       "is_dummy": true
     },
     {
       "id": "kpw-37",
       "name": "KPw Simulasi 37",
-      "korwil": "Sumatera",
+      "korwil": "Sulampua",
       "is_dummy": true
     },
     {
       "id": "kpw-38",
       "name": "KPw Simulasi 38",
-      "korwil": "Jawa",
+      "korwil": "Sulampua",
       "is_dummy": true
     },
     {
       "id": "kpw-39",
       "name": "KPw Simulasi 39",
-      "korwil": "Kalimantan",
+      "korwil": "Sulampua",
       "is_dummy": true
     },
     {
       "id": "kpw-40",
       "name": "KPw Simulasi 40",
-      "korwil": "Sulawesi",
+      "korwil": "Sulampua",
       "is_dummy": true
     },
     {
       "id": "kpw-41",
       "name": "KPw Simulasi 41",
-      "korwil": "Bali dan Nusa Tenggara",
+      "korwil": "Sulampua",
       "is_dummy": true
     },
     {
       "id": "kpw-42",
       "name": "KPw Simulasi 42",
-      "korwil": "Maluku dan Papua",
+      "korwil": "Sulampua",
       "is_dummy": true
     },
     {
       "id": "kpw-43",
       "name": "KPw Simulasi 43",
-      "korwil": "Sumatera",
+      "korwil": "Sulampua",
       "is_dummy": true
     },
     {
       "id": "kpw-44",
       "name": "KPw Simulasi 44",
-      "korwil": "Jawa",
+      "korwil": "Sulampua",
       "is_dummy": true
     },
     {
       "id": "kpw-45",
       "name": "KPw Simulasi 45",
-      "korwil": "Kalimantan",
+      "korwil": "Sulampua",
       "is_dummy": true
     },
     {
       "id": "kpw-46",
       "name": "KPw Simulasi 46",
-      "korwil": "Sulawesi",
+      "korwil": "Sulampua",
       "is_dummy": true
     },
     {

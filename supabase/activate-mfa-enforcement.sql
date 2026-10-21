@@ -1,9 +1,11 @@
 -- DIHASILKAN OTOMATIS oleh scripts/generate-activation-sql.mjs — jangan diedit manual.
 -- SEKAR — AKTIVASI ENFORCEMENT MFA untuk proyek Supabase UJI (SQL Editor, jalankan sekali; aman diulang).
 -- 1) Penjaga: batal bila belum ada akun SEKAR dengan authenticator (TOTP) terverifikasi.
--- 2) Migration 0003 (RLS wajib aal2 + rate limit) dan 0004 (pengerasan default).
--- 3) Verifikasi di dalam subtransaksi yang selalu di-rollback → tabel LULUS/GAGAL.
--- Rollback: supabase/rollback/0004_*.down.sql lalu 0003_*.down.sql.
+-- 2) Migration 0003 (RLS wajib aal2 + rate limit), 0004 (pengerasan default), 0005 (undangan pengguna).
+-- 3) Sinkronisasi nama korwil unit yang SUDAH ADA (Sumatera, Jawa, Balinusra, Kalimantan, Sulampua);
+--    tidak menambah/menghapus baris dan tidak menyentuh data audit.
+-- 4) Verifikasi di dalam subtransaksi yang selalu di-rollback → tabel LULUS/GAGAL.
+-- Rollback: supabase/rollback/0005_*.down.sql → 0004_*.down.sql → 0003_*.down.sql.
 
 do $$ begin
   if not exists (
@@ -27,7 +29,7 @@ end $$;
 -- menampilkan pendaftaran/challenge MFA. Pendaftaran faktor sendiri ditangani
 -- Supabase Auth API, bukan tabel aplikasi.
 --
--- Rollback: lihat SECURITY.md bagian "Rollback" (drop policy *_require_aal2,
+-- Rollback (urutan terbalik: 0005 → 0004 → 0003): supabase/rollback/*.down.sql (drop policy *_require_aal2,
 -- drop function consume_rate_limit, drop table rate_limits).
 
 begin;
@@ -137,6 +139,145 @@ alter default privileges in schema public revoke execute on functions from publi
 
 commit;
 
+-- ===== supabase/migrations/0005_pending_invites.sql =====
+-- SEKAR v1.6: undangan pengguna dengan peran & unit yang DITETAPKAN ADMIN/DR (bukan dipilih pengguna).
+--
+-- Alur: admin/DR mencatat undangan (email + peran + unit) di aplikasi → mengirim "Invite user"
+-- dari Supabase Dashboard → saat akun dibuat Supabase Auth, trigger memetakan public.user_access
+-- dari undangan yang cocok (email sama, belum dipakai, belum kedaluwarsa). Pengguna membuat kata
+-- sandi sendiri dan wajib MFA sebelum data terbuka (0003).
+--
+-- Batasan: DR hanya boleh mengundang peran KPw; admin semua peran. Pemetaan hanya untuk akun
+-- yang diundang (invited_at) atau emailnya terkonfirmasi (email_confirmed_at), bukan pendaftaran
+-- publik yang belum terverifikasi. Supabase Auth mengisi invited_at lewat UPDATE setelah baris
+-- auth.users dibuat (internal/api/invite.go → mail.go sendInvite), sehingga trigger juga berjalan
+-- pada UPDATE kolom tersebut.
+-- Rollback: supabase/rollback/0005_pending_invites.down.sql
+begin;
+
+create table if not exists public.pending_invites (
+  email text primary key check (email = lower(email) and email ~ '^[^@\s]+@[^@\s]+\.[^@\s]+$'),
+  role text not null check (role in ('dr', 'kpw', 'admin')),
+  unit_id text not null references public.units (id),
+  display_name text,
+  created_by uuid references auth.users (id) on delete set null default auth.uid(),
+  created_at timestamptz not null default now(),
+  expires_at timestamptz not null default now() + interval '14 days',
+  claimed_at timestamptz,
+  constraint pending_invites_unit_role check ((role = 'kpw') = (unit_id <> 'dr'))
+);
+
+alter table public.pending_invites enable row level security;
+revoke all on public.pending_invites from public, anon;
+grant select, insert, update, delete on public.pending_invites to authenticated;
+
+-- Siapa boleh mengelola undangan: admin (semua), DR (hanya undangan KPw).
+create or replace function public.can_manage_invite(target_role text) returns boolean
+language sql stable security definer set search_path = public as $$
+  select coalesce(public.is_admin() or (public.app_role() = 'dr' and target_role = 'kpw'), false)
+$$;
+revoke all on function public.can_manage_invite(text) from public, anon;
+grant execute on function public.can_manage_invite(text) to authenticated;
+
+drop policy if exists invites_select on public.pending_invites;
+create policy invites_select on public.pending_invites for select to authenticated using (public.can_manage_invite(role));
+drop policy if exists invites_insert on public.pending_invites;
+create policy invites_insert on public.pending_invites for insert to authenticated
+  with check (public.can_manage_invite(role) and claimed_at is null);
+drop policy if exists invites_update on public.pending_invites;
+create policy invites_update on public.pending_invites for update to authenticated
+  using (public.can_manage_invite(role) and claimed_at is null) with check (public.can_manage_invite(role) and claimed_at is null);
+drop policy if exists invites_delete on public.pending_invites;
+create policy invites_delete on public.pending_invites for delete to authenticated using (public.can_manage_invite(role));
+drop policy if exists pending_invites_require_aal2 on public.pending_invites;
+create policy pending_invites_require_aal2 on public.pending_invites as restrictive for all to authenticated
+  using (public.is_aal2()) with check (public.is_aal2());
+
+-- Trigger: akun baru dari undangan → pemetaan peran/unit.
+create or replace function public.apply_pending_invite() returns trigger
+language plpgsql security definer set search_path = public as $$
+declare inv public.pending_invites; mapped int;
+begin
+  if new.email is null or (new.invited_at is null and new.email_confirmed_at is null) then
+    return new;
+  end if;
+  if exists (select 1 from public.user_access where user_id = new.id) then
+    return new;
+  end if;
+  select * into inv from public.pending_invites
+   where email = lower(new.email) and claimed_at is null and expires_at > now()
+   for update;
+  if found then
+    insert into public.user_access (user_id, role, unit_id, display_name)
+    values (new.id, inv.role, inv.unit_id, inv.display_name)
+    on conflict (user_id) do nothing;
+    get diagnostics mapped = row_count;
+    if mapped > 0 then
+      update public.pending_invites set claimed_at = now() where email = inv.email;
+    end if;
+  end if;
+  return new;
+end $$;
+revoke execute on function public.apply_pending_invite() from public, anon, authenticated;
+
+drop trigger if exists sekar_apply_pending_invite on auth.users;
+create trigger sekar_apply_pending_invite after insert or update of invited_at, email_confirmed_at on auth.users
+for each row execute function public.apply_pending_invite();
+
+commit;
+
+-- ===== sinkronisasi korwil (data/base/kpw-regions.json) =====
+update public.units u set korwil = v.korwil
+from (values
+  ('kpw-01', 'Sumatera'),
+  ('kpw-02', 'Sumatera'),
+  ('kpw-03', 'Sumatera'),
+  ('kpw-04', 'Sumatera'),
+  ('kpw-05', 'Sumatera'),
+  ('kpw-06', 'Sumatera'),
+  ('kpw-07', 'Sumatera'),
+  ('kpw-08', 'Sumatera'),
+  ('kpw-09', 'Sumatera'),
+  ('kpw-10', 'Sumatera'),
+  ('kpw-11', 'Sumatera'),
+  ('kpw-12', 'Sumatera'),
+  ('kpw-13', 'Sumatera'),
+  ('kpw-14', 'Jawa'),
+  ('kpw-15', 'Jawa'),
+  ('kpw-16', 'Jawa'),
+  ('kpw-17', 'Jawa'),
+  ('kpw-18', 'Jawa'),
+  ('kpw-19', 'Jawa'),
+  ('kpw-20', 'Jawa'),
+  ('kpw-21', 'Jawa'),
+  ('kpw-22', 'Jawa'),
+  ('kpw-23', 'Jawa'),
+  ('kpw-24', 'Jawa'),
+  ('kpw-25', 'Jawa'),
+  ('kpw-26', 'Jawa'),
+  ('kpw-27', 'Jawa'),
+  ('kpw-28', 'Balinusra'),
+  ('kpw-29', 'Balinusra'),
+  ('kpw-30', 'Balinusra'),
+  ('kpw-31', 'Kalimantan'),
+  ('kpw-32', 'Kalimantan'),
+  ('kpw-33', 'Kalimantan'),
+  ('kpw-34', 'Kalimantan'),
+  ('kpw-35', 'Kalimantan'),
+  ('kpw-36', 'Kalimantan'),
+  ('kpw-37', 'Sulampua'),
+  ('kpw-38', 'Sulampua'),
+  ('kpw-39', 'Sulampua'),
+  ('kpw-40', 'Sulampua'),
+  ('kpw-41', 'Sulampua'),
+  ('kpw-42', 'Sulampua'),
+  ('kpw-43', 'Sulampua'),
+  ('kpw-44', 'Sulampua'),
+  ('kpw-45', 'Sulampua'),
+  ('kpw-46', 'Sulampua')
+) as v(id, korwil)
+where u.id = v.id and u.korwil is distinct from v.korwil;
+
 -- ===== supabase/tests/remote-verify.sql =====
 -- SEKAR — VERIFIKASI keamanan di Supabase sungguhan (SQL Editor). AMAN: seluruh uji berjalan
 -- di dalam subtransaksi yang SELALU di-rollback; tidak ada data yang berubah. Hasil: tabel LULUS/GAGAL.
@@ -150,6 +291,9 @@ declare
   t text[] := '{}'; e text[] := '{}'; a text[] := '{}';
   n_all int; n_units int; n_comp int; n_k1 int;
   procedure_dummy int; -- penampung hasil UPDATE ... RETURNING
+  has_inv boolean := to_regclass('public.pending_invites') is not null;
+  inv_email text := 'verifikasi-' || substr(md5(random()::text), 1, 12) || '@contoh.test';
+  r text;
 begin
   if not exists (select 1 from public.user_access where user_id = dr_user) then
     raise exception 'Akun uji % tidak ada di public.user_access', dr_user;
@@ -175,6 +319,27 @@ begin
     with u as (update public.user_access set role = 'admin' where user_id = dr_user returning 1)
       select count(*) into procedure_dummy from u;
     t := t || text 'DR menaikkan peran sendiri menjadi admin'; e := e || text '0'; a := a || procedure_dummy::text;
+    -- Undangan (0005): DR hanya boleh mengundang KPw; tanpa MFA undangan tidak terlihat.
+    r := 'tabel tidak ada';
+    if has_inv then
+      begin
+        execute format('insert into public.pending_invites (email, role, unit_id) values (%L, %L, %L)', inv_email, 'kpw', 'kpw-01');
+        r := 'diizinkan';
+      exception when others then r := 'ditolak'; end;
+    end if;
+    t := t || text 'DR dengan MFA: mencatat undangan KPw'; e := e || text 'diizinkan'; a := a || r;
+    r := 'tabel tidak ada';
+    if has_inv then
+      begin
+        execute format('insert into public.pending_invites (email, role, unit_id) values (%L, %L, %L)', 'x' || inv_email, 'admin', 'dr');
+        r := 'diizinkan';
+      exception when others then r := 'ditolak'; end;
+    end if;
+    t := t || text 'DR: mengundang peran admin'; e := e || text 'ditolak'; a := a || r;
+    perform set_config('request.jwt.claims', json_build_object('sub', dr_user, 'role', 'authenticated', 'aal', 'aal1')::text, true);
+    r := 'tabel tidak ada';
+    if has_inv then execute 'select count(*)::text from public.pending_invites' into r; end if;
+    t := t || text 'DR tanpa MFA: undangan terbaca'; e := e || text '0'; a := a || r;
     -- ---------------------------------------------------------- simulasi KPw kpw-01
     reset role;
     update public.user_access set role = 'kpw', unit_id = 'kpw-01' where user_id = dr_user;
@@ -183,6 +348,9 @@ begin
     t := t || text 'KPw dengan MFA: temuan unit sendiri'; e := e || n_k1::text; a := a || (select count(*) from public.findings where unit_id = 'kpw-01')::text;
     t := t || text 'KPw: temuan unit lain (kpw-02 / DR)'; e := e || text '0'; a := a || (select count(*) from public.findings where unit_id <> 'kpw-01')::text;
     t := t || text 'KPw: kepatuhan DR'; e := e || text '0'; a := a || (select count(*) from public.compliance_items)::text;
+    r := 'tabel tidak ada';
+    if has_inv then execute 'select count(*)::text from public.pending_invites' into r; end if;
+    t := t || text 'KPw: undangan terbaca'; e := e || text '0'; a := a || r;
     t := t || text 'KPw: dokumen di luar shared/kpw-01'; e := e || text '0'; a := a || (select count(*) from public.documents where scope not in ('shared', 'kpw-01'))::text;
     t := t || text 'KPw: rekonsiliasi & asesmen aset unit lain'; e := e || text '0';
       a := a || ((select count(*) from public.asset_reconciliations where unit_id <> 'kpw-01') + (select count(*) from public.asset_items where unit_id <> 'kpw-01'))::text;
@@ -206,7 +374,12 @@ begin
   t := t || text 'Anon: eksekusi fungsi rate limit'; e := e || text 'false';
     a := a || case when to_regprocedure('public.consume_rate_limit(text,integer,integer)') is null then 'tidak ada'
                    else has_function_privilege('anon', 'public.consume_rate_limit(text,integer,integer)', 'execute')::text end;
-  t := t || text 'Policy RESTRICTIVE aal2 terpasang'; e := e || text '15'; a := a || (select count(*) from pg_policies where policyname like '%require_aal2%' and permissive = 'RESTRICTIVE')::text;
+  t := t || text 'Policy RESTRICTIVE aal2 terpasang'; e := e || text '16'; a := a || (select count(*) from pg_policies where policyname like '%require_aal2%' and permissive = 'RESTRICTIVE')::text;
+  t := t || text 'Trigger pemetaan undangan di auth.users'; e := e || text '1';
+    a := a || (select count(*) from pg_trigger where tgname = 'sekar_apply_pending_invite' and not tgisinternal)::text;
+  t := t || text 'Authenticated: eksekusi langsung fungsi trigger undangan'; e := e || text 'false';
+    a := a || case when to_regprocedure('public.apply_pending_invite()') is null then 'tidak ada'
+                   else has_function_privilege('authenticated', 'public.apply_pending_invite()', 'execute')::text end;
   t := t || text 'RLS aktif di semua tabel public'; e := e || text '0';
     a := a || (select count(*) from pg_tables where schemaname = 'public' and not rowsecurity)::text;
   t := t || text 'Akun terpetakan dengan TOTP terverifikasi'; e := e || text 'ya';

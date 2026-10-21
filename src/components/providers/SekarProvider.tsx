@@ -9,7 +9,7 @@ import { PREFS_KEY } from "@/lib/repository/storage-keys";
 import type { DatasetSource, DocumentContent, LoadResult, SekarRepository } from "@/lib/repository/types";
 import { beginTotpEnrollment, listTotpFactors, removeTotpWithStepUp, verifyTotp, type TotpEnrollment, type TotpFactor } from "@/lib/auth/mfa";
 import { canOpenDocument, scopeDatasetForViewer } from "@/lib/scope";
-import type { ComplianceStatus, Dataset, FindingStatus, ISODate, SekarDocument, Viewer } from "@/lib/types";
+import type { ComplianceStatus, Dataset, FindingStatus, ISODate, PendingInvite, Role, SekarDocument, Viewer } from "@/lib/types";
 
 export type AppStatus =
   | "loading"
@@ -37,6 +37,13 @@ export interface MfaControls {
   requestPasswordReset: (email: string) => Promise<void>;
   updatePassword: (password: string) => Promise<string | null>;
   signOutOthers: () => Promise<string | null>;
+}
+
+/** Kelola undangan pengguna (mode Supabase, DR/admin). Otorisasi sebenarnya di RLS. */
+export interface UserAdminControls {
+  list: () => Promise<PendingInvite[]>;
+  create: (input: { email: string; role: Role; unit_id: string; display_name: string }) => Promise<string | null>;
+  remove: (email: string) => Promise<string | null>;
 }
 
 export interface Toast {
@@ -77,6 +84,10 @@ interface SekarContextValue {
   retry: () => void;
   /** null pada mode dummy. */
   mfa: MfaControls | null;
+  /** Status password_reset: dari tautan reset ("recovery") atau undangan ("invite"). */
+  passwordMode: "recovery" | "invite";
+  /** null pada mode dummy. */
+  userAdmin: UserAdminControls | null;
 }
 
 const SekarContext = createContext<SekarContextValue | null>(null);
@@ -121,6 +132,9 @@ export function SekarProvider({ config, children }: { config: AppConfig; childre
   const toastId = useRef(0);
   /** Sesi berasal dari tautan reset kata sandi (event PASSWORD_RECOVERY). */
   const recoveryRef = useRef(false);
+  /** Sesi berasal dari tautan undangan; pengguna wajib membuat kata sandi setelah MFA. */
+  const inviteRef = useRef<boolean | null>(null);
+  const [passwordMode, setPasswordMode] = useState<"recovery" | "invite">("recovery");
 
   const notify = useCallback((message: string, tone: Toast["tone"] = "success") => {
     const id = ++toastId.current;
@@ -160,6 +174,7 @@ export function SekarProvider({ config, children }: { config: AppConfig; childre
         const { SupabaseRepository } = await import("@/lib/repository/supabase");
         const repo = (repoRef.current as SupabaseRepo | null) ?? new SupabaseRepository(config.supabaseUrl, config.supabaseAnonKey);
         repoRef.current = repo;
+        if (inviteRef.current === null) inviteRef.current = repo.inviteFlow;
         const { data: sub } = repo.client.auth.onAuthStateChange((event) => {
           if (event === "PASSWORD_RECOVERY") recoveryRef.current = true;
           if (event === "SIGNED_OUT") recoveryRef.current = false;
@@ -185,8 +200,9 @@ export function SekarProvider({ config, children }: { config: AppConfig; childre
           setStatus(gate.kind === "enroll" ? "needs_mfa_enroll" : "needs_mfa_challenge");
           return;
         }
-        if (recoveryRef.current) {
+        if (recoveryRef.current || inviteRef.current) {
           setResult(null);
+          setPasswordMode(inviteRef.current ? "invite" : "recovery");
           setStatus("password_reset");
           return;
         }
@@ -366,6 +382,7 @@ export function SekarProvider({ config, children }: { config: AppConfig; childre
     }
     const repo = repoRef.current as SupabaseRepo | null;
     recoveryRef.current = false;
+    inviteRef.current = false;
     setPreviewDoc(null);
     setResult(null);
     setFactors([]);
@@ -420,14 +437,32 @@ export function SekarProvider({ config, children }: { config: AppConfig; childre
         const err = await attempt(() => supabaseRepo().updatePassword(password));
         if (!err) {
           recoveryRef.current = false;
+          inviteRef.current = false;
           await supabaseRepo().client.auth.signOut();
-          notify("Kata sandi diperbarui. Silakan masuk kembali.", "success");
+          notify("Kata sandi tersimpan. Silakan masuk dengan email, kata sandi, dan kode authenticator.", "success");
         }
         return err;
       },
       signOutOthers: () => attempt(() => supabaseRepo().signOutOthers()),
     };
   }, [config.mode, factors, supabaseRepo, reload, notify]);
+
+  const userAdmin: UserAdminControls | null = useMemo(() => {
+    if (config.mode !== "supabase") return null;
+    const attempt = async (fn: () => Promise<unknown>): Promise<string | null> => {
+      try {
+        await fn();
+        return null;
+      } catch (e) {
+        return (e as Error).message;
+      }
+    };
+    return {
+      list: () => supabaseRepo().listInvites(),
+      create: (input) => attempt(() => supabaseRepo().createInvite(input)),
+      remove: (email) => attempt(() => supabaseRepo().deleteInvite(email)),
+    };
+  }, [config.mode, supabaseRepo]);
 
   const value: SekarContextValue = {
     config,
@@ -458,6 +493,8 @@ export function SekarProvider({ config, children }: { config: AppConfig; childre
     signOut,
     retry: reload,
     mfa,
+    passwordMode,
+    userAdmin,
   };
 
   return <SekarContext.Provider value={value}>{children}</SekarContext.Provider>;

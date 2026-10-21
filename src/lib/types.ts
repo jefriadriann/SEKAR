@@ -216,6 +216,17 @@ export const COLLECTION_KEYS = [
 ] as const;
 export type CollectionKey = (typeof COLLECTION_KEYS)[number];
 
+/** Undangan pengguna (mode Supabase): peran & unit ditetapkan admin/DR, dipetakan otomatis saat akun dibuat. */
+export interface PendingInvite {
+  email: string;
+  role: Role;
+  unit_id: string;
+  display_name: string | null;
+  created_at: string;
+  expires_at: string;
+  claimed_at: string | null;
+}
+
 /** Identitas pengguna aktif: persona demo atau pengguna Supabase yang sudah dipetakan. */
 export interface Viewer {
   id: string;

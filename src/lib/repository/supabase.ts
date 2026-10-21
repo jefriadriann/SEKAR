@@ -7,7 +7,7 @@
  * dalam repo ini — lihat README bagian "Supabase (opsional)".
  */
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import type { ComplianceStatus, Dataset, DatasetMetadata, FindingStatus, ISODate, SekarDocument, Viewer } from "../types";
+import type { ComplianceStatus, Dataset, DatasetMetadata, FindingStatus, ISODate, PendingInvite, Role, SekarDocument, Viewer } from "../types";
 import { applyFindingStatus, replaceById, validateRequestPatch, type RequestPatch } from "../mutations";
 import { documentFilename, documentText, fileUrlName, type DocumentContent, type LoadResult, type SekarRepository } from "./types";
 import { readMfaGate, type MfaApi, type MfaGate } from "../auth/mfa";
@@ -21,6 +21,8 @@ export class MfaRequiredError extends Error {}
 export class SupabaseRepository implements SekarRepository {
   readonly mode = "supabase" as const;
   readonly client: SupabaseClient;
+  /** Halaman dibuka dari tautan undangan Supabase (fragmen URL type=invite), dibaca sebelum klien memprosesnya. */
+  readonly inviteFlow: boolean;
   private cache: LoadResult | null = null;
 
   constructor(url: string | undefined, anonKey: string | undefined) {
@@ -29,6 +31,7 @@ export class SupabaseRepository implements SekarRepository {
         "APP_DATA_MODE=supabase tetapi NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY belum diisi.",
       );
     }
+    this.inviteFlow = typeof window !== "undefined" && /(^#|&)type=invite(&|$)/.test(window.location.hash);
     this.client = createClient(url, anonKey, { auth: { persistSession: true, autoRefreshToken: true } });
   }
 
@@ -64,6 +67,34 @@ export class SupabaseRepository implements SekarRepository {
   async signOutOthers(): Promise<void> {
     const { error } = await this.client.auth.signOut({ scope: "others" });
     if (error) throw new Error(error.message);
+  }
+
+  // ------------------------------------------------------------- undangan pengguna (RLS: admin; DR hanya KPw; wajib aal2)
+  async listInvites(): Promise<PendingInvite[]> {
+    const { data, error } = await this.client
+      .from("pending_invites")
+      .select("email, role, unit_id, display_name, created_at, expires_at, claimed_at")
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(`Gagal membaca undangan: ${error.message}`);
+    return (data ?? []) as PendingInvite[];
+  }
+
+  async createInvite(input: { email: string; role: Role; unit_id: string; display_name: string }): Promise<void> {
+    const { error } = await this.client.from("pending_invites").insert({
+      email: input.email.trim().toLowerCase(),
+      role: input.role,
+      unit_id: input.unit_id,
+      display_name: input.display_name.trim() || null,
+    });
+    if (!error) return;
+    if (error.code === "23505") throw new Error("Email ini sudah memiliki undangan.");
+    if (error.code === "42501") throw new Error("Anda tidak berwenang membuat undangan dengan peran ini.");
+    throw new Error(`Gagal menyimpan undangan: ${error.message}`);
+  }
+
+  async deleteInvite(email: string): Promise<void> {
+    const { error } = await this.client.from("pending_invites").delete().eq("email", email);
+    if (error) throw new Error(`Gagal menghapus undangan: ${error.message}`);
   }
 
   /** Viewer dari tabel user_access (dipetakan admin). null = belum berwenang. */

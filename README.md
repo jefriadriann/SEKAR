@@ -40,11 +40,13 @@ Halaman login juga punya tombol "Isi" untuk mengisi akun contoh dengan satu klik
 
 ## Dataset simulasi
 
-`data/sekar-dummy.json` (v1.3) dibangkitkan secara deterministik oleh `node scripts/generate-dummy-data.mjs` dari paket awal `data/base/sekar-dummy-v1.json` (tidak diubah) dan manifest materi `data/base/demo-materials.json`. Isinya: 46 KPw fiktif yang tersebar merata di 6 korwil + unit DR, **1.688 temuan** (1.604 KPw + 84 DR, 2022–2026), **248 jadwal**, **954 permintaan dokumen**, **188 rekonsiliasi aset** (2023–2026) dengan **1.260 baris asesmen per nomor aset** (aspek umur ekonomis, harga perolehan, satuan pencatatan, keberadaan/kondisi fisik, lokasi, kode klasifikasi, dokumen kepemilikan, label; rincian KPw 2025–2026, DR 2023–2026), **32 kewajiban DR**, dan **57 materi**. Semua record bertanda `is_dummy`.
+`data/sekar-dummy.json` (v1.3) dibangkitkan secara deterministik oleh `node scripts/generate-dummy-data.mjs` dari paket awal `data/base/sekar-dummy-v1.json` (tidak diubah) dan manifest materi `data/base/demo-materials.json`. Isinya: 46 KPw fiktif (urutan wilayah Aceh → Papua Barat, `data/base/kpw-regions.json`) dalam 5 korwil — Sumatera, Jawa, Balinusra, Kalimantan, Sulampua — + unit DR, **1.688 temuan** (1.604 KPw + 84 DR, 2022–2026), **248 jadwal**, **954 permintaan dokumen**, **188 rekonsiliasi aset** (2023–2026) dengan **1.260 baris asesmen per nomor aset** (aspek umur ekonomis, harga perolehan, satuan pencatatan, keberadaan/kondisi fisik, lokasi, kode klasifikasi, dokumen kepemilikan, label; rincian KPw 2025–2026, DR 2023–2026), **32 kewajiban DR**, dan **57 materi**. Semua record bertanda `is_dummy`.
 
 Berkas materi demo (simulasi) dibangun oleh `python3 scripts/build-demo-materials.py` (butuh openpyxl, reportlab, Pillow, ffmpeg) ke `public/demo/`: 16 worksheet SGo Excel (Aktivitas & Supervisi, Pengendalian), 32 ketentuan PDF (PDG, PADGI, Juknis, SE Intern per area), 8 video panduan pencatatan aset dan 1 video pengenalan SGo (MP4 + WebM). Nomor dan isi ketentuan fiktif.
 
-Peta Indonesia memakai geometri Natural Earth 1:10m (public domain) yang dibangun oleh `node scripts/build-indonesia-map.mjs <ne_10m_admin_0_countries.geojson>`; pulau dikelompokkan per korwil dan peta hanya menampilkan agregat per korwil.
+Peta Indonesia memakai geometri Natural Earth 1:10m (public domain) yang dibangun oleh `node scripts/build-indonesia-map.mjs <ne_10m_admin_0_countries.geojson>`; pulau dikelompokkan per korwil (Sulawesi, Maluku, dan Papua = Sulampua; Bali & Nusa Tenggara = Balinusra) dan peta hanya menampilkan agregat per korwil.
+
+Landing page akun KPw menampilkan ilustrasi landmark wilayahnya (46 siluet SVG buatan sendiri di `src/components/landmarks/Landmarks.tsx`, transparan, murni visual).
 
 Logo SEKAR berada di `public/brand/` (logo penuh & emblem) serta `src/app/icon.png`.
 
@@ -70,13 +72,15 @@ Untuk `test:e2e` dibutuhkan browser Chromium untuk Playwright (`npx playwright i
 
 | Route | Isi |
 |---|---|
-| `/` | Beranda "Selamat Datang di SEKAR" dengan 4 kartu menu (Hasil Pemeriksaan KPwDN, Tracker Permindok, Jadwal Pemeriksaan, SGo dan Ketentuan); tiap kartu membuka modulnya |
+| `/` | Beranda "Selamat Datang di SEKAR" dengan 4 kartu menu (Hasil Pemeriksaan KPwDN, Tracker Permindok, Jadwal Pemeriksaan, SGo dan Ketentuan); tiap kartu membuka modulnya. Akun KPw melihat ilustrasi landmark wilayahnya (transparan) dan nama wilayah di bawah logo |
 | `/hasil-pemeriksaan` | DR/admin dapat beralih cakupan **KPwDN ↔ Departemen Regional** (hasil pemeriksaan satker DR sendiri: KPI, chart area/pemeriksa/tren/PIC, tabel, rekonsiliasi aset DR). Filter tahun (termasuk Semua Tahun)/pemeriksa/korwil/KPw/area/status/ketepatan waktu/pencarian; chart per area, korwil, tren tahunan, proporsi pemeriksa (klik = filter, ada reset & tampilan tabel); tabel temuan atau agregasi tema (jumlah temuan vs kantor terdampak); drawer detail + bukti + edit status; rekonsiliasi aset bertingkat (rekap → daftar nomor aset tidak sesuai → asesmen per aspek beserta penyebab & tindak lanjut); video panduan pencatatan aset (split, penghapusan, penatausahaan, mutasi, reklasifikasi, koreksi harga, umur ekonomis, inventarisasi) dalam pop-up autoplay; export CSV |
 | `/permindok` | Filter tahun/jadwal/kategori/KPw/status/ketepatan waktu + pencarian; KPI kelengkapan **terpisah** dari ketepatan waktu; chart status per kategori; catatan pemenuhan; tabel + edit (tersimpan lokal, validasi tanggal); panduan watermark & tanda terima simulasi (.txt) |
 | `/jadwal-pemeriksaan` | Timeline/Gantt bulan/kuartal/tahun, navigasi periode, garis Hari Ini, label **Tentatif**; KPI total/berlangsung/mulai ≤ 7 hari/mendatang/selesai (dihitung dari tanggal); pemeriksaan terdekat; tabel tindak lanjut temuan dengan bukti |
 | `/sgo-ketentuan` | Kartu "Apa itu SGo" & cara menggunakan + video pengenalan SGo (autoplay); grid 8 area dengan 2 menu: **Worksheet** (pop-up Aktivitas & Supervisi / Pengendalian, Excel) dan **Ketentuan** (pop-up PDG / PADGI / Juknis / SE Intern, PDF); pratinjau tabel/PDF dan unduh; pencarian materi |
 | `/dr` | Khusus persona DR/admin: KPI 24 temuan DR (16 selesai, 6 proses, 2 belum — dihitung dari dataset), filter BPK/DAI/KAA, kepatuhan DR (status dapat diubah), permindok DR, jadwal DR, dokumen penting, ketentuan per kelompok, overview KPw |
 | `/admin` | Khusus persona admin: info & tanggal dataset, import JSON (file/tempel) dengan pratinjau + validasi struktur/FK/status/tanggal, konfirmasi penggantian, export JSON, reset ke seed |
+| `/pengguna` | Mode Supabase, DR/admin: catat undangan (email, nama, peran, kantor KPw yang ditetapkan pengundang), status undangan, hapus undangan; langkah kirim *Invite user* dari Supabase. Pengguna undangan wajib MFA lalu membuat kata sandi sendiri |
+| `/keamanan` | Mode Supabase: kelola authenticator (MFA), keluar dari perangkat lain |
 
 Kontrol global di header (kanan atas):
 
@@ -146,7 +150,8 @@ Mode Supabase **belum diaktifkan dan belum diuji terhadap proyek Supabase nyata*
 
 - `supabase/migrations/0001_sekar_schema.sql` — tabel, constraint, trigger, RLS untuk SELECT/INSERT/UPDATE/DELETE di setiap tabel (termasuk `documents` dan `reference_materials`), bucket storage privat beserta policy.
 - `supabase/seed.sql` — dibuat dari JSON dengan `npm run db:seed-sql`; tidak membuat akun Auth atau kata sandi.
-- `npm run db:test-local` — menjalankan migration + seed + 61 pemeriksaan RLS/MFA (aal1 vs aal2) pada PostgreSQL lokal dengan *stub* skema `auth`/`storage`. Ini memvalidasi SQL dan logika policy, **bukan** pengganti uji integrasi di Supabase sungguhan.
+- `supabase/migrations/0003`–`0005` — MFA wajib (aal2) + rate limit, pengerasan default, undangan pengguna (peran & unit ditetapkan DR/admin). Diterapkan sekaligus lewat `supabase/activate-mfa-enforcement.sql`.
+- `npm run db:test-local` — menjalankan migration + seed + pemeriksaan RLS/MFA/undangan (aal1 vs aal2) pada PostgreSQL lokal dengan *stub* skema `auth`/`storage`. Ini memvalidasi SQL dan logika policy, **bukan** pengganti uji integrasi di Supabase sungguhan.
 
 Langkah lengkap ada di [docs/SUPABASE.md](docs/SUPABASE.md).
 

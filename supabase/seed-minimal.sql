@@ -11,7 +11,7 @@ on conflict (id) do nothing;
 
 insert into public.units (id, name, korwil, is_dummy) values
   ('kpw-01', 'KPw Simulasi 01', 'Sumatera', true),
-  ('kpw-02', 'KPw Simulasi 02', 'Jawa', true),
+  ('kpw-02', 'KPw Simulasi 02', 'Sumatera', true),
   ('dr', 'Departemen Regional — Simulasi', null, true)
 on conflict (id) do nothing;
 

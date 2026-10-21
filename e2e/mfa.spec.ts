@@ -141,3 +141,48 @@ test("mode Supabase: tidak ada akun demo dan kredensial demo ditolak tanpa membu
   expect(s.dataRequests).toEqual([]);
   expect(csp).toEqual([]);
 });
+
+test("tautan undangan: wajib daftar authenticator dulu, lalu membuat kata sandi sendiri", async ({ page }) => {
+  const csp = watchCsp(page);
+  const s = await mockSupabase(page, { factors: "none" });
+  await page.goto(`/?undangan=1#access_token=${jwt("aal1")}&refresh_token=r-inv&expires_in=3600&expires_at=${Math.floor(Date.now() / 1000) + 3600}&token_type=bearer&type=invite`);
+  await expect(page.getByRole("heading", { name: "Aktifkan verifikasi dua langkah" })).toBeVisible();
+  await expect(page.getByLabel("Kata sandi baru", { exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "Mulai pendaftaran authenticator" }).click();
+  await page.getByLabel(/Kode 6 digit/).fill(VALID_CODE);
+  await page.getByRole("button", { name: "Verifikasi dan aktifkan" }).click();
+  await expect(page.getByRole("heading", { name: "Buat kata sandi Anda" })).toBeVisible();
+  expect(s.dataRequests).toEqual([]);
+  await page.getByLabel("Kata sandi baru", { exact: true }).fill("kata-sandi-pegawai-baru");
+  await page.getByLabel("Ulangi kata sandi baru").fill("kata-sandi-pegawai-baru");
+  await page.getByRole("button", { name: "Simpan kata sandi" }).click();
+  await expect(page.getByRole("heading", { name: "Masuk ke akun Anda" })).toBeVisible();
+  expect(s.passwordUpdates).toEqual([{ aal: "aal2" }]);
+  expect(csp).toEqual([]);
+});
+
+test("kelola pengguna: DR mengundang KPw dengan kantor yang ditetapkan; peran lain tidak tersedia", async ({ page }) => {
+  const csp = watchCsp(page);
+  const s = await mockSupabase(page, { factors: "one", role: "dr" });
+  await login(page, s);
+  await page.getByLabel(/Kode 6 digit/).fill(VALID_CODE);
+  await page.getByRole("button", { name: "Verifikasi", exact: true }).click();
+  await expect(page.getByRole("navigation", { name: "Menu utama SEKAR" })).toBeVisible();
+  await page.goto("/pengguna");
+  await expect(page.getByRole("heading", { name: "Kelola Pengguna", level: 1 })).toBeVisible();
+  // DR hanya dapat memilih peran KPw.
+  await expect(page.getByLabel("Peran").locator("option")).toHaveText(["KPw"]);
+  await page.getByLabel("Email").fill("Pegawai.Aceh@Contoh.test");
+  await page.getByLabel("Nama tampilan").fill("Pegawai KPw Aceh");
+  await page.getByLabel("Kantor (KPw)").selectOption({ label: "KPw Simulasi 01 · Aceh" });
+  await page.getByRole("button", { name: "Simpan undangan" }).click();
+  await expect(page.getByText("pegawai.aceh@contoh.test · KPw · KPw Simulasi 01 · Aceh")).toBeVisible();
+  expect(s.invites).toMatchObject([{ email: "pegawai.aceh@contoh.test", role: "kpw", unit_id: "kpw-01" }]);
+  // Duplikat ditolak.
+  await page.getByLabel("Email").fill("pegawai.aceh@contoh.test");
+  await page.getByRole("button", { name: "Simpan undangan" }).click();
+  await expect(page.getByText(/sudah memiliki undangan/)).toBeVisible();
+  await page.getByRole("button", { name: "Hapus undangan pegawai.aceh@contoh.test" }).click();
+  await expect(page.getByText("Belum ada undangan.")).toBeVisible();
+  expect(csp).toEqual([]);
+});

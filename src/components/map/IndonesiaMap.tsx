@@ -105,10 +105,9 @@ export function IndonesiaMap({
           {[
             ["Sumatera", "Jawa"],
             ["Jawa", "Kalimantan"],
-            ["Kalimantan", "Sulawesi"],
-            ["Sulawesi", "Maluku dan Papua"],
-            ["Jawa", "Bali dan Nusa Tenggara"],
-            ["Bali dan Nusa Tenggara", "Sulawesi"],
+            ["Kalimantan", "Sulampua"],
+            ["Jawa", "Balinusra"],
+            ["Balinusra", "Sulampua"],
           ].map(([a, b]) => {
             const [x1, y1] = KORWIL_CENTERS[a];
             const [x2, y2] = KORWIL_CENTERS[b];

@@ -15,6 +15,7 @@ PSQL=("${RUNAS[@]}" "$PGBIN/psql" -h localhost -p "$PORT" -U postgres -d postgre
 "${PSQL[@]}" -f "$ROOT/supabase/tests/00_local_stub.sql" >/dev/null
 for m in 0001_sekar_schema 0002_asset_items_materials; do "${PSQL[@]}" -c "set client_min_messages=warning" -f "$ROOT/supabase/migrations/$m.sql" >/dev/null; done
 "${PSQL[@]}" -f "$ROOT/supabase/seed-minimal.sql" >/dev/null
+"${PSQL[@]}" -c "update public.units set korwil = 'Jawa' where id = 'kpw-02'" >/dev/null  # meniru proyek uji (seed-minimal lama)
 DR=3f2875c6-6485-4324-a6b9-483b6f1ec591
 "${PSQL[@]}" -c "insert into auth.users values ('$DR','dr-uji@contoh.test'); insert into public.user_access (user_id, role, unit_id, display_name) values ('$DR','dr','dr','Akun Uji');" >/dev/null
 must() { if eval "$2"; then echo "OK $1"; else echo "GAGAL: $1"; exit 1; fi; }
@@ -33,10 +34,12 @@ echo "== 3. Setelah TOTP terverifikasi: aktivasi + verifikasi"
 "${PSQL[@]}" -c "insert into auth.mfa_factors values (gen_random_uuid(), '$DR', 'totp', 'verified')" >/dev/null
 RES=$("${PSQL[@]}" -c "set client_min_messages=warning" -f "$ROOT/supabase/activate-mfa-enforcement.sql" 2>&1)
 echo "$RES" | grep -E "^[0-9]+\|"
-must "semua uji LULUS" '! grep -q "|GAGAL$" <<<"$RES" && [ "$(grep -c "|LULUS$" <<<"$RES")" = "22" ]'
+must "semua uji LULUS" '! grep -q "|GAGAL$" <<<"$RES" && [ "$(grep -c "|LULUS$" <<<"$RES")" = "28" ]'
+must "korwil kpw-02 disinkronkan ke Sumatera" '[ "$("${PSQL[@]}" -c "select korwil from units where id='"'"'kpw-02'"'"'")" = "Sumatera" ]'
+must "uji undangan tidak meninggalkan baris (rollback)" '[ "$("${PSQL[@]}" -c "select count(*) from pending_invites")" = "0" ]'
 must "tidak ada data berubah (peran DR & status temuan kpw-02 utuh)" '[ "$("${PSQL[@]}" -c "select (select role from user_access where user_id='"'"'$DR'"'"')||(select count(*) from findings where unit_id='"'"'kpw-02'"'"' and status='"'"'selesai'"'"')")" = "dr1" ]'
 
 echo "== 4. Dijalankan ulang (idempoten)"
 RES2=$("${PSQL[@]}" -c "set client_min_messages=warning" -f "$ROOT/supabase/activate-mfa-enforcement.sql" 2>&1)
-must "jalan kedua tetap 22 LULUS" '[ "$(grep -c "|LULUS$" <<<"$RES2")" = "22" ]'
+must "jalan kedua tetap 28 LULUS" '[ "$(grep -c "|LULUS$" <<<"$RES2")" = "28" ]'
 echo "Uji aktivasi lokal: lulus"

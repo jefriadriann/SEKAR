@@ -7,6 +7,8 @@ end $$;
 create schema if not exists auth;
 create schema if not exists storage;
 create table if not exists auth.users (id uuid primary key, email text);
+-- Kolom Supabase Auth yang dipakai trigger undangan (0005).
+alter table auth.users add column if not exists invited_at timestamptz, add column if not exists email_confirmed_at timestamptz;
 -- Seperti Supabase: klaim JWT dibaca dari request.jwt.claims (JSON); auth.uid() = klaim sub.
 create or replace function auth.jwt() returns jsonb language sql stable as $$
   select coalesce(nullif(current_setting('request.jwt.claims', true), ''), '{}')::jsonb

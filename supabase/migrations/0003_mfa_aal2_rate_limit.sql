@@ -10,7 +10,7 @@
 -- menampilkan pendaftaran/challenge MFA. Pendaftaran faktor sendiri ditangani
 -- Supabase Auth API, bukan tabel aplikasi.
 --
--- Rollback: lihat SECURITY.md bagian "Rollback" (drop policy *_require_aal2,
+-- Rollback (urutan terbalik: 0005 → 0004 → 0003): supabase/rollback/*.down.sql (drop policy *_require_aal2,
 -- drop function consume_rate_limit, drop table rate_limits).
 
 begin;

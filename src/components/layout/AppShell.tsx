@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { AlertTriangle, Bell, CalendarClock, ChevronRight, Download, FlaskConical, KeyRound, Loader2, LogOut, RotateCcw, UserRound, X } from "lucide-react";
+import { AlertTriangle, Bell, CalendarClock, ChevronRight, Download, FlaskConical, KeyRound, Loader2, LogOut, RotateCcw, UserRound, UsersRound, X } from "lucide-react";
 import { useSekar } from "@/components/providers/SekarProvider";
 import { Drawer } from "@/components/ui/Overlay";
 import { Badge, Button, Card, cx, SimulationNote, Skeleton } from "@/components/ui/primitives";
@@ -13,6 +13,7 @@ import { requestTimeliness } from "@/lib/analytics/permindok";
 import { startsWithin } from "@/lib/analytics/schedules";
 import { formatDate, formatDateLong } from "@/lib/dates";
 import { clean, ROLE_LABEL } from "@/lib/format";
+import { regionFor } from "@/lib/regions";
 import { fileKind } from "@/lib/materials";
 import { MaterialViewer } from "@/components/domain/MaterialViewer";
 import { canAccessRoute, kpwModuleData, type AppRoute } from "@/lib/scope";
@@ -76,6 +77,7 @@ function KpwScopeNotice() {
       <span className="rounded-md bg-[#13235a] px-2 py-0.5 text-[12px] font-bold text-white">KPw</span>
       <span>
         Masuk sebagai <strong>{unit?.name ?? viewer.name}</strong>
+        {regionFor(viewer.unit_id) ? ` · ${regionFor(viewer.unit_id)!.region}` : ""}
         {unit?.korwil ? ` · Korwil ${unit.korwil}` : ""}. Data yang ditampilkan hanya untuk unit ini.
       </span>
     </div>
@@ -355,6 +357,19 @@ function UserMenu() {
                   >
                     <KeyRound className="h-4 w-4 text-[var(--m2)]" aria-hidden />
                     Keamanan akun (MFA)
+                  </Link>
+                </li>
+              )}
+              {config.mode === "supabase" && canAccessRoute(viewer.role, "/pengguna") && (
+                <li>
+                  <Link
+                    href="/pengguna"
+                    onClick={() => setOpen(false)}
+                    aria-current={pathname === "/pengguna" ? "page" : undefined}
+                    className="flex items-center gap-2 rounded-lg px-2 py-1.5 font-semibold text-navy-900 hover:bg-sky-50"
+                  >
+                    <UsersRound className="h-4 w-4 text-[var(--m2)]" aria-hidden />
+                    Kelola pengguna
                   </Link>
                 </li>
               )}

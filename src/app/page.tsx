@@ -8,6 +8,8 @@ import { DotPattern } from "@/components/magicui/DotPattern";
 import { ArrowCircle } from "@/components/ui/primitives";
 import { useSekar } from "@/components/providers/SekarProvider";
 import { formatDateLong } from "@/lib/dates";
+import { LandmarkArt } from "@/components/landmarks/Landmarks";
+import { regionFor } from "@/lib/regions";
 
 interface MenuCard {
   href: string;
@@ -64,13 +66,22 @@ function Illustration({ card }: { card: MenuCard }) {
 }
 
 export default function HomePage() {
-  const { datasetAsOf } = useSekar();
+  const { datasetAsOf, viewer } = useSekar();
+  // Akun KPw: ilustrasi landmark wilayahnya (dekoratif, transparan) menggantikan ilustrasi gedung.
+  const region = viewer?.role === "kpw" ? regionFor(viewer.unit_id) : null;
   return (
     <div className="relative overflow-hidden lg:h-full">
       {/* Dekorasi latar */}
       <DotPattern className="[mask-image:radial-gradient(700px_circle_at_70%_20%,white,transparent)]" />
       <div className="pointer-events-none absolute -left-40 top-16 h-[520px] w-[520px] rounded-full border-[60px] border-white/50" aria-hidden />
-      <BuildingIllustration className="pointer-events-none absolute bottom-0 left-0 hidden w-[13%] max-w-[220px] opacity-90 lg:block" />
+      {region ? (
+        <LandmarkArt
+          landmark={region.key}
+          className="pointer-events-none absolute bottom-0 left-0 w-[92%] text-[#13235a] opacity-[0.09] [mask-image:linear-gradient(to_top,black_55%,transparent)] sm:w-[70%] lg:w-[50%] lg:max-w-[760px] lg:opacity-[0.12]"
+        />
+      ) : (
+        <BuildingIllustration className="pointer-events-none absolute bottom-0 left-0 hidden w-[13%] max-w-[220px] opacity-90 lg:block" />
+      )}
       <WaveLines className="pointer-events-none absolute bottom-0 right-0 h-[34%] w-[75%]" />
 
       <section className="relative mx-auto grid max-w-[1440px] gap-8 px-4 pb-10 pt-6 sm:px-6 lg:h-full lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:items-center lg:gap-10 lg:px-10 lg:py-[3vh] xl:px-16">
@@ -89,6 +100,14 @@ export default function HomePage() {
               className="h-auto w-[300px] drop-shadow-[0_10px_24px_rgba(20,42,110,0.18)] sm:w-[380px] lg:h-[min(52vh,470px)] lg:w-auto"
             />
           </h1>
+          {region && (
+            <p className="mt-3 inline-flex items-center gap-2 rounded-full border border-[#d6dfee] bg-white/80 px-3 py-1 text-[13px] text-navy-900 backdrop-blur">
+              <span className="h-2 w-2 rounded-full bg-gold" aria-hidden />
+              <span>
+                <strong>{region.region}</strong> · {region.landmark}
+              </span>
+            </p>
+          )}
         </div>
 
         {/* Kolom kanan: peta + menu */}

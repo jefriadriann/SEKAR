@@ -17,7 +17,9 @@ Label status:
 | Mode Supabase tidak menampilkan akun demo; kredensial demo ditolak Supabase Auth; tidak ada data diminta | SUDAH DIUJI (e2e) |
 | Preview khusus branch `claude/demo-aset-sgo-q2logj`: `config/preview-supabase.json` (URL + publishable key PUBLIK) hanya berlaku bila `VERCEL_ENV=preview` dan branch cocok; Production tidak pernah memakainya; env Vercel eksplisit selalu didahulukan | SUDAH DITERAPKAN, SUDAH DIUJI (unit); nilai proyek BELUM DIISI |
 | Migration **0004**: `search_path` tetap untuk fungsi trigger, fungsi trigger tidak dapat dieksekusi langsung, objek baru di `public` tidak otomatis bisa diakses `anon` | SUDAH DITERAPKAN, SUDAH DIUJI (stub kini meniru grant default Supabase; tanpa 0004 uji gagal) |
-| `supabase/activate-mfa-enforcement.sql` (SQL Editor): penjaga (batal bila belum ada akun dengan TOTP terverifikasi) → 0003 → 0004 → 22 uji keamanan di Supabase sungguhan dalam subtransaksi yang selalu di-rollback | SUDAH DIUJI lokal; BELUM dijalankan di Supabase |
+| `supabase/activate-mfa-enforcement.sql` (SQL Editor): penjaga (batal bila belum ada akun dengan TOTP terverifikasi) → 0003 → 0004 → 0005 → sinkron nama korwil unit yang sudah ada → 28 uji keamanan di Supabase sungguhan dalam subtransaksi yang selalu di-rollback | SUDAH DIUJI lokal; BELUM dijalankan di Supabase |
+| Migration **0005** undangan pengguna: admin/DR mencatat email + peran + unit di `/pengguna` (tabel `pending_invites`, RLS + aal2; DR hanya boleh mengundang KPw; KPw ke unit `dr` ditolak constraint). Saat akun dibuat lewat *Invite user* Supabase, trigger `auth.users` memetakan `user_access`. **Pengguna tidak memilih unitnya sendiri** (memilih unit = eskalasi hak). Pengguna membuat kata sandi sendiri setelah MFA | SUDAH DITERAPKAN, SUDAH DIUJI (lokal: 17 cek undangan + e2e Supabase tiruan); BELUM dijalankan di Supabase |
+| **Temuan saat review (diperbaiki sebelum dirilis):** Supabase Auth mengisi `invited_at` lewat UPDATE *setelah* baris `auth.users` dibuat (`internal/api/invite.go` → `mail.go`), sehingga trigger AFTER INSERT saja tidak akan pernah memetakan akun undangan. Trigger kini juga berjalan pada `UPDATE OF invited_at, email_confirmed_at`, tidak menimpa pemetaan yang ada, dan menandai undangan terpakai hanya bila pemetaan benar-benar dibuat | SUDAH DITERAPKAN, SUDAH DIUJI lokal (urutan insert→update ditiru); perilaku GoTrue sungguhan BELUM TERVERIFIKASI |
 | `supabase/tests/remote-verify.sql`: uji ulang kapan saja (read-only, rollback) | SUDAH DIUJI lokal |
 | CI kini berjalan di semua branch + menjalankan seluruh suite database | SUDAH DITERAPKAN; hasil di GitHub Actions |
 | Bootstrap MFA tanpa deadlock: pendaftaran faktor memakai Supabase Auth API (bukan tabel); policy 0003 tetap mengizinkan baris `user_access` sendiri pada aal1 | SUDAH DIUJI (uji #3 aktivasi, e2e enrollment) |
@@ -148,8 +150,8 @@ Tidak ada database lain, penyedia auth lain, upload pengguna, cookie sesi buatan
 | `npm run check` (typecheck, lint, 59 unit test, scan secret file, build, scan bundle) | Lulus |
 | `npm run db:test-local` (PostgreSQL 16 + stub `auth`/`storage`) | 61 pemeriksaan RLS/MFA lulus + rollback/re-apply 0003 lulus. **Kontrol negatif:** tanpa 0003, tes gagal (KPw aal1 membaca 37 temuan) |
 | `npm run test:e2e` (mode demo, 15 skenario) | Lulus; header keamanan terverifikasi; 0 pelanggaran CSP |
-| `npm run test:e2e:supabase` (4 skenario, Supabase ditiru di jaringan browser; termasuk scan bundle tanpa akun/dataset demo) | Lulus; tidak ada request data sebelum aal2; ganti kata sandi hanya dengan token aal2; kredensial demo ditolak |
-| `npm run db:test-all` (RLS/MFA 66 cek, rollback 0003, seed minimal, aktivasi 22 uji, script seed) | Lulus — lokal, stub `auth`/`storage` |
+| `npm run test:e2e:supabase` (6 skenario, termasuk tautan undangan → MFA → buat kata sandi dan DR mengundang KPw; Supabase ditiru di jaringan browser; termasuk scan bundle tanpa akun/dataset demo) | Lulus; tidak ada request data sebelum aal2; ganti kata sandi hanya dengan token aal2; kredensial demo ditolak |
+| `npm run db:test-all` (RLS/MFA + undangan, rollback 0005→0004→0003 & re-apply, seed minimal, aktivasi 28 uji + sinkron korwil, script seed) | Lulus — lokal, stub `auth`/`storage` |
 | Probe HTTP ke build produksi mode Supabase | Tanpa token 401, token palsu 401, `POST` 405, `Cache-Control: private, no-store`, log tanpa token |
 | `npm run security:secrets` / `security:history` / `security:bundle` | Tidak ada secret berhak istimewa (file, seluruh riwayat git, bundle `.next` & `.next-supabase`) |
 | `npm audit --omit=dev` | 0 kerentanan |
@@ -164,16 +166,16 @@ Pemetaan ke uji wajib: (1) pengunjung tanpa login — anon RLS + API 401; (2) be
 3. **Authentication → Multi-Factor**: pastikan TOTP aktif.
 4. **Authentication → Rate Limits**: tinjau batas sign-in, verifikasi token/MFA, dan pengiriman email (mis. verifikasi MFA ≤ 30 per 5 menit per IP).
 5. **Authentication → Passwords / Policies**: panjang minimal ≥ 12, aktifkan *leaked password protection* (bila tersedia di paket), *Secure password change*, *Secure email change*.
-6. **Authentication → URL Configuration**: *Site URL* = domain production; *Redirect URLs* hanya domain production (+ `http://localhost:3000` untuk pengembangan). **Jangan** memakai wildcard `*.vercel.app`, karena tautan reset dapat diarahkan ke deployment lain.
+6. **Authentication → URL Configuration**: *Site URL* = domain aplikasi yang dipakai proyek itu (proyek **uji**: alamat Preview branch, mis. `https://sekar-demo-git-claude-demo-aset-sgo-q2logj-<tim>.vercel.app`; proyek production: domain production); *Redirect URLs* hanya domain tersebut (+ `http://localhost:3000` untuk pengembangan). Tautan undangan & reset kata sandi diarahkan ke sini. **Jangan** memakai wildcard `*.vercel.app`, karena tautan dapat diarahkan ke deployment lain.
 7. **Sessions** (bila paket mendukung): batas waktu sesi / inactivity timeout.
 8. **JWT signing keys**: gunakan asymmetric signing keys dan publishable/secret keys baru; nonaktifkan legacy keys setelah migrasi. `getClaims` di server lalu memverifikasi token secara lokal.
-9. Jalankan migration 0001 → 0002 → 0003 (urutan §7), lalu daftar uji di `docs/SUPABASE.md`.
+9. Jalankan migration 0001 → 0002, lalu (setelah MFA terdaftar) `supabase/activate-mfa-enforcement.sql` (0003 → 0004 → 0005 + verifikasi), lalu daftar uji di `docs/SUPABASE.md`.
 10. Aktifkan backup / Point-in-Time Recovery (sesuai paket) dan pantau **Auth logs** & **Postgres logs**.
 11. Aktifkan MFA untuk akun pemilik/anggota organisasi Supabase.
 
 ### Vercel
 1. **Settings → Environment Variables**: pisahkan Production vs Preview. Preview → proyek Supabase uji (atau mode dummy); jangan beri Preview kredensial production. Tandai variabel sebagai *Sensitive* bila ada.
-2. **Settings → Deployment Protection**: aktifkan *Vercel Authentication* minimal untuk Preview. Karena data mode dummy publik di bundle, pertimbangkan perlindungan untuk *All Deployments* bila demo tidak dimaksudkan publik. Perlindungan berlaku juga untuk deployment lama; hapus deployment lama yang tidak diperlukan.
+2. **Settings → Deployment Protection**: aktifkan *Vercel Authentication* minimal untuk Preview. Catatan: pengguna undangan yang bukan anggota tim Vercel tidak dapat membuka Preview yang dilindungi; untuk uji undangan pakai *Shareable link* / bypass sementara, atau uji di domain yang memang ditujukan untuk pengguna. Karena data mode dummy publik di bundle, pertimbangkan perlindungan untuk *All Deployments* bila demo tidak dimaksudkan publik. Perlindungan berlaku juga untuk deployment lama; hapus deployment lama yang tidak diperlukan.
 3. **Settings → Git → Fork Protection**: biarkan aktif (PR dari fork tidak otomatis memakai env).
 4. **Firewall**: pertimbangkan aturan rate limit untuk `/api/*` (sesuai paket).
 5. **Team Settings → Security**: wajibkan 2FA untuk anggota tim.
@@ -201,7 +203,7 @@ Penerapan mode Supabase (bertahap, reversible):
 
 Rollback:
 - **Aplikasi:** Vercel → Deployments → pilih deployment sebelumnya → *Instant Rollback* (atau `git revert` lalu deploy).
-- **Database 0003:** jalankan `supabase/rollback/0003_mfa_aal2_rate_limit.down.sql` (teruji lokal; re-apply 0003 juga teruji idempoten). Setelah rollback, data dapat dibaca tanpa MFA — terapkan ulang 0003 secepatnya.
+- **Database:** urutan terbalik `supabase/rollback/0005_pending_invites.down.sql` → `0004_harden_defaults.down.sql` → `0003_mfa_aal2_rate_limit.down.sql` (teruji lokal, termasuk re-apply). Pemetaan `user_access` yang sudah terbentuk tidak dihapus. Setelah rollback 0003, data dapat dibaca tanpa MFA — terapkan ulang secepatnya.
 
 ### Runbook: pengguna kehilangan semua authenticator
 1. Verifikasi identitas di luar aplikasi (mis. panggilan ke nomor resmi / atasan langsung). Jangan memproses hanya berdasarkan email.

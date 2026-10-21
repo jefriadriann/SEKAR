@@ -151,6 +151,61 @@ do $$ begin
 exception when check_violation then raise notice 'OK submitted_at < requested_at ditolak';
 end $$;
 
+-- ===================================================================== Undangan (0005)
+set role authenticated;
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000d', 'aal1');
+do $$ begin
+  insert into public.pending_invites (email, role, unit_id) values ('aal1@contoh.test', 'kpw', 'kpw-02');
+  raise exception 'GAGAL: DR aal1 dapat membuat undangan';
+exception when insufficient_privilege then raise notice 'OK DR tanpa MFA tidak dapat membuat undangan';
+end $$;
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000d', 'aal2');
+insert into public.pending_invites (email, role, unit_id, display_name) values ('kpw02.baru@contoh.test', 'kpw', 'kpw-02', 'Pegawai KPw 02');
+insert into public.pending_invites (email, role, unit_id, expires_at) values ('kedaluwarsa@contoh.test', 'kpw', 'kpw-03', now() - interval '1 day');
+insert into public.pending_invites (email, role, unit_id) values ('publik@contoh.test', 'kpw', 'kpw-04');
+select pg_temp.expect('DR melihat undangan KPw', (select count(*) from public.pending_invites), 3);
+do $$ begin
+  insert into public.pending_invites (email, role, unit_id) values ('calon-admin@contoh.test', 'admin', 'dr');
+  raise exception 'GAGAL: DR dapat mengundang admin';
+exception when insufficient_privilege then raise notice 'OK DR tidak dapat mengundang peran admin/DR';
+end $$;
+do $$ begin
+  insert into public.pending_invites (email, role, unit_id) values ('salah@contoh.test', 'kpw', 'dr');
+  raise exception 'GAGAL: undangan KPw ke unit DR diterima';
+exception when check_violation then raise notice 'OK undangan KPw ke unit dr ditolak';
+end $$;
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000b', 'aal2');
+select pg_temp.expect('KPw tidak melihat undangan', (select count(*) from public.pending_invites), 0);
+do $$ begin
+  insert into public.pending_invites (email, role, unit_id) values ('teman@contoh.test', 'kpw', 'kpw-01');
+  raise exception 'GAGAL: KPw dapat membuat undangan';
+exception when insufficient_privilege then raise notice 'OK KPw tidak dapat membuat undangan';
+end $$;
+reset role;
+-- Trigger: akun undangan dipetakan; email huruf besar tetap cocok. Meniru Supabase Auth:
+-- baris dibuat dulu (invited_at kosong), lalu invited_at diisi lewat UPDATE.
+insert into auth.users (id, email) values ('00000000-0000-0000-0000-0000000000f1', 'KPW02.Baru@contoh.test');
+select pg_temp.expect('sebelum invited_at terisi belum terpetakan', (select count(*) from public.user_access where user_id = '00000000-0000-0000-0000-0000000000f1'), 0);
+update auth.users set invited_at = now() where id = '00000000-0000-0000-0000-0000000000f1';
+select pg_temp.expect('akun undangan otomatis terpetakan ke kpw-02', (select count(*) from public.user_access where user_id = '00000000-0000-0000-0000-0000000000f1' and role = 'kpw' and unit_id = 'kpw-02'), 1);
+select pg_temp.expect('undangan ditandai terpakai', (select count(*) from public.pending_invites where email = 'kpw02.baru@contoh.test' and claimed_at is not null), 1);
+update auth.users set email_confirmed_at = now() where id = '00000000-0000-0000-0000-0000000000f1';
+select pg_temp.expect('konfirmasi email berikutnya tidak menggandakan pemetaan', (select count(*) from public.user_access where user_id = '00000000-0000-0000-0000-0000000000f1'), 1);
+insert into auth.users (id, email, email_confirmed_at) values ('00000000-0000-0000-0000-0000000000f4', 'kpw02.baru@contoh.test', now());
+select pg_temp.expect('undangan terpakai tidak dapat dipakai akun kedua', (select count(*) from public.user_access where user_id = '00000000-0000-0000-0000-0000000000f4'), 0);
+insert into auth.users (id, email, invited_at) values ('00000000-0000-0000-0000-0000000000f2', 'kedaluwarsa@contoh.test', now());
+select pg_temp.expect('undangan kedaluwarsa tidak memetakan', (select count(*) from public.user_access where user_id = '00000000-0000-0000-0000-0000000000f2'), 0);
+insert into auth.users (id, email) values ('00000000-0000-0000-0000-0000000000f3', 'publik@contoh.test');
+select pg_temp.expect('pendaftaran publik tanpa undangan/konfirmasi tidak memetakan', (select count(*) from public.user_access where user_id = '00000000-0000-0000-0000-0000000000f3'), 0);
+select pg_temp.expect_bool('fungsi trigger undangan tidak dapat dieksekusi authenticated', has_function_privilege('authenticated', 'public.apply_pending_invite()', 'execute'), false);
+-- Pengguna hasil undangan: hanya unitnya, tidak dapat menaikkan peran.
+set role authenticated;
+select pg_temp.as_user('00000000-0000-0000-0000-0000000000f1', 'aal2');
+select pg_temp.expect('pengguna undangan hanya melihat kpw-02', (select count(*) from public.findings where unit_id <> 'kpw-02'), 0);
+with u as (update public.user_access set role = 'admin', unit_id = 'dr' returning 1) select pg_temp.expect('pengguna undangan naikkan peran', (select count(*) from u), 0);
+with u as (update public.pending_invites set role = 'admin' returning 1) select pg_temp.expect('pengguna undangan ubah undangan', (select count(*) from u), 0);
+reset role;
+
 -- ===================================================================== Hardening 0004
 reset role;
 select pg_temp.expect_bool('fungsi trigger tidak dapat dieksekusi anon', has_function_privilege('anon', 'public.findings_sync_completed()', 'execute'), false);
@@ -170,7 +225,7 @@ do $$ begin
 exception when insufficient_privilege then raise notice 'OK admin aal1 tambah user_access ditolak';
 end $$;
 select pg_temp.as_user('00000000-0000-0000-0000-00000000000a', 'aal2');
-select pg_temp.expect('admin user_access', (select count(*) from public.user_access), 3);
+select pg_temp.expect('admin user_access', (select count(*) from public.user_access), 4);
 with u as (update public.units set name = name returning 1) select pg_temp.expect('admin ubah units', (select count(*) from u), 47);
 reset role;
 \echo 'RLS lokal: semua pemeriksaan lulus'
