@@ -1,10 +1,19 @@
 "use client";
 
 import { useEffect, useId, useRef, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { cx } from "./primitives";
 
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+/**
+ * Dialog dirender ke document.body agar posisi `fixed` tidak terkurung oleh
+ * leluhur yang memakai transform (mis. animasi masuk halaman di template.tsx).
+ */
+function portal(node: ReactNode) {
+  return typeof document === "undefined" ? node : createPortal(node, document.body);
+}
 
 /** Tumpukan dialog terbuka: hanya dialog teratas yang menangani Escape/Tab. */
 const stack: symbol[] = [];
@@ -76,7 +85,7 @@ export function Drawer({
   const ref = useDialog(open, onClose);
   const titleId = useId();
   if (!open) return null;
-  return (
+  return portal(
     <div className="fixed inset-0 z-50 flex justify-end">
       <div className="animate-fade-in absolute inset-0 bg-navy-950/40" onClick={onClose} aria-hidden />
       <div
@@ -101,7 +110,7 @@ export function Drawer({
         <div className="flex-1 overflow-y-auto px-5 py-4">{children}</div>
         {footer && <div className="flex flex-wrap justify-end gap-2 border-t border-line bg-slate-50 px-5 py-3">{footer}</div>}
       </div>
-    </div>
+    </div>,
   );
 }
 
@@ -111,38 +120,48 @@ export function Modal({
   title,
   children,
   footer,
+  size = "max-w-lg",
+  role = "alertdialog",
+  subtitle,
 }: {
   open: boolean;
   onClose: () => void;
   title: string;
   children: ReactNode;
   footer?: ReactNode;
+  /** Kelas lebar maksimum panel, mis. "max-w-3xl" untuk pemutar video. */
+  size?: string;
+  role?: "alertdialog" | "dialog";
+  subtitle?: ReactNode;
 }) {
   const ref = useDialog(open, onClose);
   const titleId = useId();
   if (!open) return null;
-  return (
+  return portal(
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
       <div className="animate-fade-in absolute inset-0 bg-navy-950/50" onClick={onClose} aria-hidden />
       <div
         ref={ref}
-        role="alertdialog"
+        role={role}
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className="animate-pop-in relative w-full max-w-lg rounded-2xl border border-line bg-white shadow-2xl"
+        className={cx("animate-pop-in relative flex max-h-[92vh] w-full flex-col rounded-2xl border border-line bg-white shadow-2xl", size)}
       >
         <div className="flex items-start justify-between gap-3 px-5 pt-5">
-          <h2 id={titleId} className="text-lg font-bold text-navy-900">
-            {title}
-          </h2>
+          <div className="min-w-0">
+            <h2 id={titleId} className="text-lg font-bold text-navy-900">
+              {title}
+            </h2>
+            {subtitle && <div className="mt-0.5 text-sm text-muted">{subtitle}</div>}
+          </div>
           <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-navy-700 hover:bg-sky-50" aria-label="Tutup dialog">
             <X className="h-5 w-5" aria-hidden />
           </button>
         </div>
-        <div className="px-5 py-3 text-[15px] text-navy-900">{children}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-3 text-[15px] text-navy-900">{children}</div>
         {footer && <div className="flex flex-wrap justify-end gap-2 px-5 pb-5">{footer}</div>}
       </div>
-    </div>
+    </div>,
   );
 }

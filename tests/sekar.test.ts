@@ -1,5 +1,8 @@
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import seed from "../data/sekar-dummy.json";
+import { assetChecklist, filterAssets, groupAssets, issuesByAspect } from "@/lib/analytics/assets";
 import { ALL } from "@/lib/analytics/common";
 import { aggregateByTheme, DEFAULT_FINDING_FILTERS, filterFindings, findingsByArea, findingTimeliness, summarizeFindings } from "@/lib/analytics/findings";
 import { requestTimeliness, summarizeRequests } from "@/lib/analytics/permindok";
@@ -9,10 +12,11 @@ import { escapeCsvCell, toCsv } from "@/lib/csv";
 import { isValidISODate } from "@/lib/dates";
 import { DEMO_PASSWORDS, kpwEmail, signInDemo, viewerForDemoEmail } from "@/lib/demo-accounts";
 import { formatPercent, percent } from "@/lib/format";
+import { fileKind, findVideo, materialsByArea, videoSources, worksheetPreview } from "@/lib/materials";
 import { applyFindingStatus, updateFindingInDataset, updateRequestInDataset, validateRequestPatch } from "@/lib/mutations";
 import { DATASET_KEY, DummyRepository } from "@/lib/repository/dummy";
 import { canAccessRoute, canOpenDocument, kpwModuleData, onlyDr, scopeDatasetForViewer } from "@/lib/scope";
-import type { Dataset, Viewer } from "@/lib/types";
+import { ASSET_ACTIONS, ASSET_ASPECTS, type Dataset, type Viewer } from "@/lib/types";
 import { parseAndValidate, validateDataset } from "@/lib/validation";
 
 const ds = () => structuredClone(seed) as unknown as Dataset;
@@ -39,20 +43,21 @@ describe("seed dataset", () => {
     const r = validateDataset(ds());
     expect(r.errors).toEqual([]);
     expect(r.ok).toBe(true);
-    expect(r.counts).toMatchObject({ units: 47, findings: 1289, document_requests: 872, audit_schedules: 239, references: 32, compliance: 24, asset_reconciliations: 230 });
+    expect(r.counts).toMatchObject({ units: 47, findings: 1688, document_requests: 954, audit_schedules: 248, references: 57, compliance: 32, asset_reconciliations: 188, asset_items: 1260 });
   });
 });
 
 describe("agregasi temuan", () => {
-  it("memisahkan temuan KPw (1265) dari temuan DR (24)", () => {
+  it("memisahkan temuan KPw (1604) dari temuan DR (84)", () => {
     const d = ds();
-    expect(kpwModuleData(d).findings).toHaveLength(1265);
+    expect(kpwModuleData(d).findings).toHaveLength(1604);
     expect(kpwModuleData(d).findings.some((f) => f.unit_id === "dr")).toBe(false);
-    expect(onlyDr(d.findings)).toHaveLength(24);
+    expect(onlyDr(d.findings)).toHaveLength(84);
+    expect(kpwModuleData(d).asset_items.some((a) => a.unit_id === "dr")).toBe(false);
   });
 
-  it("KPI DR dihitung dari dataset: 24 temuan, 16 selesai, 6 dalam proses, 2 belum", () => {
-    const s = summarizeFindings(onlyDr(ds().findings), AS_OF);
+  it("KPI DR 2026 dihitung dari dataset: 24 temuan, 16 selesai, 6 dalam proses, 2 belum", () => {
+    const s = summarizeFindings(onlyDr(ds().findings).filter((f) => f.year === 2026), AS_OF);
     expect(s.total).toBe(24);
     expect(s.byStatus).toEqual({ selesai: 16, dalam_proses: 6, belum_ditindaklanjuti: 2 });
   });
@@ -72,20 +77,20 @@ describe("agregasi temuan", () => {
   it("filter tahun, pemeriksa dan korwil konsisten dengan total", () => {
     const k = kpwModuleData(ds());
     const all = filterFindings(k.findings, k.units, DEFAULT_FINDING_FILTERS, AS_OF);
-    expect(all).toHaveLength(1265);
+    expect(all).toHaveLength(1604);
     const byYear = [2022, 2023, 2024, 2025, 2026].map((y) => filterFindings(k.findings, k.units, { ...DEFAULT_FINDING_FILTERS, year: y }, AS_OF).length);
-    expect(byYear.reduce((a, b) => a + b, 0)).toBe(1265);
+    expect(byYear.reduce((a, b) => a + b, 0)).toBe(1604);
     const jawa = filterFindings(k.findings, k.units, { ...DEFAULT_FINDING_FILTERS, korwil: "Jawa" }, AS_OF);
     const jawaUnits = new Set(k.units.filter((u) => u.korwil === "Jawa").map((u) => u.id));
     expect(jawa.every((f) => jawaUnits.has(f.unit_id))).toBe(true);
     const ignoreYear = filterFindings(k.findings, k.units, { ...DEFAULT_FINDING_FILTERS, year: 2022 }, AS_OF, ["year"]);
-    expect(ignoreYear).toHaveLength(1265);
+    expect(ignoreYear).toHaveLength(1604);
   });
 
   it("agregasi tema menjumlahkan kembali ke total temuan", () => {
     const k = kpwModuleData(ds());
     const agg = aggregateByTheme(k.findings);
-    expect(agg.reduce((s, a) => s + a.count, 0)).toBe(1265);
+    expect(agg.reduce((s, a) => s + a.count, 0)).toBe(1604);
     for (const a of agg) expect(a.affectedUnits).toBeLessThanOrEqual(a.count);
   });
 
@@ -101,17 +106,18 @@ describe("scope DR/KPw/admin", () => {
   it("persona KPw hanya melihat kpw-01 dan materi shared, tanpa data DR", () => {
     const s = scopeDatasetForViewer(ds(), kpw);
     expect(s.units.map((u) => u.id)).toEqual(["kpw-01"]);
-    for (const coll of [s.findings, s.document_requests, s.audit_schedules, s.asset_reconciliations, s.compliance]) {
+    for (const coll of [s.findings, s.document_requests, s.audit_schedules, s.asset_reconciliations, s.asset_items, s.compliance]) {
       expect(coll.every((r) => r.unit_id === "kpw-01")).toBe(true);
     }
     expect(s.compliance).toHaveLength(0);
     expect(s.findings.length).toBeGreaterThan(0);
     expect(s.documents.every((d) => d.scope === "shared" || d.scope === "kpw-01")).toBe(true);
-    expect(s.references).toHaveLength(32);
+    expect(s.references).toHaveLength(57);
+    expect(s.asset_items.length).toBeGreaterThan(0);
   });
 
   it("persona DR dan admin melihat seluruh data", () => {
-    expect(scopeDatasetForViewer(ds(), dr).findings).toHaveLength(1289);
+    expect(scopeDatasetForViewer(ds(), dr).findings).toHaveLength(1688);
     expect(scopeDatasetForViewer(ds(), admin).units).toHaveLength(47);
   });
 
@@ -144,7 +150,7 @@ describe("status berbasis tanggal", () => {
     const k = scheduleKpis(kpwModuleData(ds()).audit_schedules, AS_OF);
     expect(k.total).toBe(230);
     expect(k.selesai + k.berlangsung + k.mendatang).toBe(k.total);
-    expect(k.tentatif).toBe(30);
+    expect(k.tentatif).toBe(26);
   });
 
   it("jendela timeline dan posisi bar", () => {
@@ -325,5 +331,90 @@ describe("akun demo (login simulasi)", () => {
     }
     expect(scoped.compliance).toHaveLength(0);
     expect(canAccessRoute("kpw", "/dr")).toBe(false);
+  });
+});
+
+describe("rincian asesmen aset", () => {
+  it("jumlah aset tidak sesuai per rekonsiliasi rinci sama dengan discrepancy_items", () => {
+    const d = ds();
+    const detailed = new Set(d.asset_items.map((i) => i.reconciliation_id));
+    expect(detailed.size).toBeGreaterThan(90);
+    for (const rec of d.asset_reconciliations.filter((r) => detailed.has(r.id))) {
+      const assets = groupAssets(d.asset_items.filter((i) => i.reconciliation_id === rec.id));
+      expect(assets).toHaveLength(rec.discrepancy_items);
+    }
+  });
+
+  it("mengelompokkan per nomor aset dan menyusun daftar periksa semua aspek", () => {
+    const d = ds();
+    const assets = groupAssets(d.asset_items);
+    const multi = assets.find((a) => a.issues.length > 1)!;
+    expect(multi).toBeDefined();
+    const checks = assetChecklist(multi);
+    expect(checks).toHaveLength(ASSET_ASPECTS.length);
+    expect(checks.filter((c) => !c.ok)).toHaveLength(multi.issues.length);
+    // status gabungan: selesai hanya bila semua ketidaksesuaian selesai
+    for (const a of assets) expect(a.status === "selesai").toBe(a.issues.every((i) => i.status === "selesai"));
+  });
+
+  it("agregasi per aspek dan filter aset konsisten", () => {
+    const items = ds().asset_items;
+    const by = issuesByAspect(items);
+    expect(by.map((b) => b.key)).toEqual([...ASSET_ASPECTS]);
+    expect(by.reduce((s, b) => s + b.count, 0)).toBe(items.length);
+    const assets = groupAssets(items);
+    const umur = filterAssets(assets, { aspect: "umur_ekonomis", status: "all", search: "" });
+    expect(umur.length).toBe(new Set(items.filter((i) => i.aspect === "umur_ekonomis").map((i) => `${i.reconciliation_id}|${i.asset_number}`)).size);
+    const q = assets[0].asset_number;
+    expect(filterAssets(assets, { aspect: "all", status: "all", search: q }).every((a) => a.asset_number.includes(q))).toBe(true);
+  });
+
+  it("validasi menolak aset melebihi discrepancy_items dan aspek tidak dikenal", () => {
+    const d = ds();
+    const recId = d.asset_items[0].reconciliation_id;
+    const rec = d.asset_reconciliations.find((r) => r.id === recId)!;
+    rec.discrepancy_items = 1;
+    rec.reconciled_items = rec.total_items - 1;
+    d.asset_items[1] = { ...d.asset_items[1], aspect: "warna" as never };
+    const r = validateDataset(d);
+    expect(r.ok).toBe(false);
+    expect(r.errors.map((e) => e.path)).toEqual(expect.arrayContaining(["asset_items", "asset_items[1].aspect"]));
+  });
+});
+
+describe("materi SGo, ketentuan dan video", () => {
+  it("setiap area punya 2 worksheet Excel dan 4 ketentuan PDF", () => {
+    const areas = materialsByArea(ds().references);
+    expect(areas).toHaveLength(8);
+    for (const a of areas) {
+      expect(a.worksheets.map((w) => w.subkind)).toEqual(["ws_aktivitas_supervisi", "ws_pengendalian"]);
+      expect(a.ketentuan.map((k) => k.subkind)).toEqual(["pdg", "padgi", "juknis", "se_intern"]);
+    }
+  });
+
+  it("berkas demo menunjuk ke public/demo dan setiap tindak lanjut aset punya video", () => {
+    const d = ds();
+    const docs = new Map(d.documents.map((x) => [x.id, x]));
+    for (const r of d.references) {
+      const url = docs.get(r.document_id)?.file_url ?? "";
+      expect(url.startsWith("/demo/")).toBe(true);
+      expect(existsSync(join("public", url))).toBe(true);
+      expect(fileKind(url)).toBe(r.kind === "worksheet" ? "xlsx" : r.kind === "ketentuan" ? "pdf" : "video");
+    }
+    for (const a of ASSET_ACTIONS) {
+      const v = findVideo(d.references, a)!;
+      expect(v).not.toBeNull();
+      for (const src of videoSources(docs.get(v.document_id)!.file_url!)) expect(existsSync(join("public", src.src))).toBe(true);
+    }
+    expect(findVideo(d.references, "sgo_intro")).not.toBeNull();
+  });
+
+  it("pratinjau worksheet dibaca dari content_text", () => {
+    const d = ds();
+    const ws = d.references.find((r) => r.subkind === "ws_pengendalian")!;
+    const p = worksheetPreview(d.documents.find((x) => x.id === ws.document_id)!)!;
+    expect(p.header).toContain("Pengendalian Kunci");
+    expect(p.rows.length).toBeGreaterThan(0);
+    expect(p.rows.every((r) => r.length === p.header.length)).toBe(true);
   });
 });

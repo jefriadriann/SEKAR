@@ -5,6 +5,8 @@
  */
 import { isValidISODate } from "./dates";
 import {
+  ASSET_ACTIONS,
+  ASSET_ASPECTS,
   COLLECTION_KEYS,
   COMPLIANCE_STATUSES,
   DR_UNIT_ID,
@@ -99,7 +101,32 @@ const SCHEMAS: Record<(typeof COLLECTION_KEYS)[number], Record<string, FieldType
     note: "string",
     is_dummy: "boolean",
   },
+  asset_items: {
+    id: "string",
+    reconciliation_id: "string",
+    unit_id: "string",
+    asset_number: "string",
+    asset_name: "string",
+    category: "string",
+    location: "string",
+    acquisition_date: "date",
+    acquisition_cost: "number",
+    useful_life: "number",
+    aspect: "string",
+    recorded_value: "string",
+    expected_value: "string",
+    note: "string",
+    action: "string",
+    status: "string",
+    is_dummy: "boolean",
+  },
   demo_personas: { id: "string", name: "string", role: "string", unit_id: "string" },
+};
+
+/** Kolom opsional: boleh tidak ada; bila ada harus sesuai tipe. */
+const OPTIONAL: Partial<Record<(typeof COLLECTION_KEYS)[number], Record<string, FieldType>>> = {
+  references: { subkind: "string?" },
+  documents: { file_url: "string?" },
 };
 
 const MAX_ERRORS = 200;
@@ -163,6 +190,9 @@ export function validateDataset(input: unknown): ValidationResult {
       for (const [field, type] of Object.entries(SCHEMAS[key])) {
         if (!(field in rec)) err(`${p}.${field}`, "Kolom wajib tidak ada.");
         else if (!checkField(rec[field], type)) err(`${p}.${field}`, `Nilai tidak valid (harus ${type.replace("?", " atau null")}).`);
+      }
+      for (const [field, type] of Object.entries(OPTIONAL[key] ?? {})) {
+        if (field in rec && rec[field] !== undefined && !checkField(rec[field], type)) err(`${p}.${field}`, `Nilai tidak valid (harus ${type.replace("?", " atau null")}).`);
       }
       if (typeof rec.id === "string") {
         if (seen.has(rec.id)) err(`${p}.id`, `ID ganda: ${rec.id}`);
@@ -245,6 +275,28 @@ export function validateDataset(input: unknown): ValidationResult {
       err(`${p}.total_items`, "total_items harus sama dengan reconciled_items + discrepancy_items.");
     if (a.total_items < 0 || a.reconciled_items < 0 || a.discrepancy_items < 0) err(p, "Jumlah item tidak boleh negatif.");
   });
+
+  const recIdx = new Map(ds.asset_reconciliations.map((a) => [a.id, a]));
+  const assetsPerRec = new Map<string, Set<string>>();
+  ds.asset_items.forEach((a, i) => {
+    const p = `asset_items[${i}]`;
+    fk(`${p}.unit_id`, a.unit_id, unitIds, "units");
+    const rec = recIdx.get(a.reconciliation_id);
+    if (!rec) err(`${p}.reconciliation_id`, `Referensi ke asset_reconciliations tidak ditemukan: ${a.reconciliation_id}`);
+    else if (rec.unit_id !== a.unit_id) err(`${p}.unit_id`, "Unit aset berbeda dengan unit rekonsiliasinya.");
+    enumCheck(`${p}.aspect`, a.aspect, ASSET_ASPECTS);
+    enumCheck(`${p}.action`, a.action, ASSET_ACTIONS);
+    enumCheck(`${p}.status`, a.status, FINDING_STATUSES);
+    if (a.acquisition_cost < 0 || a.useful_life < 0) err(p, "Harga perolehan dan umur ekonomis tidak boleh negatif.");
+    const set = assetsPerRec.get(a.reconciliation_id) ?? new Set<string>();
+    set.add(a.asset_number);
+    assetsPerRec.set(a.reconciliation_id, set);
+  });
+  for (const [recId, set] of assetsPerRec) {
+    const rec = recIdx.get(recId);
+    if (rec && set.size > rec.discrepancy_items)
+      err(`asset_items`, `Rekonsiliasi ${recId}: ${set.size} aset tidak sesuai melebihi discrepancy_items (${rec.discrepancy_items}).`);
+  }
 
   ds.demo_personas.forEach((d, i) => {
     const p = `demo_personas[${i}]`;

@@ -43,6 +43,11 @@ export function documentFilename(doc: SekarDocument): string {
   return `${safe}-SIMULASI.txt`;
 }
 
+/** Nama berkas dari URL berkas demo statis, mis. "/demo/sgo/aset-ws-pengendalian.xlsx". */
+export function fileUrlName(url: string): string {
+  return url.split("/").pop() || url;
+}
+
 /** Isi berkas .txt simulasi yang dibangun dari content_text. */
 export function documentText(doc: SekarDocument): string {
   return [

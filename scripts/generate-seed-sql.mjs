@@ -34,13 +34,14 @@ begin;
 `;
 sql += insert("dataset_metadata", [{ id: 1, ...ds.metadata }], ["id", "name", "version", "as_of", "all_data_is_synthetic", "note"]);
 sql += insert("units", ds.units, ["id", "name", "korwil", "is_dummy"]);
-sql += insert("documents", ds.documents, ["id", "scope", "title", "kind", "content_text", "is_dummy"]);
+sql += insert("documents", ds.documents, ["id", "scope", "title", "kind", "content_text", "file_url", "is_dummy"]);
 sql += insert("findings", ds.findings, ["id", "unit_id", "year", "examiner", "area", "theme", "title", "summary", "recommendation", "status", "due_date", "completed_at", "pic", "is_repeat", "evidence_document_id", "is_dummy"]);
 sql += insert("audit_schedules", ds.audit_schedules, ["id", "unit_id", "year", "examiner", "exam_type", "start_date", "end_date", "date_confirmed", "is_dummy"]);
 sql += insert("document_requests", ds.document_requests, ["id", "schedule_id", "unit_id", "category", "title", "dr_note", "requested_at", "due_date", "submitted_at", "status", "document_id", "is_dummy"]);
-sql += insert("reference_materials", ds.references, ["id", "scope", "area", "kind", "title", "description", "document_id", "is_dummy"]);
+sql += insert("reference_materials", ds.references, ["id", "scope", "area", "kind", "subkind", "title", "description", "document_id", "is_dummy"]);
 sql += insert("compliance_items", ds.compliance, ["id", "unit_id", "aspect", "pic", "due_date", "status", "is_dummy"]);
 sql += insert("asset_reconciliations", ds.asset_reconciliations, ["id", "unit_id", "year", "total_items", "reconciled_items", "discrepancy_items", "note", "is_dummy"]);
+sql += insert("asset_items", ds.asset_items, ["id", "reconciliation_id", "unit_id", "asset_number", "asset_name", "category", "location", "acquisition_date", "acquisition_cost", "useful_life", "aspect", "recorded_value", "expected_value", "note", "action", "status", "is_dummy"]);
 sql += "commit;\n";
 
 writeFileSync(join(root, "supabase/seed.sql"), sql);

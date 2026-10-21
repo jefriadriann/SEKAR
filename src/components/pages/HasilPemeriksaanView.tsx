@@ -1,18 +1,18 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { BookOpen, CalendarDays, ChevronRight, Download, SlidersHorizontal } from "lucide-react";
+import { Building2, CalendarDays, ChevronRight, Download, Landmark, SlidersHorizontal } from "lucide-react";
 import { CategoryTable, ChartCard, ColumnChart, DonutWithLegend, HorizontalBars, TrendChart } from "@/components/charts/Charts";
+import { AssetReconDrawer, AssetVideoDrawer } from "@/components/domain/AssetPanels";
 import { FindingDrawer } from "@/components/domain/FindingDrawer";
-import { VideoGuidePlayer } from "@/components/domain/VideoGuidePlayer";
 import { ReconcileIcon, VideoGuideIcon, AuditDocIcon } from "@/components/icons/Illustrations";
 import { IndonesiaMap, MapLegend } from "@/components/map/IndonesiaMap";
 import { useReadySekar } from "@/components/providers/SekarProvider";
 import { DataTable, type Column } from "@/components/ui/DataTable";
 import { Drawer } from "@/components/ui/Overlay";
-import { Badge, Button, Card, cx, EmptyState, FilterChips, PageHeader, SearchField, SectionHeader, SelectField, SimulationNote, type Tone } from "@/components/ui/primitives";
+import { Badge, Button, Card, cx, EmptyState, FilterChips, PageHeader, SearchField, SectionHeader, SelectField, type Tone } from "@/components/ui/primitives";
 import { FindingStatusBadge, TimelinessBadge } from "@/components/ui/StatusBadges";
-import { reconciliationRate, summarizeAssets } from "@/lib/analytics/assets";
+import { summarizeAssets } from "@/lib/analytics/assets";
 import { ALL, uniqueSorted, unitIndex } from "@/lib/analytics/common";
 import {
   DEFAULT_FINDING_FILTERS,
@@ -32,10 +32,11 @@ import {
 import { toCsv } from "@/lib/csv";
 import { formatDate } from "@/lib/dates";
 import { downloadText } from "@/lib/download";
-import { clean, FINDING_STATUS_LABEL, formatNumber, formatPercent, REFERENCE_KIND_LABEL } from "@/lib/format";
+import { clean, FINDING_STATUS_LABEL, formatNumber, formatPercent } from "@/lib/format";
 import { EXAMINER_COLOR } from "@/lib/palette";
-import { kpwModuleData } from "@/lib/scope";
-import { EXAMINERS, FINDING_STATUSES, type AssetReconciliation, type Examiner, type Finding } from "@/lib/types";
+import { kpwModuleData, seesAllUnits } from "@/lib/scope";
+import { EXAMINERS, FINDING_STATUSES, type Examiner, type Finding } from "@/lib/types";
+import { DrResults } from "./DrResults";
 
 export const EXAMINER_TONE: Record<Examiner, Tone> = { BPK: "blue", DAI: "amber", KAA: "violet" };
 
@@ -47,7 +48,42 @@ export function ExaminerBadge({ examiner }: { examiner: Examiner }) {
   );
 }
 
+export type ResultScope = "kpw" | "dr";
+
+/** Pengalih cakupan hasil pemeriksaan (hanya DR/admin): seluruh KPwDN atau satker DR sendiri. */
+export function ScopeToggle({ value, onChange }: { value: ResultScope; onChange: (v: ResultScope) => void }) {
+  return (
+    <div className="flex rounded-lg border border-line bg-white p-0.5" role="group" aria-label="Cakupan hasil pemeriksaan">
+      {(
+        [
+          ["kpw", "KPwDN", Building2],
+          ["dr", "Departemen Regional", Landmark],
+        ] as const
+      ).map(([k, label, Icon]) => (
+        <button
+          key={k}
+          type="button"
+          aria-pressed={value === k}
+          onClick={() => onChange(k)}
+          className={cx("inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[13px] font-semibold", value === k ? "btn-grad text-white" : "text-navy-800 hover:bg-sky-50")}
+        >
+          <Icon className="h-4 w-4" aria-hidden />
+          {label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export function HasilPemeriksaanView() {
+  const { viewer } = useReadySekar();
+  const [scope, setScope] = useState<ResultScope>("kpw");
+  const canSeeDr = seesAllUnits(viewer.role);
+  if (canSeeDr && scope === "dr") return <DrResults toggle={<ScopeToggle value={scope} onChange={setScope} />} />;
+  return <KpwResults scopeToggle={canSeeDr ? <ScopeToggle value={scope} onChange={setScope} /> : null} />;
+}
+
+function KpwResults({ scopeToggle }: { scopeToggle: React.ReactNode }) {
   const { data, asOf, notify } = useReadySekar();
   const kpw = useMemo(() => kpwModuleData(data), [data]);
   const years = useMemo(() => uniqueSorted(kpw.findings.map((f) => f.year)), [kpw.findings]);
@@ -92,6 +128,8 @@ export function HasilPemeriksaanView() {
       (filters.korwil === ALL || idx.get(a.unit_id)?.korwil === filters.korwil),
   );
   const assetSummary = summarizeAssets(assets);
+  const assetRecIds = new Set(assets.map((a) => a.id));
+  const assetItems = kpw.asset_items.filter((i) => assetRecIds.has(i.reconciliation_id));
 
   const yearLabel = filters.year === ALL ? "semua tahun" : `tahun ${filters.year}`;
   const chips = [
@@ -198,6 +236,7 @@ export function HasilPemeriksaanView() {
         description="Analisis temuan hasil pemeriksaan BPK, DAI, dan KAA pada KPwDN."
         actions={
           <>
+            {scopeToggle}
             <Button onClick={() => setShowFilters((s) => !s)} aria-expanded={showFilters} aria-controls="filter-lanjutan" className="h-10">
               <SlidersHorizontal className="h-4 w-4" aria-hidden />
               Filter{advancedCount ? ` (${advancedCount})` : ""}
@@ -323,13 +362,13 @@ export function HasilPemeriksaanView() {
           <LinkCard
             icon={<ReconcileIcon size={50} />}
             title="Hasil Rekonsiliasi Aset"
-            desc={`${formatPercent(assetSummary.pctReconciled, 1)} item sesuai · ${formatNumber(assetSummary.discrepancy)} selisih`}
+            desc={`${formatPercent(assetSummary.pctReconciled, 1)} item sesuai · ${formatNumber(assetSummary.discrepancy)} aset tidak sesuai · rincian per nomor aset`}
             onClick={() => setPanel("aset")}
           />
           <LinkCard
             icon={<VideoGuideIcon size={52} />}
-            title="Video Panduan Penyelesaian Temuan Aset"
-            desc="Panduan visual langkah demi langkah · 5 langkah"
+            title="Video Panduan Pencatatan Aset"
+            desc="Split, penghapusan, penatausahaan, mutasi, dan topik lain"
             onClick={() => setPanel("panduan")}
           />
         </div>
@@ -392,14 +431,14 @@ export function HasilPemeriksaanView() {
       </Card>
 
       <GroupDrawer group={openGroup} onClose={() => setOpenGroup(null)} onOpenFinding={setOpenId} unitName={(id) => idx.get(id)?.name ?? id} />
-      <AssetDrawer open={panel === "aset"} onClose={() => setPanel(null)} rows={assets} unitName={(id) => idx.get(id)?.name ?? id} />
-      <GuideDrawer open={panel === "panduan"} onClose={() => setPanel(null)} />
+      <AssetReconDrawer open={panel === "aset"} onClose={() => setPanel(null)} recs={assets} items={assetItems} unitName={(id) => idx.get(id)?.name ?? id} />
+      <AssetVideoDrawer open={panel === "panduan"} onClose={() => setPanel(null)} />
       <FindingDrawer findingId={openId} onClose={() => setOpenId(null)} />
     </div>
   );
 }
 
-function LinkCard({ icon, title, desc, onClick }: { icon: React.ReactNode; title: string; desc: string; onClick: () => void }) {
+export function LinkCard({ icon, title, desc, onClick }: { icon: React.ReactNode; title: string; desc: string; onClick: () => void }) {
   return (
     <button
       type="button"
@@ -475,88 +514,6 @@ function GroupDrawer({
           </ul>
         </div>
       )}
-    </Drawer>
-  );
-}
-
-function AssetDrawer({ open, onClose, rows, unitName }: { open: boolean; onClose: () => void; rows: AssetReconciliation[]; unitName: (id: string) => string }) {
-  const s = summarizeAssets(rows);
-  const columns: Column<AssetReconciliation>[] = [
-    { key: "unit", header: "KPwDN", render: (a) => <span className="font-semibold">{unitName(a.unit_id)}</span>, sortValue: (a) => unitName(a.unit_id) },
-    { key: "total", header: "Total item", className: "text-right tabular-nums", render: (a) => formatNumber(a.total_items), sortValue: (a) => a.total_items },
-    { key: "rec", header: "Sesuai", className: "text-right tabular-nums", render: (a) => formatNumber(a.reconciled_items), sortValue: (a) => a.reconciled_items },
-    { key: "disc", header: "Selisih", className: "text-right tabular-nums", render: (a) => formatNumber(a.discrepancy_items), sortValue: (a) => a.discrepancy_items },
-    { key: "rate", header: "% sesuai", className: "text-right tabular-nums", render: (a) => formatPercent(reconciliationRate(a), 1), sortValue: (a) => reconciliationRate(a) },
-  ];
-  return (
-    <Drawer open={open} onClose={onClose} title="Hasil Rekonsiliasi Aset" subtitle="Rekap per KPwDN sesuai filter aktif" width="max-w-2xl">
-      <dl className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-        {[
-          ["KPwDN", formatNumber(s.units)],
-          ["Total item", formatNumber(s.totalItems)],
-          ["Selisih", formatNumber(s.discrepancy)],
-          ["% sesuai", formatPercent(s.pctReconciled, 1)],
-        ].map(([k, v]) => (
-          <div key={k} className="rounded-lg bg-[#eef5fd] px-3 py-2">
-            <dt className="text-[12px] font-semibold text-muted">{k}</dt>
-            <dd className="text-lg font-bold text-navy-900 tabular-nums">{v}</dd>
-          </div>
-        ))}
-      </dl>
-      <DataTable
-        rows={rows}
-        columns={columns}
-        rowKey={(a) => a.id}
-        caption="Rekonsiliasi aset per KPwDN"
-        initialSort={{ key: "disc", dir: "desc" }}
-        dense
-        minWidth={520}
-        emptyTitle="Tidak ada data rekonsiliasi"
-        emptyDescription="Data rekonsiliasi tersedia untuk tahun 2026."
-      />
-    </Drawer>
-  );
-}
-
-export const ASET_GUIDE_STEPS = [
-  "Identifikasi temuan aset yang masih terbuka (filter Area = Aset).",
-  "Lakukan inventarisasi fisik dan cocokkan dengan aplikasi aset.",
-  "Catat selisih beserta penyebabnya pada worksheet area Aset.",
-  "Susun rencana tindak lanjut, tetapkan PIC dan target penyelesaian.",
-  "Lampirkan bukti penyelesaian, lalu ubah status temuan menjadi Selesai.",
-];
-
-function GuideDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { data, openDocument } = useReadySekar();
-  const refs = data.references.filter((r) => r.area === "Aset");
-  return (
-    <Drawer open={open} onClose={onClose} title="Video Panduan Penyelesaian Temuan Aset" subtitle="Panduan visual (simulasi), bukan rekaman video" width="max-w-2xl">
-      <VideoGuidePlayer title="Penyelesaian Temuan Aset" steps={ASET_GUIDE_STEPS} />
-      <details className="mt-4 rounded-xl border border-line bg-[#f7fbff] px-4 py-3">
-        <summary className="cursor-pointer text-[14px] font-semibold text-navy-900">Lihat semua langkah</summary>
-        <ol className="mt-2 list-decimal space-y-1 pl-5 text-[14px] text-navy-900">
-          {ASET_GUIDE_STEPS.map((s) => (
-            <li key={s}>{s}</li>
-          ))}
-        </ol>
-      </details>
-      <h3 className="mt-6 flex items-center gap-2 font-bold text-navy-900">
-        <BookOpen className="h-4 w-4 text-brand" aria-hidden />
-        Materi pembelajaran area Aset
-      </h3>
-      <ul className="mt-2 space-y-2">
-        {refs.map((r) => (
-          <li key={r.id} className="flex items-center justify-between gap-2 rounded-lg border border-line px-3 py-2">
-            <span className="min-w-0 truncate font-semibold text-navy-900">{clean(r.title)}</span>
-            <Button size="sm" onClick={() => openDocument(r.document_id)}>
-              {r.id.endsWith("-pedoman") ? "Pedoman" : REFERENCE_KIND_LABEL[r.kind]}
-            </Button>
-          </li>
-        ))}
-      </ul>
-      <div className="mt-4">
-        <SimulationNote>Materi contoh, bukan ketentuan resmi.</SimulationNote>
-      </div>
     </Drawer>
   );
 }

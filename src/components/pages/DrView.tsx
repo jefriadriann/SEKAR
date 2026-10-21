@@ -255,7 +255,7 @@ export function DrView() {
       render: (r) => (
         <span className="flex items-center gap-2">
           <span className="shrink-0">
-            <FileTypeIcon label="TXT" color="#e5484d" size={30} />
+            <FileTypeIcon label="PDF" color="#e5484d" size={30} />
           </span>
           <span>{clean(r.name)}</span>
         </span>

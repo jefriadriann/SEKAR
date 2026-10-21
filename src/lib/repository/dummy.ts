@@ -6,10 +6,10 @@
 import type { ComplianceStatus, Dataset, FindingStatus, ISODate, SekarDocument } from "../types";
 import { updateComplianceInDataset, updateFindingInDataset, updateRequestInDataset, type RequestPatch } from "../mutations";
 import { validateDataset } from "../validation";
-import { documentFilename, documentText, type DatasetSource, type DocumentContent, type LoadResult, type SekarRepository } from "./types";
+import { documentFilename, documentText, fileUrlName, type DatasetSource, type DocumentContent, type LoadResult, type SekarRepository } from "./types";
 
 export const STORAGE_NAMESPACE = "sekar-demo";
-export const STORAGE_VERSION = 2;
+export const STORAGE_VERSION = 3;
 export const DATASET_KEY = `${STORAGE_NAMESPACE}:v${STORAGE_VERSION}:dataset`;
 export const PREFS_KEY = `${STORAGE_NAMESPACE}:v${STORAGE_VERSION}:prefs`;
 
@@ -168,6 +168,7 @@ export class DummyRepository implements SekarRepository {
   }
 
   async getDocumentContent(doc: SekarDocument): Promise<DocumentContent> {
+    if (doc.file_url) return { kind: "url", url: doc.file_url, filename: fileUrlName(doc.file_url) };
     return { kind: "text", text: documentText(doc), filename: documentFilename(doc) };
   }
 }

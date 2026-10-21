@@ -1,0 +1,1795 @@
+{
+  "areas": [
+    {
+      "area": "Aset",
+      "slug": "aset",
+      "worksheets": [
+        {
+          "subkind": "ws_aktivitas_supervisi",
+          "title": "Worksheet Aktivitas & Supervisi Aset",
+          "file_url": "/demo/sgo/aset-ws-aktivitas-supervisi.xlsx",
+          "sheets": [
+            "Aktivitas & Supervisi",
+            "Rekap",
+            "Petunjuk"
+          ],
+          "columns": [
+            "No",
+            "Proses",
+            "Aktivitas",
+            "Output",
+            "Frekuensi",
+            "PIC Pelaksana",
+            "Dilaksanakan?",
+            "Bukti Pelaksanaan",
+            "Tanggal Supervisi",
+            "Disupervisi oleh",
+            "Hasil Supervisi",
+            "Catatan Supervisi"
+          ],
+          "preview": [
+            [
+              "1",
+              "Perencanaan aset",
+              "Menyusun rencana kebutuhan aset tahunan",
+              "Daftar rencana kebutuhan",
+              "Tahunan",
+              "PIC Simulasi 1",
+              "Ya",
+              "Daftar rencana kebutuhan (scan)",
+              "2026-07-10",
+              "Kepala Unit Simulasi",
+              "Memadai",
+              "Bukti lengkap dan tepat waktu."
+            ],
+            [
+              "2",
+              "Pencatatan aset",
+              "Mencatat perolehan aset ke aplikasi aset",
+              "Kartu aset & nomor aset",
+              "Setiap perolehan",
+              "PIC Simulasi 2",
+              "Ya",
+              "Kartu aset & nomor aset (scan)",
+              "2026-08-11",
+              "Kepala Unit Simulasi",
+              "Perlu perbaikan",
+              "Lengkapi bukti dan jadwalkan ulang supervisi."
+            ],
+            [
+              "3",
+              "Penatausahaan aset",
+              "Memutakhirkan label, lokasi, dan penanggung jawab aset",
+              "Kartu inventaris ruangan",
+              "Semesteran",
+              "PIC Simulasi 3",
+              "Tidak",
+              "Kartu inventaris ruangan (scan)",
+              "2026-09-12",
+              "Kepala Unit Simulasi",
+              "Perlu perbaikan",
+              "Lengkapi bukti dan jadwalkan ulang supervisi."
+            ],
+            [
+              "4",
+              "Inventarisasi fisik",
+              "Melakukan stock opname aset tetap",
+              "Berita acara inventarisasi",
+              "Tahunan",
+              "PIC Simulasi 4",
+              "Ya",
+              "Berita acara inventarisasi (scan)",
+              "2026-07-13",
+              "Kepala Unit Simulasi",
+              "Memadai",
+              "Bukti lengkap dan tepat waktu."
+            ]
+          ]
+        },
+        {
+          "subkind": "ws_pengendalian",
+          "title": "Worksheet Pengendalian Aset",
+          "file_url": "/demo/sgo/aset-ws-pengendalian.xlsx",
+          "sheets": [
+            "Pengendalian",
+            "Matriks Risiko",
+            "Petunjuk"
+          ],
+          "columns": [
+            "No",
+            "Proses",
+            "Risiko",
+            "Pengendalian Kunci",
+            "Jenis",
+            "Frekuensi",
+            "Prosedur Pengujian",
+            "Jumlah Sampel",
+            "Hasil Pengujian",
+            "Kesimpulan",
+            "Rekomendasi",
+            "Referensi Ketentuan"
+          ],
+          "preview": [
+            [
+              "1",
+              "Perencanaan aset",
+              "Pengadaan aset tidak sesuai kebutuhan",
+              "Reviu kebutuhan berjenjang oleh kepala unit",
+              "Preventif",
+              "Tahunan",
+              "Ambil sampel dan uji apakah 'reviu kebutuhan berjenjang oleh kepala unit' dijalankan dan terdokumentasi.",
+              "5",
+              "Seluruh sampel sesuai.",
+              "Efektif",
+              "-",
+              "PADGI SIM/ASET Pasal 3"
+            ],
+            [
+              "2",
+              "Pencatatan aset",
+              "Harga perolehan/umur ekonomis salah input",
+              "Verifikasi dokumen sumber oleh pejabat kedua (dual control)",
+              "Preventif",
+              "Setiap perolehan",
+              "Ambil sampel dan uji apakah 'verifikasi dokumen sumber oleh pejabat kedua (dual control)' dijalankan dan terdokumentasi.",
+              "8",
+              "2 sampel tidak didukung bukti.",
+              "Tidak efektif",
+              "Perkuat dokumentasi pengendalian dan lakukan reviu berjenjang.",
+              "PADGI SIM/ASET Pasal 4"
+            ],
+            [
+              "3",
+              "Penatausahaan aset",
+              "Lokasi aset tidak sesuai catatan",
+              "Rekonsiliasi KIR dengan aplikasi aset",
+              "Detektif",
+              "Semesteran",
+              "Ambil sampel dan uji apakah 'rekonsiliasi kir dengan aplikasi aset' dijalankan dan terdokumentasi.",
+              "11",
+              "Seluruh sampel sesuai.",
+              "Efektif",
+              "-",
+              "PADGI SIM/ASET Pasal 5"
+            ],
+            [
+              "4",
+              "Inventarisasi fisik",
+              "Aset hilang tidak terdeteksi",
+              "Inventarisasi oleh tim independen + BA selisih",
+              "Detektif",
+              "Tahunan",
+              "Ambil sampel dan uji apakah 'inventarisasi oleh tim independen + ba selisih' dijalankan dan terdokumentasi.",
+              "14",
+              "Seluruh sampel sesuai.",
+              "Efektif",
+              "-",
+              "PADGI SIM/ASET Pasal 6"
+            ]
+          ]
+        }
+      ],
+      "ketentuan": [
+        {
+          "subkind": "pdg",
+          "label": "PDG",
+          "jenis": "Peraturan Dewan Gubernur",
+          "number": "No. 01/SIM/PDG/2025",
+          "title": "Peraturan Dewan Gubernur (Simulasi) No. 01/SIM/PDG/2025 tentang Pengelolaan Aset Tetap",
+          "topic": "Pengelolaan Aset Tetap",
+          "file_url": "/demo/ketentuan/aset-pdg.pdf"
+        },
+        {
+          "subkind": "padgi",
+          "label": "PADGI",
+          "jenis": "Peraturan Anggota Dewan Gubernur Intern",
+          "number": "No. 01/SIM/PADGI/2025",
+          "title": "Peraturan Anggota Dewan Gubernur Intern (Simulasi) No. 01/SIM/PADGI/2025 tentang Pengelolaan Aset Tetap",
+          "topic": "Pengelolaan Aset Tetap",
+          "file_url": "/demo/ketentuan/aset-padgi.pdf"
+        },
+        {
+          "subkind": "juknis",
+          "label": "Juknis",
+          "jenis": "Petunjuk Teknis",
+          "number": "No. 01/SIM/JUKNIS/2025",
+          "title": "Petunjuk Teknis (Simulasi) No. 01/SIM/JUKNIS/2025 tentang Pengelolaan Aset Tetap",
+          "topic": "Pengelolaan Aset Tetap",
+          "file_url": "/demo/ketentuan/aset-juknis.pdf"
+        },
+        {
+          "subkind": "se_intern",
+          "label": "SE Intern",
+          "jenis": "Surat Edaran Intern",
+          "number": "No. 01/SIM/SEINTERN/2025",
+          "title": "Surat Edaran Intern (Simulasi) No. 01/SIM/SEINTERN/2025 tentang Pengelolaan Aset Tetap",
+          "topic": "Pengelolaan Aset Tetap",
+          "file_url": "/demo/ketentuan/aset-se-intern.pdf"
+        }
+      ]
+    },
+    {
+      "area": "Keuangan Intern",
+      "slug": "keuangan-intern",
+      "worksheets": [
+        {
+          "subkind": "ws_aktivitas_supervisi",
+          "title": "Worksheet Aktivitas & Supervisi Keuangan Intern",
+          "file_url": "/demo/sgo/keuangan-intern-ws-aktivitas-supervisi.xlsx",
+          "sheets": [
+            "Aktivitas & Supervisi",
+            "Rekap",
+            "Petunjuk"
+          ],
+          "columns": [
+            "No",
+            "Proses",
+            "Aktivitas",
+            "Output",
+            "Frekuensi",
+            "PIC Pelaksana",
+            "Dilaksanakan?",
+            "Bukti Pelaksanaan",
+            "Tanggal Supervisi",
+            "Disupervisi oleh",
+            "Hasil Supervisi",
+            "Catatan Supervisi"
+          ],
+          "preview": [
+            [
+              "1",
+              "Perencanaan anggaran",
+              "Menyusun rencana anggaran unit",
+              "Rencana anggaran",
+              "Tahunan",
+              "PIC Simulasi 1",
+              "Ya",
+              "Rencana anggaran (scan)",
+              "2026-07-10",
+              "Kepala Unit Simulasi",
+              "Memadai",
+              "Bukti lengkap dan tepat waktu."
+            ],
+            [
+              "2",
+              "Pembayaran",
+              "Memproses permintaan pembayaran",
+              "Bukti pembayaran",
+              "Harian",
+              "PIC Simulasi 2",
+              "Ya",
+              "Bukti pembayaran (scan)",
+              "2026-08-11",
+              "Kepala Unit Simulasi",
+              "Perlu perbaikan",
+              "Lengkapi bukti dan jadwalkan ulang supervisi."
+            ],
+            [
+              "3",
+              "Uang muka",
+              "Memantau pertanggungjawaban uang muka",
+              "Daftar pantau uang muka",
+              "Mingguan",
+              "PIC Simulasi 3",
+              "Tidak",
+              "Daftar pantau uang muka (scan)",
+              "2026-09-12",
+              "Kepala Unit Simulasi",
+              "Perlu perbaikan",
+              "Lengkapi bukti dan jadwalkan ulang supervisi."
+            ],
+            [
+              "4",
+              "Rekonsiliasi",
+              "Merekonsiliasi rekening antara",
+              "BA rekonsiliasi",
+              "Bulanan",
+              "PIC Simulasi 4",
+              "Ya",
+              "BA rekonsiliasi (scan)",
+              "2026-07-13",
+              "Kepala Unit Simulasi",
+              "Memadai",
+              "Bukti lengkap dan tepat waktu."
+            ]
+          ]
+        },
+        {
+          "subkind": "ws_pengendalian",
+          "title": "Worksheet Pengendalian Keuangan Intern",
+          "file_url": "/demo/sgo/keuangan-intern-ws-pengendalian.xlsx",
+          "sheets": [
+            "Pengendalian",
+            "Matriks Risiko",
+            "Petunjuk"
+          ],
+          "columns": [
+            "No",
+            "Proses",
+            "Risiko",
+            "Pengendalian Kunci",
+            "Jenis",
+            "Frekuensi",
+            "Prosedur Pengujian",
+            "Jumlah Sampel",
+            "Hasil Pengujian",
+            "Kesimpulan",
+            "Rekomendasi",
+            "Referensi Ketentuan"
+          ],
+          "preview": [
+            [
+              "1",
+              "Perencanaan anggaran",
+              "Anggaran tidak realistis",
+              "Reviu kewajaran oleh kepala unit",
+              "Preventif",
+              "Tahunan",
+              "Ambil sampel dan uji apakah 'reviu kewajaran oleh kepala unit' dijalankan dan terdokumentasi.",
+              "5",
+              "Seluruh sampel sesuai.",
+              "Efektif",
+              "-",
+              "PADGI SIM/KEUANG Pasal 3"
+            ],
+            [
+              "2",
+              "Pembayaran",
+              "Pembayaran tanpa bukti pendukung",
+              "Checklist kelengkapan sebelum otorisasi",
+              "Preventif",
+              "Harian",
+              "Ambil sampel dan uji apakah 'checklist kelengkapan sebelum otorisasi' dijalankan dan terdokumentasi.",
+              "8",
+              "2 sampel tidak didukung bukti.",
+              "Tidak efektif",
+              "Perkuat dokumentasi pengendalian dan lakukan reviu berjenjang.",
+              "PADGI SIM/KEUANG Pasal 4"
+            ],
+            [
+              "3",
+              "Uang muka",
+              "Pertanggungjawaban terlambat",
+              "Pengingat berjenjang H-7 dan H-1",
+              "Detektif",
+              "Mingguan",
+              "Ambil sampel dan uji apakah 'pengingat berjenjang h-7 dan h-1' dijalankan dan terdokumentasi.",
+              "11",
+              "Seluruh sampel sesuai.",
+              "Efektif",
+              "-",
+              "PADGI SIM/KEUANG Pasal 5"
+            ],
+            [
+              "4",
+              "Rekonsiliasi",
+              "Selisih tidak terdeteksi",
+              "Reviu rekonsiliasi oleh pejabat kedua",
+              "Detektif",
+              "Bulanan",
+              "Ambil sampel dan uji apakah 'reviu rekonsiliasi oleh pejabat kedua' dijalankan dan terdokumentasi.",
+              "14",
+              "Seluruh sampel sesuai.",
+              "Efektif",
+              "-",
+              "PADGI SIM/KEUANG Pasal 6"
+            ]
+          ]
+        }
+      ],
+      "ketentuan": [
+        {
+          "subkind": "pdg",
+          "label": "PDG",
+          "jenis": "Peraturan Dewan Gubernur",
+          "number": "No. 02/SIM/PDG/2025",
+          "title": "Peraturan Dewan Gubernur (Simulasi) No. 02/SIM/PDG/2025 tentang Pengelolaan Keuangan Intern",
+          "topic": "Pengelolaan Keuangan Intern",
+          "file_url": "/demo/ketentuan/keuangan-intern-pdg.pdf"
+        },
+        {
+          "subkind": "padgi",
+          "label": "PADGI",
+          "jenis": "Peraturan Anggota Dewan Gubernur Intern",
+          "number": "No. 02/SIM/PADGI/2025",
+          "title": "Peraturan Anggota Dewan Gubernur Intern (Simulasi) No. 02/SIM/PADGI/2025 tentang Pengelolaan Keuangan Intern",
+          "topic": "Pengelolaan Keuangan Intern",
+          "file_url": "/demo/ketentuan/keuangan-intern-padgi.pdf"
+        },
+        {
+          "subkind": "juknis",
+          "label": "Juknis",
+          "jenis": "Petunjuk Teknis",
+          "number": "No. 02/SIM/JUKNIS/2025",
+          "title": "Petunjuk Teknis (Simulasi) No. 02/SIM/JUKNIS/2025 tentang Pengelolaan Keuangan Intern",
+          "topic": "Pengelolaan Keuangan Intern",
+          "file_url": "/demo/ketentuan/keuangan-intern-juknis.pdf"
+        },
+        {
+          "subkind": "se_intern",
+          "label": "SE Intern",
+          "jenis": "Surat Edaran Intern",
+          "number": "No. 02/SIM/SEINTERN/2025",
+          "title": "Surat Edaran Intern (Simulasi) No. 02/SIM/SEINTERN/2025 tentang Pengelolaan Keuangan Intern",
+          "topic": "Pengelolaan Keuangan Intern",
+          "file_url": "/demo/ketentuan/keuangan-intern-se-intern.pdf"
+        }
+      ]
+    },
+    {
+      "area": "PI-KEKDA",
+      "slug": "pi-kekda",
+      "worksheets": [
+        {
+          "subkind": "ws_aktivitas_supervisi",
+          "title": "Worksheet Aktivitas & Supervisi PI-KEKDA",
+          "file_url": "/demo/sgo/pi-kekda-ws-aktivitas-supervisi.xlsx",
+          "sheets": [
+            "Aktivitas & Supervisi",
+            "Rekap",
+            "Petunjuk"
+          ],
+          "columns": [
+            "No",
+            "Proses",
+            "Aktivitas",
+            "Output",
+            "Frekuensi",
+            "PIC Pelaksana",
+            "Dilaksanakan?",
+            "Bukti Pelaksanaan",
+            "Tanggal Supervisi",
+            "Disupervisi oleh",
+            "Hasil Supervisi",
+            "Catatan Supervisi"
+          ],
+          "preview": [
+            [
+              "1",
+              "Perencanaan kajian",
+              "Menetapkan topik kajian ekonomi daerah",
+              "Rencana kajian",
+              "Tahunan",
+              "PIC Simulasi 1",
+              "Ya",
+              "Rencana kajian (scan)",
+              "2026-07-10",
+              "Kepala Unit Simulasi",
+              "Memadai",
+              "Bukti lengkap dan tepat waktu."
+            ],
+            [
+              "2",
+              "Pengumpulan data",
+              "Melaksanakan survei dan liaison",
+              "Data survei",
+              "Triwulanan",
+              "PIC Simulasi 2",
+              "Ya",
+              "Data survei (scan)",
+              "2026-08-11",
+              "Kepala Unit Simulasi",
+              "Perlu perbaikan",
+              "Lengkapi bukti dan jadwalkan ulang supervisi."
+            ],
+            [
+              "3",
+              "Analisis",
+              "Menyusun kajian ekonomi dan keuangan daerah",
+              "Laporan kajian",
+              "Triwulanan",
+              "PIC Simulasi 3",
+              "Tidak",
+              "Laporan kajian (scan)",
+              "2026-09-12",
+              "Kepala Unit Simulasi",
+              "Perlu perbaikan",
+              "Lengkapi bukti dan jadwalkan ulang supervisi."
+            ],
+            [
+              "4",
+              "Diseminasi",
+              "Menyampaikan hasil kajian kepada stakeholder",
+              "Materi diseminasi",
+              "Triwulanan",
+              "PIC Simulasi 4",
+              "Ya",
+              "Materi diseminasi (scan)",
+              "2026-07-13",
+              "Kepala Unit Simulasi",
+              "Memadai",
+              "Bukti lengkap dan tepat waktu."
+            ]
+          ]
+        },
+        {
+          "subkind": "ws_pengendalian",
+          "title": "Worksheet Pengendalian PI-KEKDA",
+          "file_url": "/demo/sgo/pi-kekda-ws-pengendalian.xlsx",
+          "sheets": [
+            "Pengendalian",
+            "Matriks Risiko",
+            "Petunjuk"
+          ],
+          "columns": [
+            "No",
+            "Proses",
+            "Risiko",
+            "Pengendalian Kunci",
+            "Jenis",
+            "Frekuensi",
+            "Prosedur Pengujian",
+            "Jumlah Sampel",
+            "Hasil Pengujian",
+            "Kesimpulan",
+            "Rekomendasi",
+            "Referensi Ketentuan"
+          ],
+          "preview": [
+            [
+              "1",
+              "Perencanaan kajian",
+              "Topik tidak relevan",
+              "Rapat penetapan topik dengan pimpinan",
+              "Preventif",
+              "Tahunan",
+              "Ambil sampel dan uji apakah 'rapat penetapan topik dengan pimpinan' dijalankan dan terdokumentasi.",
+              "5",
+              "Seluruh sampel sesuai.",
+              "Efektif",
+              "-",
+              "PADGI SIM/PI-KEK Pasal 3"
+            ],
+            [
+              "2",
+              "Pengumpulan data",
+              "Data tidak valid",
+              "Validasi berjenjang atas data survei",
+              "Detektif",
+              "Triwulanan",
+              "Ambil sampel dan uji apakah 'validasi berjenjang atas data survei' dijalankan dan terdokumentasi.",
+              "8",
+              "2 sampel tidak didukung bukti.",
+              "Tidak efektif",
+              "Perkuat dokumentasi pengendalian dan lakukan reviu berjenjang.",
+              "PADGI SIM/PI-KEK Pasal 4"
+            ],
+            [
+              "3",
+              "Analisis",
+              "Analisis tidak didukung data",
+              "Reviu sejawat (peer review)",
+              "Detektif",
+              "Triwulanan",
+              "Ambil sampel dan uji apakah 'reviu sejawat (peer review)' dijalankan dan terdokumentasi.",
+              "11",
+              "Seluruh sampel sesuai.",
+              "Efektif",
+              "-",
+              "PADGI SIM/PI-KEK Pasal 5"
+            ],
+            [
+              "4",
+              "Diseminasi",
+              "Diseminasi tidak terjadwal",
+              "Kalender diseminasi tahunan",
+              "Preventif",
+              "Triwulanan",
+              "Ambil sampel dan uji apakah 'kalender diseminasi tahunan' dijalankan dan terdokumentasi.",
+              "14",
+              "Seluruh sampel sesuai.",
+              "Efektif",
+              "-",
+              "PADGI SIM/PI-KEK Pasal 6"
+            ]
+          ]
+        }
+      ],
+      "ketentuan": [
+        {
+          "subkind": "pdg",
+          "label": "PDG",
+          "jenis": "Peraturan Dewan Gubernur",
+          "number": "No. 03/SIM/PDG/2025",
+          "title": "Peraturan Dewan Gubernur (Simulasi) No. 03/SIM/PDG/2025 tentang Kajian Ekonomi dan Keuangan Daerah",
+          "topic": "Kajian Ekonomi dan Keuangan Daerah",
+          "file_url": "/demo/ketentuan/pi-kekda-pdg.pdf"
+        },
+        {
+          "subkind": "padgi",
+          "label": "PADGI",
+          "jenis": "Peraturan Anggota Dewan Gubernur Intern",
+          "number": "No. 03/SIM/PADGI/2025",
+          "title": "Peraturan Anggota Dewan Gubernur Intern (Simulasi) No. 03/SIM/PADGI/2025 tentang Kajian Ekonomi dan Keuangan Daerah",
+          "topic": "Kajian Ekonomi dan Keuangan Daerah",
+          "file_url": "/demo/ketentuan/pi-kekda-padgi.pdf"
+        },
+        {
+          "subkind": "juknis",
+          "label": "Juknis",
+          "jenis": "Petunjuk Teknis",
+          "number": "No. 03/SIM/JUKNIS/2025",
+          "title": "Petunjuk Teknis (Simulasi) No. 03/SIM/JUKNIS/2025 tentang Kajian Ekonomi dan Keuangan Daerah",
+          "topic": "Kajian Ekonomi dan Keuangan Daerah",
+          "file_url": "/demo/ketentuan/pi-kekda-juknis.pdf"
+        },
+        {
+          "subkind": "se_intern",
+          "label": "SE Intern",
+          "jenis": "Surat Edaran Intern",
+          "number": "No. 03/SIM/SEINTERN/2025",
+          "title": "Surat Edaran Intern (Simulasi) No. 03/SIM/SEINTERN/2025 tentang Kajian Ekonomi dan Keuangan Daerah",
+          "topic": "Kajian Ekonomi dan Keuangan Daerah",
+          "file_url": "/demo/ketentuan/pi-kekda-se-intern.pdf"
+        }
+      ]
+    },
+    {
+      "area": "PSBI / EPML",
+      "slug": "psbi-epml",
+      "worksheets": [
+        {
+          "subkind": "ws_aktivitas_supervisi",
+          "title": "Worksheet Aktivitas & Supervisi PSBI / EPML",
+          "file_url": "/demo/sgo/psbi-epml-ws-aktivitas-supervisi.xlsx",
+          "sheets": [
+            "Aktivitas & Supervisi",
+            "Rekap",
+            "Petunjuk"
+          ],
+          "columns": [
+            "No",
+            "Proses",
+            "Aktivitas",
+            "Output",
+            "Frekuensi",
+            "PIC Pelaksana",
+            "Dilaksanakan?",
+            "Bukti Pelaksanaan",
+            "Tanggal Supervisi",
+            "Disupervisi oleh",
+            "Hasil Supervisi",
+            "Catatan Supervisi"
+          ],
+          "preview": [
+            [
+              "1",
+              "Perencanaan program",
+              "Menyusun rencana program sosial",
+              "Rencana program",
+              "Tahunan",
+              "PIC Simulasi 1",
+              "Ya",
+              "Rencana program (scan)",
+              "2026-07-10",
+              "Kepala Unit Simulasi",
+              "Memadai",
+              "Bukti lengkap dan tepat waktu."
+            ],
+            [
+              "2",
+              "Seleksi penerima",
+              "Menyeleksi proposal penerima program",
+              "BA seleksi",
+              "Setiap periode",
+              "PIC Simulasi 2",
+              "Ya",
+              "BA seleksi (scan)",
+              "2026-08-11",
+              "Kepala Unit Simulasi",
+              "Perlu perbaikan",
+              "Lengkapi bukti dan jadwalkan ulang supervisi."
+            ],
+            [
+              "3",
+              "Penyaluran",
+              "Menyalurkan bantuan kepada penerima",
+              "Bukti penyaluran",
+              "Setiap penyaluran",
+              "PIC Simulasi 3",
+              "Tidak",
+              "Bukti penyaluran (scan)",
+              "2026-09-12",
+              "Kepala Unit Simulasi",
+              "Perlu perbaikan",
+              "Lengkapi bukti dan jadwalkan ulang supervisi."
+            ],
+            [
+              "4",
+              "Pemantauan",
+              "Memantau pelaksanaan program",
+              "Laporan monitoring",
+              "Triwulanan",
+              "PIC Simulasi 4",
+              "Ya",
+              "Laporan monitoring (scan)",
+              "2026-07-13",
+              "Kepala Unit Simulasi",
+              "Memadai",
+              "Bukti lengkap dan tepat waktu."
+            ]
+          ]
+        },
+        {
+          "subkind": "ws_pengendalian",
+          "title": "Worksheet Pengendalian PSBI / EPML",
+          "file_url": "/demo/sgo/psbi-epml-ws-pengendalian.xlsx",
+          "sheets": [
+            "Pengendalian",
+            "Matriks Risiko",
+            "Petunjuk"
+          ],
+          "columns": [
+            "No",
+            "Proses",
+            "Risiko",
+            "Pengendalian Kunci",
+            "Jenis",
+            "Frekuensi",
+            "Prosedur Pengujian",
+            "Jumlah Sampel",
+            "Hasil Pengujian",
+            "Kesimpulan",
+            "Rekomendasi",
+            "Referensi Ketentuan"
+          ],
+          "preview": [
+            [
+              "1",
+              "Perencanaan program",
+              "Program tidak tepat sasaran",
+              "Kajian kebutuhan calon penerima",
+              "Preventif",
+              "Tahunan",
+              "Ambil sampel dan uji apakah 'kajian kebutuhan calon penerima' dijalankan dan terdokumentasi.",
+              "5",
+              "Seluruh sampel sesuai.",
+              "Efektif",
+              "-",
+              "PADGI SIM/PSBI-E Pasal 3"
+            ],
+            [
+              "2",
+              "Seleksi penerima",
+              "Seleksi tidak objektif",
+              "Kriteria seleksi tertulis + panel seleksi",
+              "Preventif",
+              "Setiap periode",
+              "Ambil sampel dan uji apakah 'kriteria seleksi tertulis + panel seleksi' dijalankan dan terdokumentasi.",
+              "8",
+              "2 sampel tidak didukung bukti.",
+              "Tidak efektif",
+              "Perkuat dokumentasi pengendalian dan lakukan reviu berjenjang.",
+              "PADGI SIM/PSBI-E Pasal 4"
+            ],
+            [
+              "3",
+              "Penyaluran",
+              "Penyaluran tidak sesuai perjanjian",
+              "Verifikasi dokumen perjanjian sebelum penyaluran",
+              "Preventif",
+              "Setiap penyaluran",
+              "Ambil sampel dan uji apakah 'verifikasi dokumen perjanjian sebelum penyaluran' dijalankan dan terdokumentasi.",
+              "11",
+              "Seluruh sampel sesuai.",
+              "Efektif",
+              "-",
+              "PADGI SIM/PSBI-E Pasal 5"
+            ],
+            [
+              "4",
+              "Pemantauan",
+              "Program tidak berjalan",
+              "Kunjungan lapangan terjadwal",
+              "Detektif",
+              "Triwulanan",
+              "Ambil sampel dan uji apakah 'kunjungan lapangan terjadwal' dijalankan dan terdokumentasi.",
+              "14",
+              "Seluruh sampel sesuai.",
+              "Efektif",
+              "-",
+              "PADGI SIM/PSBI-E Pasal 6"
+            ]
+          ]
+        }
+      ],
+      "ketentuan": [
+        {
+          "subkind": "pdg",
+          "label": "PDG",
+          "jenis": "Peraturan Dewan Gubernur",
+          "number": "No. 04/SIM/PDG/2025",
+          "title": "Peraturan Dewan Gubernur (Simulasi) No. 04/SIM/PDG/2025 tentang Program Sosial dan Pemberdayaan Ekonomi",
+          "topic": "Program Sosial dan Pemberdayaan Ekonomi",
+          "file_url": "/demo/ketentuan/psbi-epml-pdg.pdf"
+        },
+        {
+          "subkind": "padgi",
+          "label": "PADGI",
+          "jenis": "Peraturan Anggota Dewan Gubernur Intern",
+          "number": "No. 04/SIM/PADGI/2025",
+          "title": "Peraturan Anggota Dewan Gubernur Intern (Simulasi) No. 04/SIM/PADGI/2025 tentang Program Sosial dan Pemberdayaan Ekonomi",
+          "topic": "Program Sosial dan Pemberdayaan Ekonomi",
+          "file_url": "/demo/ketentuan/psbi-epml-padgi.pdf"
+        },
+        {
+          "subkind": "juknis",
+          "label": "Juknis",
+          "jenis": "Petunjuk Teknis",
+          "number": "No. 04/SIM/JUKNIS/2025",
+          "title": "Petunjuk Teknis (Simulasi) No. 04/SIM/JUKNIS/2025 tentang Program Sosial dan Pemberdayaan Ekonomi",
+          "topic": "Program Sosial dan Pemberdayaan Ekonomi",
+          "file_url": "/demo/ketentuan/psbi-epml-juknis.pdf"
+        },
+        {
+          "subkind": "se_intern",
+          "label": "SE Intern",
+          "jenis": "Surat Edaran Intern",
+          "number": "No. 04/SIM/SEINTERN/2025",
+          "title": "Surat Edaran Intern (Simulasi) No. 04/SIM/SEINTERN/2025 tentang Program Sosial dan Pemberdayaan Ekonomi",
+          "topic": "Program Sosial dan Pemberdayaan Ekonomi",
+          "file_url": "/demo/ketentuan/psbi-epml-se-intern.pdf"
+        }
+      ]
+    },
+    {
+      "area": "PUR",
+      "slug": "pur",
+      "worksheets": [
+        {
+          "subkind": "ws_aktivitas_supervisi",
+          "title": "Worksheet Aktivitas & Supervisi PUR",
+          "file_url": "/demo/sgo/pur-ws-aktivitas-supervisi.xlsx",
+          "sheets": [
+            "Aktivitas & Supervisi",
+            "Rekap",
+            "Petunjuk"
+          ],
+          "columns": [
+            "No",
+            "Proses",
+            "Aktivitas",
+            "Output",
+            "Frekuensi",
+            "PIC Pelaksana",
+            "Dilaksanakan?",
+            "Bukti Pelaksanaan",
+            "Tanggal Supervisi",
+            "Disupervisi oleh",
+            "Hasil Supervisi",
+            "Catatan Supervisi"
+          ],
+          "preview": [
+            [
+              "1",
+              "Perencanaan kas",
+              "Menyusun perkiraan kebutuhan uang",
+              "Proyeksi kebutuhan uang",
+              "Bulanan",
+              "PIC Simulasi 1",
+              "Ya",
+              "Proyeksi kebutuhan uang (scan)",
+              "2026-07-10",
+              "Kepala Unit Simulasi",
+              "Memadai",
+              "Bukti lengkap dan tepat waktu."
+            ],
+            [
+              "2",
+              "Penyetoran & penarikan",
+              "Melayani setoran dan penarikan bank",
+              "Bukti transaksi kas",
+              "Harian",
+              "PIC Simulasi 2",
+              "Ya",
+              "Bukti transaksi kas (scan)",
+              "2026-08-11",
+              "Kepala Unit Simulasi",
+              "Perlu perbaikan",
+              "Lengkapi bukti dan jadwalkan ulang supervisi."
+            ],
+            [
+              "3",
+              "Kas titipan",
+              "Mengelola kas titipan pada bank",
+              "Laporan kas titipan",
+              "Bulanan",
+              "PIC Simulasi 3",
+              "Tidak",
+              "Laporan kas titipan (scan)",
+              "2026-09-12",
+              "Kepala Unit Simulasi",
+              "Perlu perbaikan",
+              "Lengkapi bukti dan jadwalkan ulang supervisi."
+            ],
+            [
+              "4",
+              "Kas keliling",
+              "Melaksanakan layanan kas keliling",
+              "Laporan kas keliling",
+              "Mingguan",
+              "PIC Simulasi 4",
+              "Ya",
+              "Laporan kas keliling (scan)",
+              "2026-07-13",
+              "Kepala Unit Simulasi",
+              "Memadai",
+              "Bukti lengkap dan tepat waktu."
+            ]
+          ]
+        },
+        {
+          "subkind": "ws_pengendalian",
+          "title": "Worksheet Pengendalian PUR",
+          "file_url": "/demo/sgo/pur-ws-pengendalian.xlsx",
+          "sheets": [
+            "Pengendalian",
+            "Matriks Risiko",
+            "Petunjuk"
+          ],
+          "columns": [
+            "No",
+            "Proses",
+            "Risiko",
+            "Pengendalian Kunci",
+            "Jenis",
+            "Frekuensi",
+            "Prosedur Pengujian",
+            "Jumlah Sampel",
+            "Hasil Pengujian",
+            "Kesimpulan",
+            "Rekomendasi",
+            "Referensi Ketentuan"
+          ],
+          "preview": [
+            [
+              "1",
+              "Perencanaan kas",
+              "Kekurangan persediaan kas",
+              "Reviu proyeksi oleh kepala fungsi",
+              "Preventif",
+              "Bulanan",
+              "Ambil sampel dan uji apakah 'reviu proyeksi oleh kepala fungsi' dijalankan dan terdokumentasi.",
+              "5",
+              "Seluruh sampel sesuai.",
+              "Efektif",
+              "-",
+              "PADGI SIM/PUR Pasal 3"
+            ],
+            [
+              "2",
+              "Penyetoran & penarikan",
+              "Selisih fisik kas",
+              "Dual control dan penghitungan ulang",
+              "Preventif",
+              "Harian",
+              "Ambil sampel dan uji apakah 'dual control dan penghitungan ulang' dijalankan dan terdokumentasi.",
+              "8",
+              "2 sampel tidak didukung bukti.",
+              "Tidak efektif",
+              "Perkuat dokumentasi pengendalian dan lakukan reviu berjenjang.",
+              "PADGI SIM/PUR Pasal 4"
+            ],
+            [
+              "3",
+              "Kas titipan",
+              "Selisih administrasi kas titipan",
+              "Pemeriksaan mendadak berkala",
+              "Detektif",
+              "Bulanan",
+              "Ambil sampel dan uji apakah 'pemeriksaan mendadak berkala' dijalankan dan terdokumentasi.",
+              "11",
+              "Seluruh sampel sesuai.",
+              "Efektif",
+              "-",
+              "PADGI SIM/PUR Pasal 5"
+            ],
+            [
+              "4",
+              "Kas keliling",
+              "Jadwal tidak efektif",
+              "Evaluasi jadwal semesteran",
+              "Detektif",
+              "Mingguan",
+              "Ambil sampel dan uji apakah 'evaluasi jadwal semesteran' dijalankan dan terdokumentasi.",
+              "14",
+              "Seluruh sampel sesuai.",
+              "Efektif",
+              "-",
+              "PADGI SIM/PUR Pasal 6"
+            ]
+          ]
+        }
+      ],
+      "ketentuan": [
+        {
+          "subkind": "pdg",
+          "label": "PDG",
+          "jenis": "Peraturan Dewan Gubernur",
+          "number": "No. 05/SIM/PDG/2025",
+          "title": "Peraturan Dewan Gubernur (Simulasi) No. 05/SIM/PDG/2025 tentang Pengelolaan Uang Rupiah di Kantor Perwakilan",
+          "topic": "Pengelolaan Uang Rupiah di Kantor Perwakilan",
+          "file_url": "/demo/ketentuan/pur-pdg.pdf"
+        },
+        {
+          "subkind": "padgi",
+          "label": "PADGI",
+          "jenis": "Peraturan Anggota Dewan Gubernur Intern",
+          "number": "No. 05/SIM/PADGI/2025",
+          "title": "Peraturan Anggota Dewan Gubernur Intern (Simulasi) No. 05/SIM/PADGI/2025 tentang Pengelolaan Uang Rupiah di Kantor Perwakilan",
+          "topic": "Pengelolaan Uang Rupiah di Kantor Perwakilan",
+          "file_url": "/demo/ketentuan/pur-padgi.pdf"
+        },
+        {
+          "subkind": "juknis",
+          "label": "Juknis",
+          "jenis": "Petunjuk Teknis",
+          "number": "No. 05/SIM/JUKNIS/2025",
+          "title": "Petunjuk Teknis (Simulasi) No. 05/SIM/JUKNIS/2025 tentang Pengelolaan Uang Rupiah di Kantor Perwakilan",
+          "topic": "Pengelolaan Uang Rupiah di Kantor Perwakilan",
+          "file_url": "/demo/ketentuan/pur-juknis.pdf"
+        },
+        {
+          "subkind": "se_intern",
+          "label": "SE Intern",
+          "jenis": "Surat Edaran Intern",
+          "number": "No. 05/SIM/SEINTERN/2025",
+          "title": "Surat Edaran Intern (Simulasi) No. 05/SIM/SEINTERN/2025 tentang Pengelolaan Uang Rupiah di Kantor Perwakilan",
+          "topic": "Pengelolaan Uang Rupiah di Kantor Perwakilan",
+          "file_url": "/demo/ketentuan/pur-se-intern.pdf"
+        }
+      ]
+    },
+    {
+      "area": "Pengadaan",
+      "slug": "pengadaan",
+      "worksheets": [
+        {
+          "subkind": "ws_aktivitas_supervisi",
+          "title": "Worksheet Aktivitas & Supervisi Pengadaan",
+          "file_url": "/demo/sgo/pengadaan-ws-aktivitas-supervisi.xlsx",
+          "sheets": [
+            "Aktivitas & Supervisi",
+            "Rekap",
+            "Petunjuk"
+          ],
+          "columns": [
+            "No",
+            "Proses",
+            "Aktivitas",
+            "Output",
+            "Frekuensi",
+            "PIC Pelaksana",
+            "Dilaksanakan?",
+            "Bukti Pelaksanaan",
+            "Tanggal Supervisi",
+            "Disupervisi oleh",
+            "Hasil Supervisi",
+            "Catatan Supervisi"
+          ],
+          "preview": [
+            [
+              "1",
+              "Perencanaan",
+              "Menyusun rencana umum pengadaan",
+              "RUP",
+              "Tahunan",
+              "PIC Simulasi 1",
+              "Ya",
+              "RUP (scan)",
+              "2026-07-10",
+              "Kepala Unit Simulasi",
+              "Memadai",
+              "Bukti lengkap dan tepat waktu."
+            ],
+            [
+              "2",
+              "Persiapan",
+              "Menyusun harga perkiraan sendiri (HPS)",
+              "Dokumen HPS",
+              "Setiap paket",
+              "PIC Simulasi 2",
+              "Ya",
+              "Dokumen HPS (scan)",
+              "2026-08-11",
+              "Kepala Unit Simulasi",
+              "Perlu perbaikan",
+              "Lengkapi bukti dan jadwalkan ulang supervisi."
+            ],
+            [
+              "3",
+              "Pemilihan penyedia",
+              "Melaksanakan pemilihan penyedia",
+              "BA hasil pemilihan",
+              "Setiap paket",
+              "PIC Simulasi 3",
+              "Tidak",
+              "BA hasil pemilihan (scan)",
+              "2026-09-12",
+              "Kepala Unit Simulasi",
+              "Perlu perbaikan",
+              "Lengkapi bukti dan jadwalkan ulang supervisi."
+            ],
+            [
+              "4",
+              "Pelaksanaan kontrak",
+              "Memantau pelaksanaan kontrak",
+              "Laporan progres",
+              "Mingguan",
+              "PIC Simulasi 4",
+              "Ya",
+              "Laporan progres (scan)",
+              "2026-07-13",
+              "Kepala Unit Simulasi",
+              "Memadai",
+              "Bukti lengkap dan tepat waktu."
+            ]
+          ]
+        },
+        {
+          "subkind": "ws_pengendalian",
+          "title": "Worksheet Pengendalian Pengadaan",
+          "file_url": "/demo/sgo/pengadaan-ws-pengendalian.xlsx",
+          "sheets": [
+            "Pengendalian",
+            "Matriks Risiko",
+            "Petunjuk"
+          ],
+          "columns": [
+            "No",
+            "Proses",
+            "Risiko",
+            "Pengendalian Kunci",
+            "Jenis",
+            "Frekuensi",
+            "Prosedur Pengujian",
+            "Jumlah Sampel",
+            "Hasil Pengujian",
+            "Kesimpulan",
+            "Rekomendasi",
+            "Referensi Ketentuan"
+          ],
+          "preview": [
+            [
+              "1",
+              "Perencanaan",
+              "Kebutuhan tidak didukung analisis",
+              "Analisis kebutuhan wajib dilampirkan",
+              "Preventif",
+              "Tahunan",
+              "Ambil sampel dan uji apakah 'analisis kebutuhan wajib dilampirkan' dijalankan dan terdokumentasi.",
+              "5",
+              "Seluruh sampel sesuai.",
+              "Efektif",
+              "-",
+              "PADGI SIM/PENGAD Pasal 3"
+            ],
+            [
+              "2",
+              "Persiapan",
+              "HPS tidak wajar",
+              "Survei harga minimal 3 sumber",
+              "Preventif",
+              "Setiap paket",
+              "Ambil sampel dan uji apakah 'survei harga minimal 3 sumber' dijalankan dan terdokumentasi.",
+              "8",
+              "2 sampel tidak didukung bukti.",
+              "Tidak efektif",
+              "Perkuat dokumentasi pengendalian dan lakukan reviu berjenjang.",
+              "PADGI SIM/PENGAD Pasal 4"
+            ],
+            [
+              "3",
+              "Pemilihan penyedia",
+              "Persaingan tidak sehat",
+              "Pakta integritas + reviu panitia",
+              "Preventif",
+              "Setiap paket",
+              "Ambil sampel dan uji apakah 'pakta integritas + reviu panitia' dijalankan dan terdokumentasi.",
+              "11",
+              "Seluruh sampel sesuai.",
+              "Efektif",
+              "-",
+              "PADGI SIM/PENGAD Pasal 5"
+            ],
+            [
+              "4",
+              "Pelaksanaan kontrak",
+              "Pekerjaan terlambat",
+              "Monitoring jadwal + denda keterlambatan",
+              "Detektif",
+              "Mingguan",
+              "Ambil sampel dan uji apakah 'monitoring jadwal + denda keterlambatan' dijalankan dan terdokumentasi.",
+              "14",
+              "Seluruh sampel sesuai.",
+              "Efektif",
+              "-",
+              "PADGI SIM/PENGAD Pasal 6"
+            ]
+          ]
+        }
+      ],
+      "ketentuan": [
+        {
+          "subkind": "pdg",
+          "label": "PDG",
+          "jenis": "Peraturan Dewan Gubernur",
+          "number": "No. 06/SIM/PDG/2025",
+          "title": "Peraturan Dewan Gubernur (Simulasi) No. 06/SIM/PDG/2025 tentang Pengadaan Barang dan Jasa",
+          "topic": "Pengadaan Barang dan Jasa",
+          "file_url": "/demo/ketentuan/pengadaan-pdg.pdf"
+        },
+        {
+          "subkind": "padgi",
+          "label": "PADGI",
+          "jenis": "Peraturan Anggota Dewan Gubernur Intern",
+          "number": "No. 06/SIM/PADGI/2025",
+          "title": "Peraturan Anggota Dewan Gubernur Intern (Simulasi) No. 06/SIM/PADGI/2025 tentang Pengadaan Barang dan Jasa",
+          "topic": "Pengadaan Barang dan Jasa",
+          "file_url": "/demo/ketentuan/pengadaan-padgi.pdf"
+        },
+        {
+          "subkind": "juknis",
+          "label": "Juknis",
+          "jenis": "Petunjuk Teknis",
+          "number": "No. 06/SIM/JUKNIS/2025",
+          "title": "Petunjuk Teknis (Simulasi) No. 06/SIM/JUKNIS/2025 tentang Pengadaan Barang dan Jasa",
+          "topic": "Pengadaan Barang dan Jasa",
+          "file_url": "/demo/ketentuan/pengadaan-juknis.pdf"
+        },
+        {
+          "subkind": "se_intern",
+          "label": "SE Intern",
+          "jenis": "Surat Edaran Intern",
+          "number": "No. 06/SIM/SEINTERN/2025",
+          "title": "Surat Edaran Intern (Simulasi) No. 06/SIM/SEINTERN/2025 tentang Pengadaan Barang dan Jasa",
+          "topic": "Pengadaan Barang dan Jasa",
+          "file_url": "/demo/ketentuan/pengadaan-se-intern.pdf"
+        }
+      ]
+    },
+    {
+      "area": "Pengamanan",
+      "slug": "pengamanan",
+      "worksheets": [
+        {
+          "subkind": "ws_aktivitas_supervisi",
+          "title": "Worksheet Aktivitas & Supervisi Pengamanan",
+          "file_url": "/demo/sgo/pengamanan-ws-aktivitas-supervisi.xlsx",
+          "sheets": [
+            "Aktivitas & Supervisi",
+            "Rekap",
+            "Petunjuk"
+          ],
+          "columns": [
+            "No",
+            "Proses",
+            "Aktivitas",
+            "Output",
+            "Frekuensi",
+            "PIC Pelaksana",
+            "Dilaksanakan?",
+            "Bukti Pelaksanaan",
+            "Tanggal Supervisi",
+            "Disupervisi oleh",
+            "Hasil Supervisi",
+            "Catatan Supervisi"
+          ],
+          "preview": [
+            [
+              "1",
+              "Perencanaan",
+              "Menyusun rencana pengamanan",
+              "Rencana pengamanan",
+              "Tahunan",
+              "PIC Simulasi 1",
+              "Ya",
+              "Rencana pengamanan (scan)",
+              "2026-07-10",
+              "Kepala Unit Simulasi",
+              "Memadai",
+              "Bukti lengkap dan tepat waktu."
+            ],
+            [
+              "2",
+              "Akses fisik",
+              "Mengelola hak akses area terbatas",
+              "Daftar hak akses",
+              "Bulanan",
+              "PIC Simulasi 2",
+              "Ya",
+              "Daftar hak akses (scan)",
+              "2026-08-11",
+              "Kepala Unit Simulasi",
+              "Perlu perbaikan",
+              "Lengkapi bukti dan jadwalkan ulang supervisi."
+            ],
+            [
+              "3",
+              "Perangkat",
+              "Menguji fungsi perangkat pengamanan",
+              "Laporan uji fungsi",
+              "Bulanan",
+              "PIC Simulasi 3",
+              "Tidak",
+              "Laporan uji fungsi (scan)",
+              "2026-09-12",
+              "Kepala Unit Simulasi",
+              "Perlu perbaikan",
+              "Lengkapi bukti dan jadwalkan ulang supervisi."
+            ],
+            [
+              "4",
+              "Tanggap darurat",
+              "Melaksanakan latihan tanggap darurat",
+              "Laporan latihan",
+              "Tahunan",
+              "PIC Simulasi 4",
+              "Ya",
+              "Laporan latihan (scan)",
+              "2026-07-13",
+              "Kepala Unit Simulasi",
+              "Memadai",
+              "Bukti lengkap dan tepat waktu."
+            ]
+          ]
+        },
+        {
+          "subkind": "ws_pengendalian",
+          "title": "Worksheet Pengendalian Pengamanan",
+          "file_url": "/demo/sgo/pengamanan-ws-pengendalian.xlsx",
+          "sheets": [
+            "Pengendalian",
+            "Matriks Risiko",
+            "Petunjuk"
+          ],
+          "columns": [
+            "No",
+            "Proses",
+            "Risiko",
+            "Pengendalian Kunci",
+            "Jenis",
+            "Frekuensi",
+            "Prosedur Pengujian",
+            "Jumlah Sampel",
+            "Hasil Pengujian",
+            "Kesimpulan",
+            "Rekomendasi",
+            "Referensi Ketentuan"
+          ],
+          "preview": [
+            [
+              "1",
+              "Perencanaan",
+              "Ancaman tidak teridentifikasi",
+              "Penilaian risiko keamanan tahunan",
+              "Preventif",
+              "Tahunan",
+              "Ambil sampel dan uji apakah 'penilaian risiko keamanan tahunan' dijalankan dan terdokumentasi.",
+              "5",
+              "Seluruh sampel sesuai.",
+              "Efektif",
+              "-",
+              "PADGI SIM/PENGAM Pasal 3"
+            ],
+            [
+              "2",
+              "Akses fisik",
+              "Akses tidak sah",
+              "Reviu log akses berkala",
+              "Detektif",
+              "Bulanan",
+              "Ambil sampel dan uji apakah 'reviu log akses berkala' dijalankan dan terdokumentasi.",
+              "8",
+              "2 sampel tidak didukung bukti.",
+              "Tidak efektif",
+              "Perkuat dokumentasi pengendalian dan lakukan reviu berjenjang.",
+              "PADGI SIM/PENGAM Pasal 4"
+            ],
+            [
+              "3",
+              "Perangkat",
+              "Perangkat tidak berfungsi",
+              "Jadwal uji fungsi + perawatan",
+              "Preventif",
+              "Bulanan",
+              "Ambil sampel dan uji apakah 'jadwal uji fungsi + perawatan' dijalankan dan terdokumentasi.",
+              "11",
+              "Seluruh sampel sesuai.",
+              "Efektif",
+              "-",
+              "PADGI SIM/PENGAM Pasal 5"
+            ],
+            [
+              "4",
+              "Tanggap darurat",
+              "Petugas tidak siap",
+              "Simulasi tahunan + evaluasi",
+              "Preventif",
+              "Tahunan",
+              "Ambil sampel dan uji apakah 'simulasi tahunan + evaluasi' dijalankan dan terdokumentasi.",
+              "14",
+              "Seluruh sampel sesuai.",
+              "Efektif",
+              "-",
+              "PADGI SIM/PENGAM Pasal 6"
+            ]
+          ]
+        }
+      ],
+      "ketentuan": [
+        {
+          "subkind": "pdg",
+          "label": "PDG",
+          "jenis": "Peraturan Dewan Gubernur",
+          "number": "No. 07/SIM/PDG/2025",
+          "title": "Peraturan Dewan Gubernur (Simulasi) No. 07/SIM/PDG/2025 tentang Pengamanan Lingkungan Kerja",
+          "topic": "Pengamanan Lingkungan Kerja",
+          "file_url": "/demo/ketentuan/pengamanan-pdg.pdf"
+        },
+        {
+          "subkind": "padgi",
+          "label": "PADGI",
+          "jenis": "Peraturan Anggota Dewan Gubernur Intern",
+          "number": "No. 07/SIM/PADGI/2025",
+          "title": "Peraturan Anggota Dewan Gubernur Intern (Simulasi) No. 07/SIM/PADGI/2025 tentang Pengamanan Lingkungan Kerja",
+          "topic": "Pengamanan Lingkungan Kerja",
+          "file_url": "/demo/ketentuan/pengamanan-padgi.pdf"
+        },
+        {
+          "subkind": "juknis",
+          "label": "Juknis",
+          "jenis": "Petunjuk Teknis",
+          "number": "No. 07/SIM/JUKNIS/2025",
+          "title": "Petunjuk Teknis (Simulasi) No. 07/SIM/JUKNIS/2025 tentang Pengamanan Lingkungan Kerja",
+          "topic": "Pengamanan Lingkungan Kerja",
+          "file_url": "/demo/ketentuan/pengamanan-juknis.pdf"
+        },
+        {
+          "subkind": "se_intern",
+          "label": "SE Intern",
+          "jenis": "Surat Edaran Intern",
+          "number": "No. 07/SIM/SEINTERN/2025",
+          "title": "Surat Edaran Intern (Simulasi) No. 07/SIM/SEINTERN/2025 tentang Pengamanan Lingkungan Kerja",
+          "topic": "Pengamanan Lingkungan Kerja",
+          "file_url": "/demo/ketentuan/pengamanan-se-intern.pdf"
+        }
+      ]
+    },
+    {
+      "area": "Perizinan dan Pengawasan SP",
+      "slug": "perizinan-pengawasan-sp",
+      "worksheets": [
+        {
+          "subkind": "ws_aktivitas_supervisi",
+          "title": "Worksheet Aktivitas & Supervisi Perizinan dan Pengawasan SP",
+          "file_url": "/demo/sgo/perizinan-pengawasan-sp-ws-aktivitas-supervisi.xlsx",
+          "sheets": [
+            "Aktivitas & Supervisi",
+            "Rekap",
+            "Petunjuk"
+          ],
+          "columns": [
+            "No",
+            "Proses",
+            "Aktivitas",
+            "Output",
+            "Frekuensi",
+            "PIC Pelaksana",
+            "Dilaksanakan?",
+            "Bukti Pelaksanaan",
+            "Tanggal Supervisi",
+            "Disupervisi oleh",
+            "Hasil Supervisi",
+            "Catatan Supervisi"
+          ],
+          "preview": [
+            [
+              "1",
+              "Perizinan",
+              "Memproses permohonan izin penyelenggara",
+              "Rekomendasi izin",
+              "Setiap permohonan",
+              "PIC Simulasi 1",
+              "Ya",
+              "Rekomendasi izin (scan)",
+              "2026-07-10",
+              "Kepala Unit Simulasi",
+              "Memadai",
+              "Bukti lengkap dan tepat waktu."
+            ],
+            [
+              "2",
+              "Perencanaan pengawasan",
+              "Menyusun rencana pengawasan",
+              "Rencana pengawasan",
+              "Tahunan",
+              "PIC Simulasi 2",
+              "Ya",
+              "Rencana pengawasan (scan)",
+              "2026-08-11",
+              "Kepala Unit Simulasi",
+              "Perlu perbaikan",
+              "Lengkapi bukti dan jadwalkan ulang supervisi."
+            ],
+            [
+              "3",
+              "Pengawasan langsung",
+              "Melaksanakan pemeriksaan on-site",
+              "Laporan hasil pengawasan",
+              "Sesuai rencana",
+              "PIC Simulasi 3",
+              "Tidak",
+              "Laporan hasil pengawasan (scan)",
+              "2026-09-12",
+              "Kepala Unit Simulasi",
+              "Perlu perbaikan",
+              "Lengkapi bukti dan jadwalkan ulang supervisi."
+            ],
+            [
+              "4",
+              "Tindak lanjut",
+              "Memantau tindak lanjut hasil pengawasan",
+              "Daftar pantau TL",
+              "Bulanan",
+              "PIC Simulasi 4",
+              "Ya",
+              "Daftar pantau TL (scan)",
+              "2026-07-13",
+              "Kepala Unit Simulasi",
+              "Memadai",
+              "Bukti lengkap dan tepat waktu."
+            ]
+          ]
+        },
+        {
+          "subkind": "ws_pengendalian",
+          "title": "Worksheet Pengendalian Perizinan dan Pengawasan SP",
+          "file_url": "/demo/sgo/perizinan-pengawasan-sp-ws-pengendalian.xlsx",
+          "sheets": [
+            "Pengendalian",
+            "Matriks Risiko",
+            "Petunjuk"
+          ],
+          "columns": [
+            "No",
+            "Proses",
+            "Risiko",
+            "Pengendalian Kunci",
+            "Jenis",
+            "Frekuensi",
+            "Prosedur Pengujian",
+            "Jumlah Sampel",
+            "Hasil Pengujian",
+            "Kesimpulan",
+            "Rekomendasi",
+            "Referensi Ketentuan"
+          ],
+          "preview": [
+            [
+              "1",
+              "Perizinan",
+              "Proses melebihi SLA",
+              "Monitoring SLA perizinan",
+              "Detektif",
+              "Setiap permohonan",
+              "Ambil sampel dan uji apakah 'monitoring sla perizinan' dijalankan dan terdokumentasi.",
+              "5",
+              "Seluruh sampel sesuai.",
+              "Efektif",
+              "-",
+              "PADGI SIM/PERIZI Pasal 3"
+            ],
+            [
+              "2",
+              "Perencanaan pengawasan",
+              "Pengawasan tidak berbasis risiko",
+              "Pemetaan risiko penyelenggara",
+              "Preventif",
+              "Tahunan",
+              "Ambil sampel dan uji apakah 'pemetaan risiko penyelenggara' dijalankan dan terdokumentasi.",
+              "8",
+              "2 sampel tidak didukung bukti.",
+              "Tidak efektif",
+              "Perkuat dokumentasi pengendalian dan lakukan reviu berjenjang.",
+              "PADGI SIM/PERIZI Pasal 4"
+            ],
+            [
+              "3",
+              "Pengawasan langsung",
+              "Realisasi tidak sesuai rencana",
+              "Monitoring realisasi bulanan",
+              "Detektif",
+              "Sesuai rencana",
+              "Ambil sampel dan uji apakah 'monitoring realisasi bulanan' dijalankan dan terdokumentasi.",
+              "11",
+              "Seluruh sampel sesuai.",
+              "Efektif",
+              "-",
+              "PADGI SIM/PERIZI Pasal 5"
+            ],
+            [
+              "4",
+              "Tindak lanjut",
+              "Tindak lanjut tidak dipantau",
+              "Daftar pantau terdokumentasi",
+              "Detektif",
+              "Bulanan",
+              "Ambil sampel dan uji apakah 'daftar pantau terdokumentasi' dijalankan dan terdokumentasi.",
+              "14",
+              "Seluruh sampel sesuai.",
+              "Efektif",
+              "-",
+              "PADGI SIM/PERIZI Pasal 6"
+            ]
+          ]
+        }
+      ],
+      "ketentuan": [
+        {
+          "subkind": "pdg",
+          "label": "PDG",
+          "jenis": "Peraturan Dewan Gubernur",
+          "number": "No. 08/SIM/PDG/2025",
+          "title": "Peraturan Dewan Gubernur (Simulasi) No. 08/SIM/PDG/2025 tentang Perizinan dan Pengawasan Sistem Pembayaran",
+          "topic": "Perizinan dan Pengawasan Sistem Pembayaran",
+          "file_url": "/demo/ketentuan/perizinan-pengawasan-sp-pdg.pdf"
+        },
+        {
+          "subkind": "padgi",
+          "label": "PADGI",
+          "jenis": "Peraturan Anggota Dewan Gubernur Intern",
+          "number": "No. 08/SIM/PADGI/2025",
+          "title": "Peraturan Anggota Dewan Gubernur Intern (Simulasi) No. 08/SIM/PADGI/2025 tentang Perizinan dan Pengawasan Sistem Pembayaran",
+          "topic": "Perizinan dan Pengawasan Sistem Pembayaran",
+          "file_url": "/demo/ketentuan/perizinan-pengawasan-sp-padgi.pdf"
+        },
+        {
+          "subkind": "juknis",
+          "label": "Juknis",
+          "jenis": "Petunjuk Teknis",
+          "number": "No. 08/SIM/JUKNIS/2025",
+          "title": "Petunjuk Teknis (Simulasi) No. 08/SIM/JUKNIS/2025 tentang Perizinan dan Pengawasan Sistem Pembayaran",
+          "topic": "Perizinan dan Pengawasan Sistem Pembayaran",
+          "file_url": "/demo/ketentuan/perizinan-pengawasan-sp-juknis.pdf"
+        },
+        {
+          "subkind": "se_intern",
+          "label": "SE Intern",
+          "jenis": "Surat Edaran Intern",
+          "number": "No. 08/SIM/SEINTERN/2025",
+          "title": "Surat Edaran Intern (Simulasi) No. 08/SIM/SEINTERN/2025 tentang Perizinan dan Pengawasan Sistem Pembayaran",
+          "topic": "Perizinan dan Pengawasan Sistem Pembayaran",
+          "file_url": "/demo/ketentuan/perizinan-pengawasan-sp-se-intern.pdf"
+        }
+      ]
+    }
+  ],
+  "asset_videos": [
+    {
+      "subkind": "split",
+      "label": "Split Aset",
+      "description": "Memecah satu nomor aset gabungan menjadi beberapa aset per komponen.",
+      "steps": [
+        "Identifikasi aset gabungan yang terdiri dari beberapa komponen berbeda.",
+        "Hitung harga perolehan per komponen dari kontrak atau faktur.",
+        "Buat nomor aset baru per komponen di aplikasi aset.",
+        "Pindahkan nilai dan akumulasi penyusutan secara proporsional.",
+        "Nonaktifkan nomor aset induk dan lampirkan nota koreksi."
+      ],
+      "file_url": "/demo/video/aset-split.mp4",
+      "duration": 26
+    },
+    {
+      "subkind": "penghapusan",
+      "label": "Penghapusan Aset",
+      "description": "Menghapus aset rusak berat atau hilang dari daftar aset aktif.",
+      "steps": [
+        "Susun daftar aset rusak berat atau tidak ditemukan.",
+        "Minta penilaian kondisi oleh tim teknis dan buat berita acara.",
+        "Ajukan usulan penghapusan kepada pejabat berwenang.",
+        "Setelah SK terbit, catat penghapusan di aplikasi aset.",
+        "Arsipkan SK dan berita acara sebagai bukti tindak lanjut."
+      ],
+      "file_url": "/demo/video/aset-penghapusan.mp4",
+      "duration": 26
+    },
+    {
+      "subkind": "penatausahaan",
+      "label": "Penatausahaan Aset",
+      "description": "Memutakhirkan label, kartu inventaris, dan dokumen kepemilikan.",
+      "steps": [
+        "Cetak ulang label aset yang hilang atau rusak.",
+        "Mutakhirkan kartu inventaris ruangan (KIR).",
+        "Lengkapi dokumen kepemilikan dan simpan pada arsip.",
+        "Cocokkan data penanggung jawab aset dengan data pegawai.",
+        "Reviu kelengkapan oleh pejabat kedua dan tandatangani."
+      ],
+      "file_url": "/demo/video/aset-penatausahaan.mp4",
+      "duration": 26
+    },
+    {
+      "subkind": "mutasi",
+      "label": "Mutasi Aset",
+      "description": "Mencatat perpindahan aset antarruang atau antarunit kerja.",
+      "steps": [
+        "Isi formulir mutasi: nomor aset, lokasi asal, lokasi tujuan.",
+        "Minta persetujuan pejabat berwenang di unit asal dan tujuan.",
+        "Buat berita acara serah terima aset.",
+        "Perbarui lokasi dan penanggung jawab di aplikasi aset.",
+        "Mutakhirkan KIR di ruangan asal dan tujuan."
+      ],
+      "file_url": "/demo/video/aset-mutasi.mp4",
+      "duration": 26
+    },
+    {
+      "subkind": "reklasifikasi",
+      "label": "Reklasifikasi Aset",
+      "description": "Mengoreksi kode klasifikasi aset yang tidak sesuai jenisnya.",
+      "steps": [
+        "Bandingkan kode klasifikasi dengan bagan akun aset.",
+        "Tentukan kode klasifikasi yang benar beserta umur ekonomisnya.",
+        "Buat nota koreksi reklasifikasi.",
+        "Hitung ulang penyusutan bila umur ekonomis berubah.",
+        "Catat reklasifikasi di aplikasi dan arsipkan nota."
+      ],
+      "file_url": "/demo/video/aset-reklasifikasi.mp4",
+      "duration": 26
+    },
+    {
+      "subkind": "koreksi_nilai",
+      "label": "Koreksi Harga Perolehan",
+      "description": "Menyesuaikan harga perolehan dengan dokumen sumber.",
+      "steps": [
+        "Telusuri dokumen sumber: kontrak, faktur, dan BAST.",
+        "Hitung selisih antara nilai tercatat dan nilai seharusnya.",
+        "Buat jurnal koreksi beserta penyesuaian penyusutan.",
+        "Minta reviu fungsi akuntansi atas jurnal koreksi.",
+        "Catat koreksi di aplikasi aset dan lampirkan bukti."
+      ],
+      "file_url": "/demo/video/aset-koreksi-nilai.mp4",
+      "duration": 26
+    },
+    {
+      "subkind": "penyesuaian_umur",
+      "label": "Penyesuaian Umur Ekonomis",
+      "description": "Menyelaraskan umur ekonomis dengan tabel kebijakan akuntansi.",
+      "steps": [
+        "Cocokkan umur ekonomis tercatat dengan tabel kebijakan.",
+        "Tandai aset yang umur ekonomisnya tidak sesuai.",
+        "Hitung dampak terhadap beban penyusutan.",
+        "Ajukan koreksi umur ekonomis melalui nota koreksi.",
+        "Mutakhirkan data di aplikasi aset dan dokumentasikan."
+      ],
+      "file_url": "/demo/video/aset-penyesuaian-umur.mp4",
+      "duration": 26
+    },
+    {
+      "subkind": "inventarisasi",
+      "label": "Inventarisasi Fisik",
+      "description": "Melaksanakan stock opname aset tetap secara menyeluruh.",
+      "steps": [
+        "Bentuk tim inventarisasi dan bagi area pemeriksaan.",
+        "Cetak daftar aset per ruangan dari aplikasi.",
+        "Cocokkan fisik, label, kondisi, dan lokasi setiap aset.",
+        "Catat selisih dan penyebabnya pada worksheet.",
+        "Susun berita acara hasil inventarisasi dan tindak lanjut."
+      ],
+      "file_url": "/demo/video/aset-inventarisasi.mp4",
+      "duration": 26
+    }
+  ],
+  "sgo_intro": {
+    "title": "Video Pengenalan SGo",
+    "steps": [
+      "SGo adalah ruang materi bersama untuk persiapan pemeriksaan KPwDN dan DR.",
+      "Setiap area memiliki dua worksheet: Aktivitas & Supervisi serta Pengendalian.",
+      "Worksheet Aktivitas & Supervisi memastikan setiap aktivitas dijalankan dan disupervisi.",
+      "Worksheet Pengendalian memetakan risiko, pengendalian kunci, dan hasil pengujiannya.",
+      "Menu Ketentuan memuat PDG, PADGI, Juknis, dan SE Intern per area.",
+      "Isi worksheet, cocokkan dengan ketentuan, lalu simpan sebagai bukti pemeriksaan."
+    ],
+    "file_url": "/demo/video/sgo-pengenalan.mp4",
+    "duration": 30
+  }
+}

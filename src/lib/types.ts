@@ -20,6 +20,24 @@ export type ComplianceStatus = (typeof COMPLIANCE_STATUSES)[number];
 export const REFERENCE_KINDS = ["worksheet", "ketentuan", "tutorial"] as const;
 export type ReferenceKind = (typeof REFERENCE_KINDS)[number];
 
+/** Aspek asesmen rekonsiliasi aset (per nomor aset). */
+export const ASSET_ASPECTS = [
+  "umur_ekonomis",
+  "harga_perolehan",
+  "satuan_aset",
+  "keberadaan_fisik",
+  "kondisi_fisik",
+  "lokasi",
+  "klasifikasi",
+  "dokumen_kepemilikan",
+  "label",
+] as const;
+export type AssetAspect = (typeof ASSET_ASPECTS)[number];
+
+/** Tindak lanjut pencatatan aset; sama dengan subkind video panduan area Aset. */
+export const ASSET_ACTIONS = ["split", "penghapusan", "penatausahaan", "mutasi", "reklasifikasi", "koreksi_nilai", "penyesuaian_umur", "inventarisasi"] as const;
+export type AssetAction = (typeof ASSET_ACTIONS)[number];
+
 export const ROLES = ["dr", "kpw", "admin"] as const;
 export type Role = (typeof ROLES)[number];
 
@@ -95,6 +113,11 @@ export interface Reference {
   scope: string;
   area: string;
   kind: ReferenceKind;
+  /**
+   * Jenis rinci (opsional): ws_aktivitas_supervisi / ws_pengendalian untuk worksheet,
+   * pdg / padgi / juknis / se_intern untuk ketentuan, subkind video untuk tutorial.
+   */
+  subkind?: string | null;
   title: string;
   description: string;
   document_id: string;
@@ -111,6 +134,8 @@ export interface SekarDocument {
   is_dummy: boolean;
   /** Hanya mode Supabase: path objek di bucket privat. Tidak ada di dataset dummy. */
   storage_path?: string | null;
+  /** Berkas demo statis (public/demo/...), mis. worksheet .xlsx, ketentuan .pdf, video .mp4. */
+  file_url?: string | null;
 }
 
 export interface ComplianceItem {
@@ -134,6 +159,28 @@ export interface AssetReconciliation {
   is_dummy: boolean;
 }
 
+/** Satu ketidaksesuaian hasil asesmen untuk satu nomor aset (satu aset bisa punya beberapa baris). */
+export interface AssetItem {
+  id: string;
+  reconciliation_id: string;
+  unit_id: string;
+  asset_number: string;
+  asset_name: string;
+  category: string;
+  location: string;
+  acquisition_date: ISODate;
+  acquisition_cost: number;
+  /** Umur ekonomis tercatat di aplikasi (tahun). */
+  useful_life: number;
+  aspect: AssetAspect;
+  recorded_value: string;
+  expected_value: string;
+  note: string;
+  action: AssetAction;
+  status: FindingStatus;
+  is_dummy: boolean;
+}
+
 export interface DemoPersona {
   id: string;
   name: string;
@@ -151,6 +198,7 @@ export interface Dataset {
   documents: SekarDocument[];
   compliance: ComplianceItem[];
   asset_reconciliations: AssetReconciliation[];
+  asset_items: AssetItem[];
   demo_personas: DemoPersona[];
 }
 
@@ -163,6 +211,7 @@ export const COLLECTION_KEYS = [
   "documents",
   "compliance",
   "asset_reconciliations",
+  "asset_items",
   "demo_personas",
 ] as const;
 export type CollectionKey = (typeof COLLECTION_KEYS)[number];

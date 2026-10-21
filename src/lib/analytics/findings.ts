@@ -128,6 +128,11 @@ export function findingsByExaminer(rows: Finding[]): CountItem[] {
   return countBy(rows, (f) => f.examiner, EXAMINERS);
 }
 
+/** Jumlah temuan per PIC / kelompok penanggung jawab (dipakai untuk satker DR). */
+export function findingsByPic(rows: Finding[]): CountItem[] {
+  return countBy(rows, (f) => f.pic);
+}
+
 export interface YearTrendPoint {
   year: number;
   total: number;

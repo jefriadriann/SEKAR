@@ -50,6 +50,7 @@ export function scopeDatasetForViewer(ds: Dataset, viewer: Viewer): Dataset {
     documents: ds.documents.filter((d) => d.scope === "shared" || own(d.scope)),
     compliance: ds.compliance.filter((c) => own(c.unit_id)),
     asset_reconciliations: ds.asset_reconciliations.filter((a) => own(a.unit_id)),
+    asset_items: ds.asset_items.filter((a) => own(a.unit_id)),
     demo_personas: ds.demo_personas,
   };
 }
@@ -71,6 +72,7 @@ export function kpwModuleData(ds: Dataset) {
     document_requests: excludeDr(ds.document_requests),
     audit_schedules: excludeDr(ds.audit_schedules),
     asset_reconciliations: excludeDr(ds.asset_reconciliations),
+    asset_items: excludeDr(ds.asset_items),
   };
 }
 

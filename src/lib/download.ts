@@ -12,3 +12,13 @@ export function downloadText(filename: string, text: string, mime = "text/plain;
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+
+/** Unduh berkas statis (mis. /demo/...xlsx) dengan nama berkas tertentu. */
+export function downloadUrl(url: string, filename: string) {
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}

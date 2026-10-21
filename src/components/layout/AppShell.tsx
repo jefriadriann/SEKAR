@@ -12,7 +12,9 @@ import { findingTimeliness } from "@/lib/analytics/findings";
 import { requestTimeliness } from "@/lib/analytics/permindok";
 import { startsWithin } from "@/lib/analytics/schedules";
 import { formatDate, formatDateLong } from "@/lib/dates";
-import { ROLE_LABEL } from "@/lib/format";
+import { clean, ROLE_LABEL } from "@/lib/format";
+import { fileKind } from "@/lib/materials";
+import { MaterialViewer } from "@/components/domain/MaterialViewer";
 import { canAccessRoute, kpwModuleData, type AppRoute } from "@/lib/scope";
 import { LoginPage } from "@/components/auth/LoginPage";
 import { NAV_ITEMS } from "./nav";
@@ -441,11 +443,15 @@ function SignOutButton() {
 function DocumentPreview() {
   const { previewDoc, closePreview, downloadDocument } = useSekar();
   const doc = previewDoc?.doc;
+  const content = previewDoc?.content;
+  const kind = fileKind(doc?.file_url);
+  const downloadLabel = kind === "pdf" ? "Unduh PDF" : kind === "xlsx" ? "Unduh Excel" : kind === "video" ? "Unduh video" : "Unduh .txt simulasi";
   return (
     <Drawer
       open={!!previewDoc}
       onClose={closePreview}
-      title={doc?.title ?? "Dokumen"}
+      title={doc ? clean(doc.title) : "Dokumen"}
+      width={doc?.file_url ? "max-w-4xl" : "max-w-xl"}
       subtitle={
         doc && (
           <span className="flex flex-wrap items-center gap-2">
@@ -462,28 +468,34 @@ function DocumentPreview() {
             <Button onClick={closePreview}>Tutup</Button>
             <Button variant="primary" onClick={() => downloadDocument(doc.id)}>
               <Download className="h-4 w-4" aria-hidden />
-              Unduh .txt simulasi
+              {downloadLabel}
             </Button>
           </>
         )
       }
     >
-      <SimulationNote>Pratinjau dokumen simulasi yang dibangun dari kolom content_text. Tidak ada berkas PDF asli.</SimulationNote>
+      <SimulationNote>
+        {doc?.file_url
+          ? "Berkas demo buatan SEKAR (simulasi). Isi, nomor, dan pasal fiktif — bukan dokumen resmi."
+          : "Pratinjau dokumen simulasi yang dibangun dari kolom content_text. Tidak ada berkas PDF asli."}
+      </SimulationNote>
       <div className="mt-4">
         {previewDoc?.error ? (
           <p role="alert" className="text-rose-700">
             {previewDoc.error}
           </p>
-        ) : !previewDoc?.content ? (
+        ) : !content ? (
           <p role="status" className="flex items-center gap-2 text-muted">
             <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Memuat pratinjau…
           </p>
-        ) : previewDoc.content.kind === "text" ? (
+        ) : content.kind === "text" ? (
           <pre className="whitespace-pre-wrap rounded-xl border border-line bg-slate-50 p-4 font-mono text-[13px] leading-relaxed text-navy-900">
-            {previewDoc.content.text}
+            {content.text}
           </pre>
+        ) : doc?.file_url ? (
+          <MaterialViewer doc={doc} url={content.url} />
         ) : (
-          <a href={previewDoc.content.url} target="_blank" rel="noopener noreferrer" className="font-semibold text-sky-700 underline">
+          <a href={content.url} target="_blank" rel="noopener noreferrer" className="font-semibold text-sky-700 underline">
             Buka dokumen (tautan bertanda tangan, berlaku singkat)
           </a>
         )}

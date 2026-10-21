@@ -12,7 +12,7 @@ insert into public.user_access (user_id, role, unit_id, display_name) values
   ('00000000-0000-0000-0000-00000000000b', 'kpw', 'kpw-01', 'KPw Uji')
 on conflict do nothing;
 insert into storage.objects (bucket_id, name) values
-  ('sekar-documents', 'shared/REFDOC-1-worksheet.txt'),
+  ('sekar-documents', 'shared/MAT-REF-1-ws-pengendalian.txt'),
   ('sekar-documents', 'dr/rahasia.txt'),
   ('sekar-documents', 'kpw-01/DOC-0001.txt'),
   ('sekar-documents', 'kpw-02/DOC-0002.txt');
@@ -31,7 +31,10 @@ select pg_temp.expect('kpw findings non-kpw-01', (select count(*) from public.fi
 select pg_temp.expect('kpw findings DR', (select count(*) from public.findings where unit_id = 'dr'), 0);
 select pg_temp.expect('kpw compliance', (select count(*) from public.compliance_items), 0);
 select pg_temp.expect('kpw documents scope asing', (select count(*) from public.documents where scope not in ('shared', 'kpw-01')), 0);
-select pg_temp.expect('kpw references', (select count(*) from public.reference_materials), 32);
+select pg_temp.expect('kpw references', (select count(*) from public.reference_materials), 57);
+select pg_temp.expect('kpw asset_items unit lain', (select count(*) from public.asset_items where unit_id <> 'kpw-01'), 0);
+select pg_temp.expect('kpw asset_items sendiri', (select count(*) from public.asset_items where unit_id = 'kpw-01'), 21);
+with u as (update public.asset_items set status = 'selesai' returning 1) select pg_temp.expect('kpw ubah asset_items', (select count(*) from u), 0);
 select pg_temp.expect('kpw user_access', (select count(*) from public.user_access), 1);
 select pg_temp.expect('kpw storage', (select count(*) from storage.objects), 2);
 -- update unit lain tidak berpengaruh
@@ -59,6 +62,7 @@ select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-00000000000e
 select pg_temp.expect('unmapped findings', (select count(*) from public.findings), 0);
 select pg_temp.expect('unmapped documents', (select count(*) from public.documents), 0);
 select pg_temp.expect('unmapped references', (select count(*) from public.reference_materials), 0);
+select pg_temp.expect('unmapped asset_items', (select count(*) from public.asset_items), 0);
 select pg_temp.expect('unmapped storage', (select count(*) from storage.objects), 0);
 
 -- Anon
@@ -74,9 +78,10 @@ end $$;
 reset role;
 set role authenticated;
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-00000000000d', false);
-select pg_temp.expect('dr findings', (select count(*) from public.findings), 1289);
-select pg_temp.expect('dr findings unit dr', (select count(*) from public.findings where unit_id = 'dr'), 24);
-select pg_temp.expect('dr compliance', (select count(*) from public.compliance_items), 24);
+select pg_temp.expect('dr findings', (select count(*) from public.findings), 1688);
+select pg_temp.expect('dr findings unit dr', (select count(*) from public.findings where unit_id = 'dr'), 84);
+select pg_temp.expect('dr compliance', (select count(*) from public.compliance_items), 32);
+select pg_temp.expect('dr asset_items unit dr', (select count(*) from public.asset_items where unit_id = 'dr'), 90);
 select pg_temp.expect('dr storage', (select count(*) from storage.objects), 4);
 with u as (update public.units set name = 'x' returning 1) select pg_temp.expect('dr ubah units', (select count(*) from u), 0);
 -- membuka kembali mengosongkan completed_at

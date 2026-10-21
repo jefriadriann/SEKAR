@@ -113,9 +113,9 @@ test("semua halaman tampil tanpa error konsol dan tanpa overflow horizontal", as
 test("hasil pemeriksaan: filter, klik kategori, drilldown, edit status tersimpan lokal", async ({ page }) => {
   await ready(page, "/hasil-pemeriksaan");
   const areaCard = page.locator("section", { has: page.getByRole("heading", { name: "Jumlah Temuan per Area" }) });
-  await expect(areaCard.getByText(/300 temuan · \d+ KPwDN · tahun 2026/)).toBeVisible();
+  await expect(areaCard.getByText(/383 temuan · \d+ KPwDN · tahun 2026/)).toBeVisible();
   await page.getByLabel("Tahun Pemeriksaan").selectOption("all");
-  await expect(areaCard.getByText(/1\.265 temuan · 46 KPwDN · semua tahun/)).toBeVisible();
+  await expect(areaCard.getByText(/1\.604 temuan · 46 KPwDN · semua tahun/)).toBeVisible();
 
   // Klik kategori via tampilan tabel chart (setara klik bar) + reset.
   await areaCard.getByRole("button", { name: "Tabel" }).click();
@@ -258,16 +258,49 @@ test("notifikasi: lonceng menampilkan tautan tindak lanjut", async ({ page }) =>
   await expect(page).toHaveURL(/\/permindok$/);
 });
 
-test("SGo: pencarian, preview materi, tutorial langkah demi langkah", async ({ page }) => {
+test("SGo: video pengenalan, pop-up worksheet & ketentuan, pencarian", async ({ page }) => {
   await ready(page, "/sgo-ketentuan");
   await expect(page.locator("article")).toHaveCount(8);
-  await page.getByRole("button", { name: "Tutorial Aset" }).click();
-  await expect(page.getByRole("dialog").getByText("Langkah 1:")).toBeAttached();
+  await expect(page.getByLabel("Video pengenalan SGo", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Worksheet Aset" }).click();
+  const pop = page.getByRole("dialog", { name: "Worksheet · Aset" });
+  await expect(pop.getByText("Worksheet Aktivitas & Supervisi")).toBeVisible();
+  await expect(pop.getByText("Worksheet Pengendalian")).toBeVisible();
+  const dl = page.waitForEvent("download");
+  await pop.getByRole("button", { name: /Unduh .*Pengendalian Aset/ }).click();
+  expect((await dl).suggestedFilename()).toBe("aset-ws-pengendalian.xlsx");
+  await pop.getByRole("button", { name: /Pratinjau .*Pengendalian Aset/ }).click();
+  await expect(page.getByRole("dialog").getByRole("columnheader", { name: "Pengendalian Kunci" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "Ketentuan Aset" }).click();
+  const ket = page.getByRole("dialog", { name: "Ketentuan · Aset" });
+  for (const label of ["Peraturan Dewan Gubernur", "Peraturan Anggota Dewan Gubernur Intern", "Petunjuk Teknis", "Surat Edaran Intern"]) await expect(ket.getByText(new RegExp(`^${label}`)).first()).toBeVisible();
   await page.keyboard.press("Escape");
   await page.getByLabel("Cari materi").fill("Pengadaan");
-  await expect(page.getByRole("heading", { name: "Hasil pencarian (4)" })).toBeVisible();
-  await page.getByRole("button", { name: "Buka" }).first().click();
-  await expect(page.getByRole("dialog").getByText("MATERI SIMULASI")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Hasil pencarian (6)" })).toBeVisible();
+});
+
+test("rekonsiliasi aset KPw: daftar aset, asesmen per aspek, video pop-up", async ({ page }) => {
+  await ready(page, "/");
+  await switchAccount(page, "kpw");
+  await ready(page, "/hasil-pemeriksaan", "kpw");
+  await page.getByRole("button", { name: /Hasil Rekonsiliasi Aset/ }).click();
+  const drawer = page.getByRole("dialog");
+  await expect(drawer.getByRole("table", { name: "Daftar aset dengan hasil asesmen tidak sesuai" })).toBeVisible();
+  await drawer.getByRole("button", { name: /^Buka detail / }).first().click();
+  await expect(drawer.getByRole("heading", { name: /Hasil asesmen per aspek/ })).toBeVisible();
+  await expect(drawer.getByText("Umur ekonomis", { exact: true })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: /Video Panduan Pencatatan Aset/ }).click();
+  await page.getByRole("button", { name: /Mutasi Aset/ }).click();
+  await expect(page.getByRole("dialog", { name: "Video Mutasi Aset" }).locator("video")).toBeVisible();
+});
+
+test("hasil pemeriksaan DR: pengalih cakupan menampilkan temuan satker DR", async ({ page }) => {
+  await ready(page, "/hasil-pemeriksaan");
+  await page.getByRole("group", { name: "Cakupan hasil pemeriksaan" }).getByRole("button", { name: "Departemen Regional" }).click();
+  await expect(page.getByRole("heading", { name: "Hasil Pemeriksaan Departemen Regional", level: 1 })).toBeVisible();
+  await expect(page.locator('[data-kpi="Total Temuan DR"]')).toHaveText("84");
 });
 
 test("admin: import tidak valid ditolak, import valid diterapkan, reset seed", async ({ page }) => {

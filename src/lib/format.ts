@@ -1,4 +1,4 @@
-import type { ComplianceStatus, FindingStatus, ReferenceKind, RequestStatus, Role } from "./types";
+import type { AssetAction, AssetAspect, ComplianceStatus, FindingStatus, ReferenceKind, RequestStatus, Role } from "./types";
 
 export const FINDING_STATUS_LABEL: Record<FindingStatus, string> = {
   selesai: "Selesai",
@@ -24,6 +24,33 @@ export const REFERENCE_KIND_LABEL: Record<ReferenceKind, string> = {
   ketentuan: "Ketentuan",
   tutorial: "Tutorial",
 };
+
+export const ASSET_ASPECT_LABEL: Record<AssetAspect, string> = {
+  umur_ekonomis: "Umur ekonomis",
+  harga_perolehan: "Harga perolehan",
+  satuan_aset: "Satuan pencatatan",
+  keberadaan_fisik: "Keberadaan fisik",
+  kondisi_fisik: "Kondisi fisik",
+  lokasi: "Lokasi / penanggung jawab",
+  klasifikasi: "Kode klasifikasi",
+  dokumen_kepemilikan: "Dokumen kepemilikan",
+  label: "Label aset",
+};
+
+export const ASSET_ACTION_LABEL: Record<AssetAction, string> = {
+  split: "Split Aset",
+  penghapusan: "Penghapusan Aset",
+  penatausahaan: "Penatausahaan Aset",
+  mutasi: "Mutasi Aset",
+  reklasifikasi: "Reklasifikasi Aset",
+  koreksi_nilai: "Koreksi Harga Perolehan",
+  penyesuaian_umur: "Penyesuaian Umur Ekonomis",
+  inventarisasi: "Inventarisasi Fisik",
+};
+
+export function formatRupiah(n: number): string {
+  return `Rp${Math.round(n).toLocaleString("id-ID")}`;
+}
 
 export const ROLE_LABEL: Record<Role, string> = {
   dr: "DR",

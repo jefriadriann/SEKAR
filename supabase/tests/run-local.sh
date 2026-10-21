@@ -14,6 +14,6 @@ trap cleanup EXIT
 "${RUNAS[@]}" "$PGBIN/pg_ctl" -D "$WORK/data" -o "-p $PORT -k $WORK -c listen_addresses=''" -l "$WORK/log" start >/dev/null
 PSQL=("${RUNAS[@]}" "$PGBIN/psql" -h "$WORK" -p "$PORT" -U postgres -d postgres -v ON_ERROR_STOP=1 -q -t -A)
 "${PSQL[@]}" -f "$ROOT/supabase/tests/00_local_stub.sql"
-"${PSQL[@]}" -c "set client_min_messages=warning" -f "$ROOT/supabase/migrations/0001_sekar_schema.sql"
+for m in "$ROOT"/supabase/migrations/*.sql; do "${PSQL[@]}" -c "set client_min_messages=warning" -f "$m"; done
 "${PSQL[@]}" -f "$ROOT/supabase/seed.sql"
 "${PSQL[@]}" -f "$ROOT/supabase/tests/02_rls_check.sql" 2>&1 | sed 's/^psql:[^ ]* NOTICE:  /  /'

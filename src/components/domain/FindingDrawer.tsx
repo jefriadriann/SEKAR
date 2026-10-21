@@ -8,7 +8,7 @@ import { Badge, Button, DescriptionList } from "@/components/ui/primitives";
 import { FindingStatusBadge, TimelinessBadge } from "@/components/ui/StatusBadges";
 import { findingTimeliness } from "@/lib/analytics/findings";
 import { formatDate } from "@/lib/dates";
-import { FINDING_STATUS_LABEL } from "@/lib/format";
+import { clean, FINDING_STATUS_LABEL } from "@/lib/format";
 import { FINDING_STATUSES, type Finding, type FindingStatus } from "@/lib/types";
 
 /** Drawer detail temuan: rincian, bukti terkait dan edit status (demo). */
@@ -131,7 +131,7 @@ function FindingDetail({ finding }: { finding: Finding }) {
             {related.map((r) => (
               <li key={r.id}>
                 <button type="button" onClick={() => openDocument(r.document_id)} className="text-left font-semibold text-sky-800 underline-offset-2 hover:underline">
-                  {r.title}
+                  {clean(r.title)}
                 </button>
               </li>
             ))}

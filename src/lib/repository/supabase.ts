@@ -9,7 +9,7 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { ComplianceStatus, Dataset, DatasetMetadata, FindingStatus, ISODate, SekarDocument, Viewer } from "../types";
 import { applyFindingStatus, replaceById, validateRequestPatch, type RequestPatch } from "../mutations";
-import { documentFilename, documentText, type DocumentContent, type LoadResult, type SekarRepository } from "./types";
+import { documentFilename, documentText, fileUrlName, type DocumentContent, type LoadResult, type SekarRepository } from "./types";
 
 const PAGE = 1000;
 
@@ -62,7 +62,7 @@ export class SupabaseRepository implements SekarRepository {
   async load(): Promise<LoadResult> {
     const viewer = await this.getViewer();
     if (!viewer) throw new Error("Akun belum dipetakan ke peran/unit oleh admin.");
-    const [metaRows, units, findings, requests, schedules, references, documents, compliance, assets] = await Promise.all([
+    const [metaRows, units, findings, requests, schedules, references, documents, compliance, assets, assetItems] = await Promise.all([
       this.fetchAll<DatasetMetadata & { id: number }>("dataset_metadata"),
       this.fetchAll<Dataset["units"][number]>("units"),
       this.fetchAll<Dataset["findings"][number]>("findings"),
@@ -72,6 +72,7 @@ export class SupabaseRepository implements SekarRepository {
       this.fetchAll<SekarDocument>("documents"),
       this.fetchAll<Dataset["compliance"][number]>("compliance_items"),
       this.fetchAll<Dataset["asset_reconciliations"][number]>("asset_reconciliations"),
+      this.fetchAll<Dataset["asset_items"][number]>("asset_items"),
     ]);
     const meta = metaRows[0];
     if (!meta) throw new Error("Tabel dataset_metadata kosong. Jalankan supabase/seed.sql terlebih dahulu.");
@@ -91,6 +92,7 @@ export class SupabaseRepository implements SekarRepository {
       documents,
       compliance,
       asset_reconciliations: assets,
+      asset_items: assetItems,
       demo_personas: [],
     };
     this.cache = {
@@ -149,6 +151,7 @@ export class SupabaseRepository implements SekarRepository {
   }
 
   async getDocumentContent(doc: SekarDocument): Promise<DocumentContent> {
+    if (!doc.storage_path && doc.file_url) return { kind: "url", url: doc.file_url, filename: fileUrlName(doc.file_url) };
     if (!doc.storage_path) return { kind: "text", text: documentText(doc), filename: documentFilename(doc) };
     const { data } = await this.client.auth.getSession();
     const token = data.session?.access_token;

@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { AppConfig } from "@/lib/config";
 import { isValidISODate } from "@/lib/dates";
-import { downloadText } from "@/lib/download";
+import { downloadText, downloadUrl } from "@/lib/download";
 import type { RequestPatch } from "@/lib/mutations";
 import { DummyRepository, PREFS_KEY } from "@/lib/repository/dummy";
 import type { DatasetSource, DocumentContent, LoadResult, SekarRepository } from "@/lib/repository/types";
@@ -272,6 +272,7 @@ export function SekarProvider({ config, children }: { config: AppConfig; childre
       try {
         const c = await repoRef.current.getDocumentContent(doc);
         if (c.kind === "text") downloadText(c.filename, c.text);
+        else if (doc.file_url) downloadUrl(c.url, c.filename);
         else window.open(c.url, "_blank", "noopener");
         notify(`Berkas ${c.filename} diunduh.`, "success");
       } catch (e) {
